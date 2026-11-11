@@ -1,0 +1,31 @@
+### Teste de Status da API
+GET http://localhost:3333/api/status
+
+###
+
+### Listar todos os eventos
+GET http://localhost:3333/api/eventos
+
+###
+
+### Cadastro de novo usuário
+POST http://localhost:3333/api/usuarios/cadastro
+Content-Type: application/json
+
+{
+  "nome": "João Pedro",
+  "email": "joao@email.com",
+  "senha": "senha_segura_123",
+  "data_nascimento": "2006-03-30"
+}
+
+###
+
+### Login do usuário
+POST http://localhost:3333/api/usuarios/login
+Content-Type: application/json
+
+{
+  "email": "kayo@email.com",
+  "senha": "qualquer_senha"
+}
