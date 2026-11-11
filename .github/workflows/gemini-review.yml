@@ -1,0 +1,128 @@
+# Revisa pull requests com o Gemini Pro.
+# A chave fica no secret GEMINI_API_KEY (Settings > Secrets and variables > Actions).
+# Ela não entra no repositório.
+#
+# Dispara ao abrir, atualizar ou reabrir um PR que não seja rascunho nem fork.
+# Para pedir de novo, comente no PR: @gemini-cli /review
+
+name: Revisão Gemini
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+  issue_comment:
+    types:
+      - created
+
+concurrency:
+  group: gemini-review-${{ github.event.pull_request.number || github.event.issue.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  review:
+    if: >-
+      (
+        github.event_name == 'pull_request' &&
+        github.event.pull_request.draft == false &&
+        github.event.pull_request.head.repo.fork == false
+      ) || (
+        github.event_name == 'issue_comment' &&
+        github.event.issue.pull_request &&
+        github.event.sender.type == 'User' &&
+        contains(github.event.comment.body, '@gemini-cli /review') &&
+        contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          persist-credentials: false
+
+      - name: Contexto da revisão
+        env:
+          REPOSITORY: ${{ github.repository }}
+          PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+          ADDITIONAL_CONTEXT: >-
+            Escreva a revisão em português. O projeto é o KdABoa, um sistema
+            que conecta jovens a eventos da cidade. Aponte bugs, falhas de
+            segurança, regressões e problemas de manutenção. Cite o arquivo e
+            a mudança. Não aprove o pull request.
+        run: |
+          mkdir -p .gemini
+          jq -n \
+            --arg repo "${REPOSITORY}" \
+            --arg pr "${PULL_REQUEST_NUMBER}" \
+            --arg context "${ADDITIONAL_CONTEXT}" \
+            '{repository: $repo, pull_request_number: $pr, additional_context: $context}' \
+            > .gemini/context.json
+
+      - name: Revisar com Gemini Pro
+        id: gemini
+        uses: google-github-actions/run-gemini-cli@v0
+        env:
+          GEMINI_CLI_TRUST_WORKSPACE: "true"
+          GITHUB_TOKEN: ${{ github.token }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        with:
+          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+          gemini_model: gemini-3.1-pro-preview
+          workflow_name: gemini-review
+          github_pr_number: ${{ github.event.pull_request.number || github.event.issue.number }}
+          prompt: /pr-code-review
+          extensions: |
+            [
+              "https://github.com/gemini-cli-extensions/code-review"
+            ]
+          settings: |
+            {
+              "model": {
+                "maxSessionTurns": 25
+              },
+              "mcpServers": {
+                "github": {
+                  "command": "docker",
+                  "args": [
+                    "run",
+                    "-i",
+                    "--rm",
+                    "-e",
+                    "GITHUB_PERSONAL_ACCESS_TOKEN",
+                    "ghcr.io/github/github-mcp-server:v0.27.0"
+                  ],
+                  "includeTools": [
+                    "add_comment_to_pending_review",
+                    "pull_request_read",
+                    "pull_request_review_write"
+                  ],
+                  "env": {
+                    "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+                  }
+                }
+              },
+              "tools": {
+                "core": []
+              }
+            }
+
+      - name: Avisar se a revisão falhar
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+          REPOSITORY: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment "${ISSUE_NUMBER}" \
+            --repo "${REPOSITORY}" \
+            --body "A revisão com o Gemini não terminou. O log está em ${RUN_URL}."
