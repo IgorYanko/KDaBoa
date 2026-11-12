@@ -10,6 +10,7 @@
     "dev:backend": "pnpm --filter kdaboa-backend dev",
     "dev:frontend": "pnpm --filter kdaboa-frontend dev",
     "lint": "pnpm --filter \"./apps/*\" lint",
+    "test": "pnpm --filter kdaboa-backend test",
     "build": "pnpm --filter \"./apps/*\" build"
   }
 }
