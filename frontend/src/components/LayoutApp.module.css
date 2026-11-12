@@ -1,0 +1,21 @@
+.app {
+  width: 100%;
+  max-width: var(--largura-app);
+  min-height: 100dvh;
+  margin: 0 auto;
+  background: var(--cor-fundo);
+  display: flex;
+  flex-direction: column;
+}
+
+.comBarra {
+  padding-bottom: var(--altura-barra);
+}
+
+/* No desktop, destaca a "tela do celular" no meio da página. */
+@media (min-width: 600px) {
+  .app {
+    border-left: 1px solid var(--cor-borda-suave);
+    border-right: 1px solid var(--cor-borda-suave);
+  }
+}

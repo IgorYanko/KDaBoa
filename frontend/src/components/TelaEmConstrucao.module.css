@@ -1,0 +1,19 @@
+.tela {
+  flex: 1;
+  padding: 72px var(--margem-tela) 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.titulo {
+  font-family: var(--fonte-titulo);
+  font-weight: 700;
+  font-size: 32px;
+  letter-spacing: -1px;
+}
+
+.texto {
+  color: var(--cor-texto-suave);
+  font-size: 15px;
+}
