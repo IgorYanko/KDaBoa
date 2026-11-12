@@ -9,7 +9,7 @@ import { Inicio } from './pages/Inicio/Inicio';
 import { Login } from './pages/Login/Login';
 import { Perfil } from './pages/Perfil/Perfil';
 
-/** Rotas do app. A tabela completa está em docs/PLANO-FRONT.md. */
+/** Rotas do app. */
 export function App() {
   return (
     <AuthProvider>
