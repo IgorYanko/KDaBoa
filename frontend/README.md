@@ -1,6 +1,6 @@
 # KdABoa — front
 
-App web (React + TypeScript + Vite) pensado para celular. Plano completo em [`docs/PLANO-FRONT.md`](../docs/PLANO-FRONT.md).
+App web (React + TypeScript + Vite) pensado para celular.
 
 ## Rodar
 
