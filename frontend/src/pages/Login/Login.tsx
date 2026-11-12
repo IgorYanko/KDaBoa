@@ -7,6 +7,7 @@ import { Botao } from '../../components/Botao';
 import { Campo } from '../../components/Campo';
 import { CampoSenha } from '../../components/CampoSenha';
 import { useAuth } from '../../contexts/useAuth';
+import { SENHA_MAXIMA } from '../Cadastro/validarCadastro';
 import styles from './Login.module.css';
 
 /** Estado enviado pelo cadastro ao voltar para cá. */
@@ -72,6 +73,7 @@ export function Login() {
             name="senha"
             autoComplete="current-password"
             placeholder="Sua senha"
+            maxLength={SENHA_MAXIMA}
             value={senha}
             onChange={(e) => setSenha(e.target.value)}
           />
