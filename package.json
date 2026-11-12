@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "lint": "biome lint ./src"
+    "lint": "biome lint ."
   },
   "keywords": [],
   "author": "",
