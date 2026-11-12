@@ -1,0 +1,42 @@
+.grupo {
+  margin: 0;
+  min-width: 0;
+  display: flex;
+  gap: 6px;
+  padding: 4px;
+  background: var(--cor-superficie);
+  border: none;
+  border-radius: var(--raio-campo);
+}
+
+/* Nome do grupo só para leitores de tela. */
+.legenda {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.opcao {
+  flex: 1;
+  min-width: 0;
+  height: 38px;
+  padding: 0 6px;
+  background: none;
+  border: none;
+  border-radius: 10px;
+  color: var(--cor-texto-suave);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.ativo {
+  background: var(--cor-texto);
+  color: var(--cor-sobre-destaque);
+  font-weight: 600;
+}

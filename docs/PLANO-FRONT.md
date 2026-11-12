@@ -79,7 +79,11 @@ Uma branch e um PR por etapa. Cada branch nasce da anterior; depois que um PR en
    - Login: e-mail inválido mostra o erro e fica na tela; sucesso vai para `/inicio`; "Esqueci minha senha" vai para `/redefinir-senha`; "Criar conta" vai para `/cadastro`.
    - Cadastro: nome, e-mail, nascimento, senha (mín. 8), interesses (categorias) e "Mostrar minha presença"; e-mail já cadastrado mostra o erro vindo da API; voltar leva ao login.
 
-Próximas fases (depois, uma de cada vez): Início e Detalhe (#22, #26, #28), Mapa (#24), Quem vai / Agenda / Perfil (#30, #38, #40), Divulgar evento (#43, #44), Chat (#32, #34, #36), Redefinir senha (#19).
+4. **Eventos (#22, #26, #28)** — branch `feat/front-eventos`: `EventoCard`, tela Início (busca e filtros Hoje / Fim de semana / Este mês) e Detalhe do evento com "Eu vou!" e cancelar presença.
+   - Presença e contador usam `services/presenca.ts` (mock guardado no navegador; rotas previstas `POST`/`DELETE /api/eventos/:id/presenca`).
+   - Campos novos no `EventoDTO`, marcados como PENDENTE: `data_fim`, `organizador` e `participantes_amostra`.
+
+Próximas fases (depois, uma de cada vez): Mapa (#24), Quem vai / Agenda / Perfil (#30, #38, #40), Divulgar evento (#43, #44), Chat (#32, #34, #36), Redefinir senha (#19).
 
 ## Como trocar o mock pela API
 
