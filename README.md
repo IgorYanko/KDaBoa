@@ -29,7 +29,7 @@ pnpm lint
 pnpm build
 ```
 
-O código fica em `apps/backend` e `apps/frontend`.
+O código fica em `apps/backend` e `apps/frontend`. A API lê `JWT_SECRET` de `apps/backend/.env` (modelo em `apps/backend/.env.example`).
 
 ## Equipe
 

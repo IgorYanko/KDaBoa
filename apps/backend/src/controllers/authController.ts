@@ -5,8 +5,16 @@ import jwt from 'jsonwebtoken';
 // Nosso "banco de dados" temporário na memória
 const usuariosMock: any[] = [];
 
-// Chave secreta (na versão final, isso vai para o arquivo .env)
-const JWT_SECRET = 'kdaboa_chave_secreta_teste'; 
+// Hash de custo 10 usado só para o login de e-mail inexistente levar o mesmo tempo.
+const HASH_SENHA_AUSENTE = '$2b$10$yB1lgsogYiGFZGz8oLDTU.KK2np7oXCVK53.M7qUOxiKDrUkrTOHW';
+
+function segredoJwt(): string {
+  const segredo = process.env.JWT_SECRET;
+  if (!segredo) {
+    throw new Error('JWT_SECRET não configurada');
+  }
+  return segredo;
+}
 
 export const cadastrar = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -37,22 +45,17 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, senha } = req.body;
 
-    // Busca o usuário pelo e-mail
+    // Busca o usuário pelo e-mail. Sem usuário, compara contra um hash fixo
+    // para a resposta não ficar mais rápida e revelar que o e-mail não existe.
     const usuario = usuariosMock.find(u => u.email === email);
-    if (!usuario) {
-      res.status(401).json({ erro: 'Credenciais inválidas' });
-      return;
-    }
-
-    // Compara a senha digitada com a senha criptografada que está no mock
-    const senhaValida = await bcrypt.compare(senha, usuario.senha);
-    if (!senhaValida) {
+    const senhaValida = await bcrypt.compare(senha, usuario?.senha ?? HASH_SENHA_AUSENTE);
+    if (!usuario || !senhaValida) {
       res.status(401).json({ erro: 'Credenciais inválidas' });
       return;
     }
 
     // Gera o token de acesso válido por 2 horas
-    const token = jwt.sign({ id: usuario.id, email: usuario.email }, JWT_SECRET, { expiresIn: '2h' });
+    const token = jwt.sign({ id: usuario.id, email: usuario.email }, segredoJwt(), { expiresIn: '2h' });
 
     res.json({ mensagem: 'Login bem-sucedido', token, usuario: { id: usuario.id, nome: usuario.nome } });
   } catch (error) {
