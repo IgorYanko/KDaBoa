@@ -6,6 +6,7 @@ import eventoRoutes from './routes/eventoRoutes';
 import usuarioRoutes from './routes/usuarioRoutes';
 import categoriaRoutes from './routes/categoriaRoutes';
 import localRoutes from './routes/localRoutes';
+import authRoutes from './routes/authRoutes';
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.use('/api/eventos', eventoRoutes);
 app.use('/api/usuarios', usuarioRoutes);
 app.use('/api/categorias', categoriaRoutes);
 app.use('/api/locais', localRoutes);
+app.use('/api/auth', authRoutes);
 
 app.get('/api/status', (req, res) => {
   res.json({ status: 'API KdABoa rodando!', release: 2 });

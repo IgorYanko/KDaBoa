@@ -57,7 +57,7 @@ Rotas privadas (#21): sem sessão, redirecionam para `/login`. Barra inferior: I
 ## Estrutura de pastas
 
 ```
-frontend/src/
+apps/frontend/src/
 ├── api/client.ts         # fetch com base URL, token e erros padronizados
 ├── components/           # Campo, CampoSenha, Botao, Chip, Switch, BarraInferior...
 ├── contexts/AuthContext.tsx
@@ -84,5 +84,5 @@ Próximas fases (depois, uma de cada vez): Início e Detalhe (#22, #26, #28), Ma
 ## Como trocar o mock pela API
 
 1. O backend implementa a rota com os campos do DTO correspondente.
-2. Em `frontend/.env.local`, definir `VITE_USAR_MOCK=false` (e `VITE_API_URL` se não for `http://localhost:3333`).
+2. Em `apps/frontend/.env.local`, definir `VITE_USAR_MOCK=false` (e `VITE_API_URL` se não for `http://localhost:3333`).
 3. Testar a tela. Se algum campo vier diferente, combinar com o back antes de mudar o DTO.

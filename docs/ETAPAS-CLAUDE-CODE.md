@@ -4,8 +4,8 @@ Como usar: deixe este arquivo em `docs/` junto com o `PLANO-FRONT.md`. Para cada
 
 Regras para o Claude Code em todas as etapas:
 - Faça **só** a etapa pedida; não adiante arquivos de outras etapas.
-- Siga `docs/PLANO-FRONT.md` e `frontend/CLAUDE.md`.
-- Use os DTOs de `frontend/src/dtos/index.ts` sem mudar os campos.
+- Siga `docs/PLANO-FRONT.md` e `apps/frontend/CLAUDE.md`.
+- Use os DTOs de `apps/frontend/src/dtos/index.ts` sem mudar os campos.
 - Ao terminar, liste o que criou/alterou, como testar, e revise o trabalho contra o plano e o CLAUDE.md.
 - Não faça commit nem push sem eu pedir.
 
@@ -23,7 +23,7 @@ git checkout -b <branch>
 **Depois** (com tudo testado)
 ```bash
 git status
-git add docs frontend
+git add docs apps
 git commit -m "<mensagem>"
 git push -u origin <branch>
 ```
@@ -33,16 +33,16 @@ Abrir o PR no GitHub para a `main` e esperar a aprovação do Igor antes da pró
 
 ## Etapa 1 — Base
 - Branch: `feat/front-base`
-- Antes de pedir: `docs/PLANO-FRONT.md`, `docs/ETAPAS-CLAUDE-CODE.md`, `frontend/CLAUDE.md` e `frontend/src/dtos/index.ts` já no lugar.
+- Antes de pedir: `docs/PLANO-FRONT.md`, `docs/ETAPAS-CLAUDE-CODE.md`, `apps/frontend/CLAUDE.md` e `apps/frontend/src/dtos/index.ts` já no lugar.
 - Pedido:
-  > Leia docs/PLANO-FRONT.md e frontend/CLAUDE.md. Faça só a Etapa 1. Crie o projeto Vite (React + TypeScript) dentro de frontend/ sem apagar o CLAUDE.md nem src/dtos/index.ts que já estão lá. No fim, me diga como rodar e o que criou.
-- Pronto quando: `npm run dev` em `frontend/` abre o layout de celular com a barra inferior e as 10 rotas navegáveis (vazias).
+  > Leia docs/PLANO-FRONT.md e apps/frontend/CLAUDE.md. Faça só a Etapa 1. Crie o projeto Vite (React + TypeScript) dentro de apps/frontend/ sem apagar o CLAUDE.md nem src/dtos/index.ts que já estão lá. No fim, me diga como rodar e o que criou.
+- Pronto quando: `pnpm dev:frontend` na raiz abre o layout de celular com a barra inferior e as 10 rotas navegáveis (vazias).
 - Commit: `feat(front): base do projeto com Vite, tokens e rotas`
 
 ## Etapa 2 — DTOs, cliente e services
 - Branch: `feat/front-dtos-api`
 - Pedido:
-  > Faça a Etapa 2 do docs/PLANO-FRONT.md. Use os DTOs de frontend/src/dtos/index.ts sem mudar os campos. Crie o api/client.ts, os services, o AuthContext e o utils/datas.ts. Teste os services contra a API rodando em http://localhost:3333.
+  > Faça a Etapa 2 do docs/PLANO-FRONT.md. Use os DTOs de apps/frontend/src/dtos/index.ts sem mudar os campos. Crie o api/client.ts, os services, o AuthContext e o utils/datas.ts. Teste os services contra a API rodando em http://localhost:3333.
 - Pronto quando: os services de eventos, categorias, locais e login respondem com dados da API, tipados.
 - Commit: `feat(front): DTOs, cliente da API, services e AuthContext`
 
