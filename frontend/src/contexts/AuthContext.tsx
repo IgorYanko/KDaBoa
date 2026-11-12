@@ -1,4 +1,5 @@
-import { createContext, type ReactNode, useCallback, useMemo, useState } from 'react';
+import { createContext, type ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
+import { EVENTO_SESSAO_ENCERRADA } from '../api/client';
 import { limparSessao, lerSessao, type Sessao, salvarSessao } from '../api/sessao';
 import type { LoginRequestDTO, UsuarioResumoDTO } from '../dtos';
 import { login } from '../services/auth';
@@ -27,6 +28,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const sair = useCallback(() => {
     limparSessao();
     setSessao(null);
+  }, []);
+
+  // Se a API recusar o token em qualquer requisição, a sessão acaba.
+  useEffect(() => {
+    const aoEncerrar = () => setSessao(null);
+    window.addEventListener(EVENTO_SESSAO_ENCERRADA, aoEncerrar);
+    return () => window.removeEventListener(EVENTO_SESSAO_ENCERRADA, aoEncerrar);
   }, []);
 
   const valor = useMemo<AuthContextValor>(

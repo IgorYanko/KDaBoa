@@ -11,7 +11,7 @@ import type { CadastroRequestDTO, CategoriaDTO } from '../../dtos';
 import { cadastrar } from '../../services/auth';
 import { listarCategorias } from '../../services/categorias';
 import styles from './Cadastro.module.css';
-import { type ErrosCadastro, validarCadastro } from './validarCadastro';
+import { type ErrosCadastro, nascimentoMaximo, SENHA_MAXIMA, validarCadastro } from './validarCadastro';
 
 const INICIAL: CadastroRequestDTO = {
   nome: '',
@@ -19,7 +19,8 @@ const INICIAL: CadastroRequestDTO = {
   senha: '',
   data_nascimento: '',
   interesses: [],
-  mostrar_presenca: true,
+  // Privado por padrão: a pessoa escolhe se quer aparecer em "Quem vai".
+  mostrar_presenca: false,
 };
 
 /** Tela 2 · Cadastro (issue #16). */
@@ -43,10 +44,14 @@ export function Cadastro() {
   }
 
   function alternarInteresse(id: number) {
-    const lista = dados.interesses.includes(id)
-      ? dados.interesses.filter((i) => i !== id)
-      : [...dados.interesses, id];
-    alterar('interesses', lista);
+    // Calcula a partir do estado mais recente: toques seguidos antes do próximo render não se perdem.
+    setDados((atual) => ({
+      ...atual,
+      interesses: atual.interesses.includes(id)
+        ? atual.interesses.filter((i) => i !== id)
+        : [...atual.interesses, id],
+    }));
+    setErros((atual) => ({ ...atual, interesses: undefined }));
   }
 
   async function aoEnviar(evento: FormEvent<HTMLFormElement>) {
@@ -110,7 +115,7 @@ export function Cadastro() {
             name="data_nascimento"
             autoComplete="bday"
             compacto
-            max={new Date().toISOString().slice(0, 10)}
+            max={nascimentoMaximo()}
             value={dados.data_nascimento}
             erro={erros.data_nascimento}
             onChange={(e) => alterar('data_nascimento', e.target.value)}
@@ -122,6 +127,7 @@ export function Cadastro() {
             autoComplete="new-password"
             placeholder="Mín. 8 caracteres"
             compacto
+            maxLength={SENHA_MAXIMA}
             value={dados.senha}
             erro={erros.senha}
             onChange={(e) => alterar('senha', e.target.value)}
