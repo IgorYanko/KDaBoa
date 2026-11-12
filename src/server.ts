@@ -5,6 +5,8 @@ import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './swagger';
 import eventoRoutes from './routes/eventoRoutes';
 import usuarioRoutes from './routes/usuarioRoutes';
+import categoriaRoutes from './routes/categoriaRoutes';
+import localRoutes from './routes/localRoutes';
 
 dotenv.config();
 
@@ -19,6 +21,8 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // Rotas da API
 app.use('/api/eventos', eventoRoutes);
 app.use('/api/usuarios', usuarioRoutes);
+app.use('/api/categorias', categoriaRoutes);
+app.use('/api/locais', localRoutes);
 
 app.get('/api/status', (req, res) => {
   res.json({ status: 'API KdABoa rodando!', release: 2 });
