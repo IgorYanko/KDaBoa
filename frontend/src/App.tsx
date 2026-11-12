@@ -3,7 +3,7 @@ import { LayoutApp } from './components/LayoutApp';
 import { TelaEmConstrucao } from './components/TelaEmConstrucao';
 
 /**
- * Rotas do app. A tabela completa está em docs/PLANO-FRONT.md.
+ * Rotas do app.
  * As rotas privadas (só com sessão) entram na Etapa 2, junto com o AuthContext.
  */
 export function App() {
