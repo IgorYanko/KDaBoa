@@ -1,0 +1,99 @@
+.tela {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 56px var(--margem-tela) 36px;
+}
+
+.voltar {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cor-superficie);
+  border-radius: var(--raio-campo);
+}
+
+.cabecalho {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.titulo {
+  font-family: var(--fonte-titulo);
+  font-weight: 700;
+  font-size: 32px;
+  letter-spacing: -1px;
+  color: var(--cor-texto);
+}
+
+.subtitulo {
+  font-size: 15px;
+  color: var(--cor-texto-suave);
+}
+
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.duasColunas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.interesses {
+  margin: 0;
+  padding: 4px 0 0;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.legenda {
+  padding: 0;
+  margin-bottom: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cor-rotulo);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.erro {
+  font-size: 12px;
+  color: var(--cor-erro);
+}
+
+.presenca {
+  padding-top: 4px;
+}
+
+.acoes {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rodape {
+  text-align: center;
+  font-size: 14px;
+  color: var(--cor-texto-suave);
+}
+
+.destaque {
+  font-weight: 600;
+  color: var(--cor-destaque);
+}

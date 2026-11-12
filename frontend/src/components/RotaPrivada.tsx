@@ -9,9 +9,10 @@ export function RotaPrivada() {
   return <Outlet />;
 }
 
-/** Telas de login/cadastro: quem já está logado vai direto para o Início. */
+/** Telas de login/cadastro: quem já está logado vai para o Início (ou para a tela que tentou abrir). */
 export function RotaPublica() {
   const { logado } = useAuth();
-  if (logado) return <Navigate to="/inicio" replace />;
+  const estado = useLocation().state as { de?: string } | null;
+  if (logado) return <Navigate to={estado?.de ?? '/inicio'} replace />;
   return <Outlet />;
 }

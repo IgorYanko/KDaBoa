@@ -1,0 +1,16 @@
+.olho {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  border-radius: 12px;
+  color: var(--cor-texto-suave);
+  cursor: pointer;
+}
+
+.ativo {
+  color: var(--cor-destaque);
+}

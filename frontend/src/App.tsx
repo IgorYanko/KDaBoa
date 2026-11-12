@@ -3,6 +3,8 @@ import { LayoutApp } from './components/LayoutApp';
 import { RotaPrivada, RotaPublica } from './components/RotaPrivada';
 import { TelaEmConstrucao } from './components/TelaEmConstrucao';
 import { AuthProvider } from './contexts/AuthContext';
+import { Cadastro } from './pages/Cadastro/Cadastro';
+import { Login } from './pages/Login/Login';
 import { Perfil } from './pages/Perfil/Perfil';
 
 /** Rotas do app. A tabela completa está em docs/PLANO-FRONT.md. */
@@ -14,8 +16,8 @@ export function App() {
           {/* Públicas */}
           <Route element={<RotaPublica />}>
             <Route element={<LayoutApp />}>
-              <Route path="/login" element={<TelaEmConstrucao titulo="Login" issue={14} />} />
-              <Route path="/cadastro" element={<TelaEmConstrucao titulo="Cadastro" issue={16} />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/cadastro" element={<Cadastro />} />
             </Route>
           </Route>
           <Route element={<LayoutApp />}>
