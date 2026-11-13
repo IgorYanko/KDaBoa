@@ -48,3 +48,14 @@ Content-Type: application/json
   "email": "joao@teste.com",
   "senha": "123"
 }
+
+### 3. Tentar criar um evento (Vai dar ERRO se estiver sem token)
+POST http://localhost:3333/api/eventos
+Content-Type: application/json
+Authorization: Bearer "COLE SEU TOKEN AQUI"
+
+{
+  "titulo": "Role de Skate na praça",
+  "descricao": "Campeonato amador de best trick",
+  "preco": 0
+}

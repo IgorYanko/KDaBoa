@@ -1,0 +1,18 @@
+.aviso {
+  padding: 12px 14px;
+  border-radius: var(--raio-campo);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.erro {
+  background: var(--cor-erro-fundo);
+  border: 1px solid var(--cor-erro);
+  color: var(--cor-erro);
+}
+
+.sucesso {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-destaque);
+  color: var(--cor-destaque);
+}
