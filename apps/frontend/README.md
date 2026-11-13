@@ -23,7 +23,9 @@ VITE_USAR_MOCK=false
 VITE_API_URL=http://localhost:3333
 ```
 
-Usuário de teste: `kayo@email.com` com qualquer senha.
+Usuário de teste: `kayo@email.com` com a senha `senha123`.
+
+O mock fica ligado por padrão só no `pnpm dev:frontend`. No build de produção ele vem desligado, a menos que `VITE_USAR_MOCK=true` seja definido de propósito.
 
 ## Outros comandos
 

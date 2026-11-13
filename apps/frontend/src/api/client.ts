@@ -1,6 +1,9 @@
 import { API_URL } from '../config';
 import type { ErroApiDTO } from '../dtos';
-import { lerSessao } from './sessao';
+import { lerSessao, limparSessao } from './sessao';
+
+/** Disparado quando a API recusa o token (401). O AuthContext escuta e desloga. */
+export const EVENTO_SESSAO_ENCERRADA = 'kdaboa:sessao-encerrada';
 
 /** Erro de uma requisição. `mensagem` já está pronta para mostrar na tela. */
 export class ErroApi extends Error {
@@ -46,6 +49,11 @@ export async function requisicao<T>(caminho: string, { metodo = 'GET', corpo }: 
   const dados: unknown = await resposta.json().catch(() => null);
 
   if (!resposta.ok) {
+    // Token recusado pela API: encerra a sessão para as rotas privadas voltarem a exigir login.
+    if (resposta.status === 401 && sessao) {
+      limparSessao();
+      window.dispatchEvent(new Event(EVENTO_SESSAO_ENCERRADA));
+    }
     const erro = (dados as Partial<ErroApiDTO> | null)?.erro;
     throw new ErroApi(erro ?? 'Algo deu errado. Tente de novo.', resposta.status);
   }

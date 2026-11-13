@@ -7,17 +7,19 @@ import type {
   LoginResponseDTO,
 } from '../dtos';
 import { atraso } from '../mocks/atraso';
-import { usuariosMock } from '../mocks/usuarios';
+import { senhasMock, usuariosMock } from '../mocks/usuarios';
 
-/** POST /api/usuarios/login */
+/** POST /api/auth/login */
 export async function login(dados: LoginRequestDTO): Promise<LoginResponseDTO> {
   if (!USAR_MOCK) {
-    return requisicao<LoginResponseDTO>('/api/usuarios/login', { metodo: 'POST', corpo: dados });
+    return requisicao<LoginResponseDTO>('/api/auth/login', { metodo: 'POST', corpo: dados });
   }
 
   await atraso();
-  const usuario = usuariosMock.find((u) => u.email === dados.email.trim().toLowerCase());
-  if (!usuario || !dados.senha) {
+  const email = dados.email.trim().toLowerCase();
+  const usuario = usuariosMock.find((u) => u.email === email);
+  // Mesma mensagem para e-mail inexistente e senha errada, para não revelar quais e-mails têm conta.
+  if (!usuario || senhasMock.get(email) !== dados.senha) {
     throw new ErroApi('E-mail ou senha inválidos', 401);
   }
   return {
@@ -27,10 +29,10 @@ export async function login(dados: LoginRequestDTO): Promise<LoginResponseDTO> {
   };
 }
 
-/** POST /api/usuarios/cadastro */
+/** POST /api/auth/cadastro */
 export async function cadastrar(dados: CadastroRequestDTO): Promise<CadastroResponseDTO> {
   if (!USAR_MOCK) {
-    return requisicao<CadastroResponseDTO>('/api/usuarios/cadastro', { metodo: 'POST', corpo: dados });
+    return requisicao<CadastroResponseDTO>('/api/auth/cadastro', { metodo: 'POST', corpo: dados });
   }
 
   await atraso();
@@ -48,6 +50,7 @@ export async function cadastrar(dados: CadastroRequestDTO): Promise<CadastroResp
     mostrar_presenca: dados.mostrar_presenca,
   };
   usuariosMock.push(novo);
+  senhasMock.set(email, dados.senha);
   return {
     mensagem: 'Usuário cadastrado com sucesso!',
     usuario: { id: novo.id, nome: novo.nome, email: novo.email, data_nascimento: novo.data_nascimento },
