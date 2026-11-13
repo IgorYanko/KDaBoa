@@ -1,0 +1,32 @@
+.pilha {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.avatar {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--cor-superficie);
+  border-radius: var(--raio-pilula);
+  background: var(--cor-avatar);
+  color: var(--cor-sobre-destaque);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.avatar + .avatar {
+  margin-left: -8px;
+}
+
+.grande .avatar {
+  width: 40px;
+  height: 40px;
+  font-size: 12px;
+}
+
+.grande .avatar + .avatar {
+  margin-left: -10px;
+}

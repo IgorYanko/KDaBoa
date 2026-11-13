@@ -10,6 +10,8 @@
     "lint": "biome lint ./src",
     "test": "prisma generate --config ../db/prisma.config.ts && vitest run",
     "build": "prisma generate --config ../db/prisma.config.ts && tsc",
+    "test": "vitest run --coverage",
+    "build": "tsc",
     "db:migrate": "prisma migrate deploy --config ../db/prisma.config.ts",
     "db:dev": "prisma migrate dev --config ../db/prisma.config.ts",
     "db:generate": "prisma generate --config ../db/prisma.config.ts"
@@ -41,6 +43,7 @@
     "@types/supertest": "^7.2.1",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
+    "@vitest/coverage-v8": "5.1.0",
     "prisma": "^7.10.1",
     "supertest": "^7.3.2",
     "tsx": "^4.23.15",

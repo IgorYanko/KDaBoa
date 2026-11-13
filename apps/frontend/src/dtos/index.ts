@@ -149,6 +149,8 @@ export interface EventoDTO {
   titulo: string;
   descricao: string;
   data_inicio: DataIso;
+  /** PENDENTE (issue #27): horário de término, para "21h às 2h" no detalhe. */
+  data_fim?: DataIso | null;
   /** Preço em reais; 0 = gratuito. */
   preco: number;
   /** Idade mínima; 0 = livre. */
@@ -156,6 +158,8 @@ export interface EventoDTO {
   categoria_id: number;
   local_id: number;
   criador_id: Uuid;
+  /** PENDENTE (issue #27): quem organiza, para "Organizado por ..." no detalhe. */
+  organizador?: UsuarioResumoDTO;
   /** PENDENTE (issue #46): caminho/URL da imagem de capa. */
   capa_url?: string | null;
   /** PENDENTE (issue #25): coordenadas do evento para o mapa. */
@@ -166,6 +170,11 @@ export interface EventoDTO {
   total_confirmados?: number;
   /** PENDENTE (issue #29): se o usuário logado confirmou presença. */
   eu_vou?: boolean;
+  /**
+   * PENDENTE (issues #29/#31): algumas pessoas que vão (até 4), para as bolinhas
+   * com iniciais no card e no detalhe. Respeita quem escolheu não mostrar presença.
+   */
+  participantes_amostra?: UsuarioResumoDTO[];
 }
 
 /** PENDENTE (issue #23): filtros da listagem (GET /api/eventos?...). */
