@@ -6,6 +6,17 @@
   --cor-superficie: #1c1b22;
   --cor-borda: #2e2c35;
   --cor-borda-suave: #24232a;
+  --cor-borda-cartao: #2a2930;
+  --cor-borda-tracejada: #3a3842;
+  --cor-superficie-elevada: #26252d;
+  --cor-etiqueta: rgba(17, 16, 20, 0.88);
+
+  /* Cores das categorias (faixa do card, topo do detalhe e avatares) */
+  --cor-categoria-1: #ff7a45;
+  --cor-categoria-2: #7c8cff;
+  --cor-categoria-3: #e879d6;
+  --cor-categoria-4: #f2c14e;
+  --cor-categoria-5: #3dd6a8;
   --cor-texto: #f4f3f7;
   --cor-texto-suave: #a3a1ab;
   --cor-rotulo: #c9c7d0;
