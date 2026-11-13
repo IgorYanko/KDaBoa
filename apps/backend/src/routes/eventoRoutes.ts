@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { eventoController } from '../controllers/eventoController';
+import { verificarToken } from '../middlewares/authMiddleware';
 
 const router = Router();
 
@@ -15,5 +16,6 @@ const router = Router();
  */
 router.get('/', eventoController.listar);
 router.get('/:id', eventoController.buscarPorId);
+router.post('/', verificarToken, eventoController.criar);
 
 export default router;
