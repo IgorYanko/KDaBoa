@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { ErroApi } from '../../api/client';
-import iconeLocal from '../../assets/icones/local-pequeno.svg';
+import iconeLocal from '../../assets/icones/local.svg';
 import iconeMais from '../../assets/icones/mais.svg';
 import { Aviso } from '../../components/Aviso';
 import { CampoBusca } from '../../components/CampoBusca';
 import { EventoCard } from '../../components/EventoCard';
+import { IconeMascara } from '../../components/IconeMascara';
 import { Segmentos } from '../../components/Segmentos';
 import { useAuth } from '../../contexts/useAuth';
 import type { FiltroEventosDTO } from '../../dtos';
@@ -59,7 +60,7 @@ export function Inicio() {
       <header className={styles.cabecalho}>
         <div className={styles.saudacao}>
           <p className={styles.cidade}>
-            <img src={iconeLocal} alt="" width={14} height={14} />
+            <IconeMascara src={iconeLocal} tamanho={14} />
             Pouso Alegre, MG
           </p>
           <h1 className={styles.titulo}>{primeiroNome ? `Bora sair, ${primeiroNome}?` : 'Bora sair?'}</h1>
