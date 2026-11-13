@@ -1,0 +1,61 @@
+### Teste de Status da API
+GET http://localhost:3333/api/status
+
+###
+
+### Listar todos os eventos
+GET http://localhost:3333/api/eventos
+
+###
+
+### Cadastro de novo usuário
+POST http://localhost:3333/api/usuarios/cadastro
+Content-Type: application/json
+
+{
+  "nome": "João Pedro",
+  "email": "joao@email.com",
+  "senha": "senha_segura_123",
+  "data_nascimento": "2006-03-30"
+}
+
+###
+
+### Login do usuário
+POST http://localhost:3333/api/usuarios/login
+Content-Type: application/json
+
+{
+  "email": "kayo@email.com",
+  "senha": "qualquer_senha"
+}
+
+### 1. Criar um novo usuário (Cadastro)
+POST http://localhost:3333/api/auth/cadastro
+Content-Type: application/json
+
+{
+  "nome": "João Pedro",
+  "email": "joao@teste.com",
+  "senha": "123"
+}
+
+### 2. Fazer Login (Gerar o Token)
+POST http://localhost:3333/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "joao@teste.com",
+  "senha": "123"
+}
+
+### 3. Tentar criar um evento (Vai dar ERRO se estiver sem token)
+POST http://localhost:3333/api/eventos
+Content-Type: application/json
+Authorization: Bearer "COLE SEU TOKEN AQUI"
+
+{
+  "titulo": "Role de Skate na praça",
+  "descricao": "Campeonato amador de best trick",
+  "preco": 0
+}
