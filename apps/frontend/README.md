@@ -1,6 +1,6 @@
 # KdABoa — front
 
-App web (React + TypeScript + Vite) pensado para celular. Plano completo em [`docs/PLANO-FRONT.md`](../../docs/PLANO-FRONT.md).
+App web (React + TypeScript + Vite) pensado para celular.
 
 ## Rodar
 
@@ -12,6 +12,20 @@ pnpm dev:frontend   # abre em http://localhost:5173
 ```
 
 Para testar no celular na mesma rede Wi-Fi: `pnpm --filter kdaboa-frontend dev --host` e abra o endereço "Network" que aparecer.
+
+## Dados: mock ou API
+
+No `pnpm dev:frontend` o front usa **dados mock** (`src/mocks/`), então não precisa da API rodando.
+Para usar a API do backend, crie `apps/frontend/.env.local` (veja `.env.example`):
+
+```
+VITE_USAR_MOCK=false
+VITE_API_URL=http://localhost:3333
+```
+
+Usuário de teste: `kayo@email.com` com a senha `senha123`.
+
+O mock fica ligado por padrão só no `pnpm dev:frontend`. No build de produção ele vem desligado, a menos que `VITE_USAR_MOCK=true` seja definido de propósito.
 
 ## Outros comandos
 

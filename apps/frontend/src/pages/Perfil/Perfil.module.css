@@ -1,0 +1,13 @@
+.acoes {
+  padding: 0 var(--margem-tela) 24px;
+}
+
+.sair {
+  background: none;
+  border: none;
+  padding: 12px 0;
+  color: var(--cor-erro);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
