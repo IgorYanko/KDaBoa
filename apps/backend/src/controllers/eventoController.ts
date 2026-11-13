@@ -42,5 +42,24 @@ export const eventoController = {
     }
     
     res.json(evento);
+  },
+
+  // Cria um novo evento (Adicionado agora!)
+  criar: (req: Request, res: Response) => {
+    const novoEventoBody = req.body;
+    
+    const novoEvento = {
+      // Cria um ID falso rapidinho só para o mock
+      id: "mock-" + Math.floor(Math.random() * 10000), 
+      ...novoEventoBody,
+      // Pega o ID do usuário que o middleware validou e injetou (se existir)
+      criador_id: (req as any).usuario?.id || "id-criador-desconhecido"
+    };
+
+    // Adiciona no nosso banco de dados falso
+    eventosMock.push(novoEvento);
+
+    // Retorna 201 (Created) e os dados do evento salvo
+    res.status(201).json(novoEvento);
   }
 };

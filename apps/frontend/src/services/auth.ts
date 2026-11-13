@@ -9,10 +9,10 @@ import type {
 import { atraso } from '../mocks/atraso';
 import { senhasMock, usuariosMock } from '../mocks/usuarios';
 
-/** POST /api/usuarios/login */
+/** POST /api/auth/login */
 export async function login(dados: LoginRequestDTO): Promise<LoginResponseDTO> {
   if (!USAR_MOCK) {
-    return requisicao<LoginResponseDTO>('/api/usuarios/login', { metodo: 'POST', corpo: dados });
+    return requisicao<LoginResponseDTO>('/api/auth/login', { metodo: 'POST', corpo: dados });
   }
 
   await atraso();
@@ -29,10 +29,10 @@ export async function login(dados: LoginRequestDTO): Promise<LoginResponseDTO> {
   };
 }
 
-/** POST /api/usuarios/cadastro */
+/** POST /api/auth/cadastro */
 export async function cadastrar(dados: CadastroRequestDTO): Promise<CadastroResponseDTO> {
   if (!USAR_MOCK) {
-    return requisicao<CadastroResponseDTO>('/api/usuarios/cadastro', { metodo: 'POST', corpo: dados });
+    return requisicao<CadastroResponseDTO>('/api/auth/cadastro', { metodo: 'POST', corpo: dados });
   }
 
   await atraso();
