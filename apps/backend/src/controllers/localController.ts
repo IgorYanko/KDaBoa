@@ -1,11 +1,25 @@
 import { Request, Response } from 'express';
+import { prisma } from '../prisma';
 
-const locaisMock = [
-  { id: 1, nome: 'Teatro Municipal', endereco: 'Av. Dr. Lisboa, Centro', capacidade: 500 },
-  { id: 2, nome: 'Estádio Manduzão', endereco: 'Bairro Fátima I', capacidade: 26000 },
-  { id: 3, nome: 'Pista de Skate QG', endereco: 'Pouso Alegre', capacidade: 150 }
-];
+export const getLocais = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const locais = await prisma.local.findMany({
+      orderBy: { id: 'asc' },
+    });
+    res.json(locais);
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao buscar locais' });
+  }
+};
 
-export const getLocais = (req: Request, res: Response) => {
-  res.json(locaisMock);
+export const criarLocal = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { nome, cep, endereco, bairro, latitude, longitude } = req.body;
+    const novoLocal = await prisma.local.create({
+      data: { nome, cep, endereco, bairro, latitude, longitude },
+    });
+    res.status(201).json(novoLocal);
+  } catch (error) {
+    res.status(400).json({ erro: 'Erro ao criar local' });
+  }
 };

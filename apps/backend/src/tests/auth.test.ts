@@ -1,5 +1,48 @@
 import request from 'supertest';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+type UsuarioSalvo = {
+  id: string;
+  nome: string;
+  email: string;
+  senhaHash: string;
+  dataNascimento: Date;
+};
+
+const usuarios = vi.hoisted(() => [] as UsuarioSalvo[]);
+
+vi.mock('../prisma', () => ({
+  prisma: {
+    usuario: {
+      findUnique: vi.fn(async ({ where: { email } }: { where: { email: string } }) => {
+        return usuarios.find((usuario) => usuario.email === email) ?? null;
+      }),
+      create: vi.fn(
+        async ({
+          data,
+        }: {
+          data: {
+            nome: string;
+            email: string;
+            senhaHash: string;
+            dataNascimento: Date;
+          };
+        }) => {
+          const novo: UsuarioSalvo = {
+            id: 'uuid-novo-usuario',
+            nome: data.nome,
+            email: data.email,
+            senhaHash: data.senhaHash,
+            dataNascimento: data.dataNascimento,
+          };
+          usuarios.push(novo);
+          return novo;
+        },
+      ),
+    },
+  },
+}));
+
 import app from '../app';
 
 const usuario = {
