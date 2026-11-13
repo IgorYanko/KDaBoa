@@ -1,5 +1,37 @@
+import bcrypt from 'bcrypt';
 import request from 'supertest';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+const senhaHashKayo = bcrypt.hashSync('qualquer_senha', 10);
+
+vi.mock('../prisma', () => ({
+  prisma: {
+    usuario: {
+      findUnique: vi.fn().mockImplementation(({ where: { email } }) => {
+        if (email === 'kayo@email.com') {
+          return Promise.resolve({
+            id: '987fcdeb-51a2-43d7-9012-345678901234',
+            nome: 'Kayo',
+            email: 'kayo@email.com',
+            senhaHash: senhaHashKayo,
+            dataNascimento: new Date('2000-01-01'),
+          });
+        }
+        return Promise.resolve(null);
+      }),
+      create: vi.fn().mockImplementation(({ data }) =>
+        Promise.resolve({
+          id: 'uuid-novo-usuario',
+          nome: data.nome,
+          email: data.email,
+          senhaHash: data.senhaHash,
+          dataNascimento: data.dataNascimento,
+        })
+      ),
+    },
+  },
+}));
+
 import app from '../app';
 
 describe('API de usuários', () => {

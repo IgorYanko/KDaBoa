@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { prisma } from '../prisma';
 
+const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export const eventoController = {
   // READ - Lista todos os eventos
   listar: async (req: Request, res: Response): Promise<void> => {
@@ -22,6 +24,12 @@ export const eventoController = {
   buscarPorId: async (req: Request, res: Response): Promise<void> => {
     try {
       const id = String(req.params.id);
+
+      if (!uuidRegex.test(id)) {
+        res.status(404).json({ erro: 'Evento não encontrado' });
+        return;
+      }
+
       const evento = await prisma.evento.findUnique({
         where: { id },
         include: {

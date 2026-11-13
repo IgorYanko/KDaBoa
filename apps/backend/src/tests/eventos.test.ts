@@ -1,5 +1,53 @@
 import request from 'supertest';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+vi.mock('../prisma', () => ({
+  prisma: {
+    evento: {
+      findMany: vi.fn().mockResolvedValue([
+        {
+          id: '123e4567-e89b-12d3-a456-426614174000',
+          titulo: 'Noite de rock autoral',
+          descricao: 'Bandas autorais da região tocando a noite toda.',
+          dataInicio: new Date('2026-11-13T21:00:00Z'),
+          preco: 0,
+          classificacaoEtaria: 16,
+          categoriaId: 1,
+          localId: 1,
+          criadorId: '987fcdeb-51a2-43d7-9012-345678901234',
+        },
+        {
+          id: '123e4567-e89b-12d3-a456-426614174001',
+          titulo: 'Sarau na praça',
+          descricao: 'Evento cultural aberto ao público.',
+          dataInicio: new Date('2026-11-14T18:00:00Z'),
+          preco: 0,
+          classificacaoEtaria: 0,
+          categoriaId: 3,
+          localId: 2,
+          criadorId: '987fcdeb-51a2-43d7-9012-345678901234',
+        },
+      ]),
+      findUnique: vi.fn().mockImplementation(({ where: { id } }) => {
+        const eventosMock = [
+          {
+            id: '123e4567-e89b-12d3-a456-426614174000',
+            titulo: 'Noite de rock autoral',
+            descricao: 'Bandas autorais da região tocando a noite toda.',
+            dataInicio: new Date('2026-11-13T21:00:00Z'),
+            preco: 0,
+            classificacaoEtaria: 16,
+            categoriaId: 1,
+            localId: 1,
+            criadorId: '987fcdeb-51a2-43d7-9012-345678901234',
+          },
+        ];
+        return Promise.resolve(eventosMock.find((e) => e.id === id) || null);
+      }),
+    },
+  },
+}));
+
 import app from '../app';
 
 describe('API de eventos', () => {
