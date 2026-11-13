@@ -1,0 +1,91 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 22px;
+  transition: transform 0.1s;
+}
+
+.card:active {
+  transform: scale(0.99);
+}
+
+.faixa {
+  height: 132px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  background: var(--cor-evento);
+}
+
+.data {
+  display: flex;
+  flex-direction: column;
+  color: var(--cor-sobre-destaque);
+  font-family: var(--fonte-titulo);
+  font-weight: 700;
+}
+
+.dia {
+  font-size: 44px;
+  line-height: 39.6px;
+  letter-spacing: -2px;
+}
+
+.mes {
+  padding-top: 4px;
+  font-size: 16px;
+  line-height: 14.4px;
+}
+
+.etiqueta {
+  height: 28px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  background: var(--cor-etiqueta);
+  border-radius: var(--raio-pilula);
+  color: var(--cor-texto);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.corpo {
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.titulo {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--cor-texto);
+}
+
+.quando {
+  font-size: 13px;
+  color: var(--cor-texto-suave);
+}
+
+.quemVai {
+  min-height: 34px;
+  padding-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.total {
+  font-size: 13px;
+  color: var(--cor-rotulo);
+}
+
+.total strong {
+  font-weight: 700;
+  color: var(--cor-texto);
+}

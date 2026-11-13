@@ -1,0 +1,286 @@
+.tela {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 120px;
+}
+
+.estado {
+  padding: 72px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.carregando {
+  text-align: center;
+  font-size: 14px;
+  color: var(--cor-texto-suave);
+}
+
+.linkDestaque {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--cor-destaque);
+}
+
+/* Topo colorido */
+.topo {
+  height: 300px;
+  padding: 52px 20px 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: var(--cor-evento);
+}
+
+.acoesTopo {
+  display: flex;
+  justify-content: space-between;
+}
+
+.botaoTopo {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cor-etiqueta);
+  border: none;
+  border-radius: var(--raio-campo);
+  cursor: pointer;
+}
+
+.dataGrande {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.data {
+  display: flex;
+  flex-direction: column;
+  font-family: var(--fonte-titulo);
+  font-weight: 700;
+  color: var(--cor-sobre-destaque);
+}
+
+.dia {
+  font-size: 72px;
+  line-height: 61.2px;
+  letter-spacing: -3px;
+}
+
+.mesSemana {
+  padding-top: 6px;
+  font-size: 20px;
+  line-height: 17px;
+}
+
+.etiqueta {
+  height: 30px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  background: var(--cor-etiqueta);
+  border-radius: var(--raio-pilula);
+  color: var(--cor-texto);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Conteúdo */
+.conteudo {
+  padding: 22px 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.cabecalho {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.titulo {
+  font-family: var(--fonte-titulo);
+  font-weight: 700;
+  font-size: 28px;
+  letter-spacing: -0.8px;
+  color: var(--cor-texto);
+}
+
+.organizador {
+  font-size: 14px;
+  color: var(--cor-texto-suave);
+}
+
+.infos {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 18px;
+}
+
+.info {
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.info + .info {
+  border-top: 1px solid var(--cor-borda-cartao);
+}
+
+.infoIcone {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cor-superficie-elevada);
+  border-radius: 12px;
+}
+
+.infoTextos {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.infoTitulo {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+
+.infoDetalhe {
+  font-size: 13px;
+  color: var(--cor-texto-suave);
+}
+
+.linkMapa {
+  padding: 10px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cor-destaque);
+}
+
+.sobre {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sobreTitulo {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--cor-texto);
+}
+
+.sobreTexto {
+  font-size: 15px;
+  line-height: 23.25px;
+  color: var(--cor-rotulo);
+}
+
+/* Cartões "Quem vai" e "Chat" */
+.cartao {
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 18px;
+}
+
+.bloqueado {
+  border: 1px dashed var(--cor-borda-tracejada);
+}
+
+.cartaoTextos {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cartaoTitulo {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--cor-texto);
+}
+
+.cartaoDetalhe {
+  font-size: 13px;
+  color: var(--cor-texto-suave);
+}
+
+.chatIcone {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cor-superficie-elevada);
+  border-radius: var(--raio-campo);
+}
+
+/* Barra fixa de presença */
+.rodape {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: var(--largura-app);
+  padding: 14px 20px calc(30px + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--cor-fundo-barra);
+  border-top: 1px solid var(--cor-borda-suave);
+  z-index: 10;
+}
+
+.confirmados {
+  width: 110px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.confirmadosRotulo {
+  font-size: 12px;
+  color: var(--cor-texto-suave);
+}
+
+.confirmadosNumero {
+  font-family: var(--fonte-titulo);
+  font-weight: 700;
+  font-size: 22px;
+  color: var(--cor-texto);
+}
+
+.botaoPresenca {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Depois de confirmar: botão secundário para poder cancelar. */
+.vou {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-destaque);
+  color: var(--cor-destaque);
+}
