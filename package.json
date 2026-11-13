@@ -3,7 +3,10 @@
   "private": true,
   "packageManager": "pnpm@10.26.0",
   "pnpm": {
-    "onlyBuiltDependencies": ["bcrypt", "esbuild"]
+    "onlyBuiltDependencies": [
+      "bcrypt",
+      "esbuild"
+    ]
   },
   "scripts": {
     "dev": "pnpm --parallel --filter \"./apps/*\" dev",
@@ -13,4 +16,5 @@
     "test": "pnpm --filter kdaboa-backend test",
     "build": "pnpm --filter \"./apps/*\" build"
   }
+
 }
