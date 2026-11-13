@@ -1,12 +1,25 @@
 import { Request, Response } from 'express';
+import { prisma } from '../prisma';
 
-const categoriasMock = [
-  { id: 1, nome: 'Shows e Música ao Vivo' },
-  { id: 2, nome: 'Esportes e Competições' },
-  { id: 3, nome: 'Teatro e Stand-up' },
-  { id: 4, nome: 'Festas e Baladas' }
-];
+export const getCategorias = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const categorias = await prisma.categoria.findMany({
+      orderBy: { id: 'asc' },
+    });
+    res.json(categorias);
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao buscar categorias' });
+  }
+};
 
-export const getCategorias = (req: Request, res: Response) => {
-  res.json(categoriasMock);
+export const criarCategoria = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { nome } = req.body;
+    const novaCategoria = await prisma.categoria.create({
+      data: { nome },
+    });
+    res.status(201).json(novaCategoria);
+  } catch (error) {
+    res.status(400).json({ erro: 'Erro ao criar categoria' });
+  }
 };

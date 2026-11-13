@@ -17,5 +17,7 @@ const router = Router();
 router.get('/', eventoController.listar);
 router.get('/:id', eventoController.buscarPorId);
 router.post('/', verificarToken, eventoController.criar);
+router.put('/:id', verificarToken, eventoController.atualizar);
+router.delete('/:id', verificarToken, eventoController.deletar);
 
 export default router;

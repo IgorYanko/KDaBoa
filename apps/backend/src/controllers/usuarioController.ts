@@ -1,51 +1,79 @@
 import { Request, Response } from 'express';
-
-// Mock simulando o banco de dados de usuários
-const usuariosMock = [
-  {
-    id: "987fcdeb-51a2-43d7-9012-345678901234",
-    nome: "Kayo",
-    email: "kayo@email.com",
-    senha_hash: "hash_falso_aqui", 
-    data_nascimento: "2000-01-01"
-  }
-];
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import { prisma } from '../prisma';
 
 export const usuarioController = {
-  // Simula o Cadastro
-  cadastrar: (req: Request, res: Response) => {
-    const { nome, email, senha, data_nascimento } = req.body;
-    
-    // Na vida real, aqui o banco vai validar se o email já existe e criptografar a senha
-    const novoUsuario = {
-      id: "uuid-novo-usuario",
-      nome,
-      email,
-      data_nascimento
-    };
+  cadastrar: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { nome, email, senha, data_nascimento, dataNascimento } = req.body;
 
-    res.status(201).json({ 
-      mensagem: "Usuário cadastrado com sucesso!", 
-      usuario: novoUsuario 
-    });
+      const usuarioExistente = await prisma.usuario.findUnique({
+        where: { email },
+      });
+
+      if (usuarioExistente) {
+        res.status(400).json({ erro: 'E-mail já cadastrado' });
+        return;
+      }
+
+      const senhaHash = await bcrypt.hash(senha || '123456', 10);
+      const dataNasc = dataNascimento || data_nascimento || '2000-01-01';
+
+      const novoUsuario = await prisma.usuario.create({
+        data: {
+          nome,
+          email,
+          senhaHash,
+          dataNascimento: new Date(dataNasc),
+        },
+      });
+
+      res.status(201).json({
+        mensagem: 'Usuário cadastrado com sucesso!',
+        usuario: {
+          id: novoUsuario.id,
+          nome: novoUsuario.nome,
+          email: novoUsuario.email,
+          data_nascimento: novoUsuario.dataNascimento,
+        },
+      });
+    } catch (error) {
+      res.status(500).json({ erro: 'Erro ao cadastrar usuário' });
+    }
   },
 
-  // Simula o Login
-  login: (req: Request, res: Response) => {
-    const { email, senha } = req.body;
+  login: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { email, senha } = req.body;
 
-    const usuario = usuariosMock.find(u => u.email === email);
+      const usuario = await prisma.usuario.findUnique({
+        where: { email },
+      });
 
-    // Simplificação para o teste do mock
-    if (!usuario || email !== "kayo@email.com") {
-      return res.status(401).json({ erro: "E-mail ou senha inválidos" });
+      if (!usuario) {
+        res.status(401).json({ erro: 'E-mail ou senha inválidos' });
+        return;
+      }
+
+      const senhaValida = await bcrypt.compare(senha, usuario.senhaHash);
+      if (!senhaValida) {
+        res.status(401).json({ erro: 'E-mail ou senha inválidos' });
+        return;
+      }
+
+      const secret = process.env.JWT_SECRET || 'kdaboa_chave_secreta_teste';
+      const token = jwt.sign({ id: usuario.id, email: usuario.email }, secret, {
+        expiresIn: '2h',
+      });
+
+      res.json({
+        mensagem: 'Login realizado com sucesso',
+        token,
+        usuario: { id: usuario.id, nome: usuario.nome },
+      });
+    } catch (error) {
+      res.status(500).json({ erro: 'Erro interno ao realizar login' });
     }
-
-    // Retorna um token falso para o front conseguir simular que está logado
-    res.json({ 
-      mensagem: "Login realizado com sucesso", 
-      token: "jwt_falso_para_liberar_telas_do_front",
-      usuario: { id: usuario.id, nome: usuario.nome }
-    });
-  }
+  },
 };
