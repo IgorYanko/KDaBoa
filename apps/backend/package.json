@@ -4,12 +4,10 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
- "scripts": {
+  "scripts": {
     "postinstall": "prisma generate --config ../db/prisma.config.ts",
     "dev": "tsx watch src/server.ts",
     "lint": "biome lint ./src",
-    "test": "prisma generate --config ../db/prisma.config.ts && vitest run",
-    "build": "prisma generate --config ../db/prisma.config.ts && tsc",
     "test": "vitest run --coverage",
     "build": "tsc",
     "db:migrate": "prisma migrate deploy --config ../db/prisma.config.ts",

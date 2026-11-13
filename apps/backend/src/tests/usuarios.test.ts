@@ -64,4 +64,77 @@ describe('API de usuários', () => {
 
     expect(resposta.status).toBe(401);
   });
+
+  it('POST /api/usuarios/cadastro recusa e-mail já cadastrado', async () => {
+    const resposta = await request(app).post('/api/usuarios/cadastro').send({
+      nome: 'Kayo',
+      email: 'kayo@email.com',
+      senha: 'qualquer_senha',
+    });
+
+    expect(resposta.status).toBe(400);
+  });
+
+  it('POST /api/usuarios/cadastro usa senha e data padrão', async () => {
+    const resposta = await request(app).post('/api/usuarios/cadastro').send({
+      nome: 'Sem dados',
+      email: 'semdados@email.com',
+    });
+
+    expect(resposta.status).toBe(201);
+  });
+
+  it('POST /api/usuarios/cadastro aceita dataNascimento', async () => {
+    const resposta = await request(app).post('/api/usuarios/cadastro').send({
+      nome: 'Ana',
+      email: 'ana@email.com',
+      senha: 'senha_segura_123',
+      dataNascimento: '1999-05-05',
+    });
+
+    expect(resposta.status).toBe(201);
+  });
+
+  it('POST /api/usuarios/login recusa senha errada', async () => {
+    const resposta = await request(app)
+      .post('/api/usuarios/login')
+      .send({ email: 'kayo@email.com', senha: 'errada' });
+
+    expect(resposta.status).toBe(401);
+  });
+
+  it('POST /api/usuarios/login usa o segredo padrão quando JWT_SECRET falta', async () => {
+    delete process.env.JWT_SECRET;
+
+    const resposta = await request(app)
+      .post('/api/usuarios/login')
+      .send({ email: 'kayo@email.com', senha: 'qualquer_senha' });
+
+    expect(resposta.status).toBe(200);
+    expect(resposta.body.token).toBeDefined();
+  });
+
+  it('POST /api/usuarios/cadastro devolve 500 quando a consulta falha', async () => {
+    const { prisma } = await import('../prisma');
+    vi.mocked(prisma.usuario.findUnique).mockRejectedValueOnce(new Error('falha'));
+
+    const resposta = await request(app).post('/api/usuarios/cadastro').send({
+      nome: 'Erro',
+      email: 'erro@email.com',
+      senha: 'senha_segura_123',
+    });
+
+    expect(resposta.status).toBe(500);
+  });
+
+  it('POST /api/usuarios/login devolve 500 quando a consulta falha', async () => {
+    const { prisma } = await import('../prisma');
+    vi.mocked(prisma.usuario.findUnique).mockRejectedValueOnce(new Error('falha'));
+
+    const resposta = await request(app)
+      .post('/api/usuarios/login')
+      .send({ email: 'kayo@email.com', senha: 'qualquer_senha' });
+
+    expect(resposta.status).toBe(500);
+  });
 });
