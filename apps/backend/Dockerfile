@@ -6,11 +6,12 @@ WORKDIR /app
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/backend/package.json apps/backend/
+# O postinstall do backend gera o client do Prisma a partir de apps/db.
+COPY apps/db apps/db
 
 RUN pnpm install --frozen-lockfile --filter kdaboa-backend
 
 COPY apps/backend apps/backend
-COPY apps/db apps/db
 
 RUN pnpm --filter kdaboa-backend build
 
@@ -18,4 +19,5 @@ WORKDIR /app/apps/backend
 
 EXPOSE 3333
 
-CMD ["node", "dist/server.js"]
+# Aplica as migrations pendentes e sobe a API.
+CMD ["pnpm", "start"]
