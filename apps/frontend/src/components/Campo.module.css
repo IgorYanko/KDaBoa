@@ -37,17 +37,6 @@
   color: var(--cor-texto-fraco);
 }
 
-/* Data ou horário ainda vazios: "dd/mm/aaaa" e "--:--" com a cor de placeholder. */
-.input[type="date"][value=""],
-.input[type="time"][value=""] {
-  color: var(--cor-texto-fraco);
-}
-
-.input::-webkit-calendar-picker-indicator {
-  opacity: 0.6;
-  cursor: pointer;
-}
-
 @media (hover: hover) {
   .input:hover:not(:focus) {
     background: var(--cor-campo-hover);
@@ -155,5 +144,38 @@
   right: 14px;
   transform: translateY(-50%) rotate(90deg);
   color: var(--cor-texto-fraco);
+  pointer-events: none;
+}
+
+/* ---------- CampoDataHora ---------- */
+.botaoCalendario {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  border-radius: var(--raio-sm);
+  color: var(--cor-texto-fraco);
+  cursor: pointer;
+  transition:
+    color var(--transicao),
+    background-color var(--transicao);
+}
+
+.botaoCalendario:hover {
+  color: var(--cor-texto);
+  background: var(--cor-superficie-elevada);
+}
+
+/* Fica embaixo do botão (o calendário do sistema abre ali), mas invisível e fora do Tab. */
+.seletorOculto {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
   pointer-events: none;
 }
