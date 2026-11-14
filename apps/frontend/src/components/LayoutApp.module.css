@@ -4,10 +4,11 @@
   flex-direction: column;
 }
 
+/* Cada tela decide a própria largura de leitura dentro deste limite. */
 .app {
   flex: 1;
   width: 100%;
-  max-width: var(--largura-app);
+  max-width: var(--largura-conteudo);
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -18,8 +19,50 @@
   padding-bottom: calc(var(--altura-barra) + env(safe-area-inset-bottom));
 }
 
+/* ---------- Login e cadastro ---------- */
+.entrada {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.painel {
+  display: none;
+}
+
+.formulario {
+  width: 100%;
+  max-width: 460px;
+  display: flex;
+  flex-direction: column;
+}
+
 @media (min-width: 1024px) {
   .comBarra {
     padding-bottom: 0;
+  }
+
+  .entrada {
+    width: 100%;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: var(--espaco-6);
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(420px, 1fr);
+    gap: var(--espaco-8);
+  }
+
+  .painel {
+    position: sticky;
+    top: var(--espaco-6);
+    display: block;
+    height: calc(100dvh - 2 * var(--espaco-6));
+    min-height: 600px;
+  }
+
+  .formulario {
+    max-width: 440px;
+    margin: 0 auto;
+    justify-content: center;
   }
 }

@@ -1,10 +1,17 @@
 .tela {
   flex: 1;
-  padding: var(--espaco-16) var(--margem-tela) var(--espaco-10);
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: var(--espaco-12) var(--margem-tela) var(--espaco-10);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: var(--espaco-3);
+}
+
+.voltar {
+  margin-bottom: var(--espaco-8);
 }
 
 .icone {
@@ -29,4 +36,10 @@
   max-width: 36ch;
   color: var(--cor-texto-suave);
   font-size: var(--texto-base);
+}
+
+@media (min-width: 1024px) {
+  .tela {
+    padding-top: var(--espaco-16);
+  }
 }

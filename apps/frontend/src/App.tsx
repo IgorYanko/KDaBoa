@@ -23,7 +23,7 @@ export function App() {
         <Routes>
           {/* Públicas */}
           <Route element={<RotaPublica />}>
-            <Route element={<LayoutApp />}>
+            <Route element={<LayoutApp entrada />}>
               <Route path="/login" element={<Login />} />
               <Route path="/cadastro" element={<Cadastro />} />
             </Route>
@@ -34,12 +34,12 @@ export function App() {
 
           {/* Privadas (#21) */}
           <Route element={<RotaPrivada />}>
-            <Route element={<LayoutApp comBarra />}>
+            <Route element={<LayoutApp navegacao="completa" />}>
               <Route path="/inicio" element={<Inicio />} />
-              <Route path="/agenda" element={<TelaEmConstrucao titulo="Minha agenda" issue={38} />} />
+              <Route path="/agenda" element={<TelaEmConstrucao titulo="Minha agenda" issue={38} comVoltar={false} />} />
               <Route path="/perfil" element={<Perfil />} />
             </Route>
-            <Route element={<LayoutApp />}>
+            <Route element={<LayoutApp navegacao="topo" />}>
               <Route path="/eventos/:id" element={<DetalheEvento />} />
               <Route path="/eventos/:id/mapa" element={<TelaEmConstrucao titulo="Mapa do evento" issue={24} />} />
               <Route path="/eventos/:id/chat" element={<TelaEmConstrucao titulo="Chat do evento" issue={32} />} />

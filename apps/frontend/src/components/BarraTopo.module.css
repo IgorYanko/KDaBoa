@@ -28,23 +28,7 @@
 
 .marca {
   display: inline-flex;
-  align-items: center;
-  gap: var(--espaco-2);
-  font-family: var(--fonte-titulo);
-  font-size: var(--texto-lg);
-  font-weight: 700;
-  letter-spacing: var(--espacamento-titulo);
-}
-
-.marcaIcone {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--cor-primaria);
   border-radius: var(--raio-sm);
-  color: var(--cor-sobre-primaria);
 }
 
 .navegacao {

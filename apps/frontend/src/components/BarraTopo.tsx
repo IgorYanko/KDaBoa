@@ -5,6 +5,7 @@ import styles from './BarraTopo.module.css';
 import { classesBotao } from './Botao';
 import { Icone } from './Icone';
 import { itensNavegacao } from './itensNavegacao';
+import { Marca } from './Marca';
 
 /** Barra de navegação do desktop (a partir de 1024px; no celular fica a BarraInferior). */
 export function BarraTopo() {
@@ -14,10 +15,7 @@ export function BarraTopo() {
     <header className={styles.topo}>
       <div className={styles.conteudo}>
         <Link to="/inicio" className={styles.marca} aria-label="KdABoa? — início">
-          <span className={styles.marcaIcone}>
-            <Icone nome="local" tamanho={18} traco={2.25} />
-          </span>
-          KdABoa?
+          <Marca tamanho="sm" />
         </Link>
 
         <nav className={styles.navegacao} aria-label="Navegação principal">

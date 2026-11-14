@@ -1,0 +1,67 @@
+.marca {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  font-family: var(--fonte-titulo);
+  font-weight: 700;
+  letter-spacing: var(--espacamento-titulo);
+  color: var(--cor-texto);
+}
+
+.simbolo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cor-primaria);
+  color: var(--cor-sobre-primaria);
+  box-shadow: var(--realce-interno), var(--brilho-primaria);
+}
+
+.sm .simbolo {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--raio-sm);
+}
+
+.sm .icone {
+  width: 18px;
+  height: 18px;
+}
+
+.sm .nome {
+  font-size: var(--texto-lg);
+}
+
+.md .simbolo {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--raio-md);
+}
+
+.md .icone {
+  width: 22px;
+  height: 22px;
+}
+
+.md .nome {
+  font-size: var(--texto-xl);
+}
+
+.lg {
+  gap: var(--espaco-3);
+}
+
+.lg .simbolo {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--raio-lg);
+}
+
+.lg .icone {
+  width: 28px;
+  height: 28px;
+}
+
+.lg .nome {
+  font-size: var(--texto-2xl);
+}

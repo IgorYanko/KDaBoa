@@ -1,12 +1,11 @@
 .barra {
   position: fixed;
+  right: 0;
   bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  max-width: var(--largura-app);
+  left: 0;
   height: calc(var(--altura-barra) + env(safe-area-inset-bottom));
-  padding: var(--espaco-2) var(--espaco-6) env(safe-area-inset-bottom);
+  /* Itens agrupados no centro (até ~440px), mesmo em telas largas. */
+  padding: var(--espaco-2) max(var(--espaco-6), calc(50% - 220px)) env(safe-area-inset-bottom);
   display: flex;
   justify-content: space-around;
   align-items: flex-start;
