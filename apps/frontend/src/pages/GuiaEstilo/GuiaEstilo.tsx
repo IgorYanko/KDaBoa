@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import { Icone, nomesIcones } from '../../components/Icone';
 import styles from './GuiaEstilo.module.css';
+import { SecaoComponentes } from './SecaoComponentes';
 
 interface Amostra {
   nome: string;
@@ -145,6 +146,8 @@ export function GuiaEstilo() {
           ))}
         </div>
       </section>
+
+      <SecaoComponentes />
 
       <section className={styles.secao}>
         <h2 className={styles.secaoTitulo}>Ícones</h2>

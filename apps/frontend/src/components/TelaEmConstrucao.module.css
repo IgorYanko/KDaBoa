@@ -1,19 +1,32 @@
 .tela {
   flex: 1;
-  padding: 72px var(--margem-tela) 40px;
+  padding: var(--espaco-16) var(--margem-tela) var(--espaco-10);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  align-items: flex-start;
+  gap: var(--espaco-3);
+}
+
+.icone {
+  width: 48px;
+  height: 48px;
+  margin-bottom: var(--espaco-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cor-secundaria-tinta);
+  border: 1px solid var(--cor-secundaria-borda);
+  border-radius: var(--raio-md);
+  color: var(--cor-secundaria-texto);
 }
 
 .titulo {
-  font-family: var(--fonte-titulo);
-  font-weight: 700;
-  font-size: 32px;
-  letter-spacing: -1px;
+  font-size: var(--texto-2xl);
+  font-weight: 600;
 }
 
 .texto {
+  max-width: 36ch;
   color: var(--cor-texto-suave);
-  font-size: 15px;
+  font-size: var(--texto-base);
 }

@@ -182,3 +182,51 @@
 .icone span {
   color: var(--cor-texto-suave);
 }
+
+/* ---------- Componentes ---------- */
+.componentes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--espaco-4);
+  align-items: start;
+}
+
+.componente {
+  padding: var(--espaco-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-xl);
+}
+
+.linha {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espaco-2);
+}
+
+.fundoColorido {
+  padding: var(--espaco-2);
+  display: inline-flex;
+  gap: var(--espaco-2);
+  background: var(--cor-categoria-1);
+  border-radius: var(--raio-md);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+}
+
+.cards {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--espaco-4);
+}

@@ -1,3 +1,4 @@
+import { Icone } from './Icone';
 import styles from './TelaEmConstrucao.module.css';
 
 interface Props {
@@ -10,8 +11,11 @@ interface Props {
 export function TelaEmConstrucao({ titulo, issue }: Props) {
   return (
     <main className={styles.tela}>
+      <span className={styles.icone}>
+        <Icone nome="brilho" tamanho={24} />
+      </span>
       <h1 className={styles.titulo}>{titulo}</h1>
-      <p className={styles.texto}>Tela em construção (issue #{issue}).</p>
+      <p className={styles.texto}>Essa tela está sendo preparada e chega em breve (issue #{issue}).</p>
     </main>
   );
 }

@@ -7,8 +7,8 @@
  * entram como acento (faixas finas, pontos, brilhos), não como blocos inteiros.
  *
  * Pontos de quebra (media queries não aceitam variáveis):
- *   - 768px:  tablet / desktop pequeno — layout passa a usar mais largura.
- *   - 1100px: desktop — navegação no topo e grades com mais colunas.
+ *   - 768px:  tablet — as telas passam a usar mais largura.
+ *   - 1024px: desktop — navegação no topo (some a barra inferior) e grades com mais colunas.
  */
 :root {
   color-scheme: dark;
@@ -36,6 +36,10 @@
   --cor-campo: #17142a;
   --cor-campo-hover: #1b1830;
   --cor-vidro: rgba(13, 12, 18, 0.72);
+  --cor-vidro-claro: rgba(13, 12, 18, 0.45);
+  --cor-vidro-escuro: rgba(13, 12, 18, 0.65);
+  --cor-borda-vidro: rgba(255, 255, 255, 0.1);
+  --cor-veu: rgba(5, 4, 8, 0.7);
 
   /* ---------- Bordas (o "stroke" dos cards e campos) ---------- */
   --cor-borda: #2a2636;
@@ -71,6 +75,7 @@
   --brilho-primaria: 0 8px 24px -8px rgba(212, 255, 58, 0.45);
   --brilho-secundaria: 0 8px 24px -8px rgba(139, 108, 255, 0.55);
   --anel-foco: 0 0 0 3px rgba(139, 108, 255, 0.28);
+  --realce-interno: inset 0 1px 0 rgba(255, 255, 255, 0.35);
 
   /* ---------- Sombras ---------- */
   --sombra-1: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 1px 2px rgba(0, 0, 0, 0.4);

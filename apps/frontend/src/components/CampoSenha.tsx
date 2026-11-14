@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import iconeOlho from '../assets/icones/olho.svg';
 import { Campo, type CampoProps } from './Campo';
 import styles from './CampoSenha.module.css';
-import { IconeMascara } from './IconeMascara';
+import { Icone } from './Icone';
 
 /** Campo de senha com o botão de mostrar/ocultar (olho). */
 export function CampoSenha(props: Omit<CampoProps, 'type' | 'acessorio'>) {
@@ -16,7 +15,7 @@ export function CampoSenha(props: Omit<CampoProps, 'type' | 'acessorio'>) {
       aria-label={visivel ? 'Ocultar senha' : 'Mostrar senha'}
       aria-pressed={visivel}
     >
-      <IconeMascara src={iconeOlho} tamanho={20} />
+      <Icone nome={visivel ? 'olho-fechado' : 'olho'} />
     </button>
   );
 

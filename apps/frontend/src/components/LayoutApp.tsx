@@ -1,17 +1,21 @@
 import { Outlet } from 'react-router';
 import { BarraInferior } from './BarraInferior';
+import { BarraTopo } from './BarraTopo';
 import styles from './LayoutApp.module.css';
 
 interface Props {
-  /** Mostra a barra inferior (Início, Agenda e Perfil). */
+  /** Mostra a navegação principal (barra inferior no celular, barra do topo no desktop). */
   comBarra?: boolean;
 }
 
-/** Moldura de celular: centraliza a tela com 390px de largura máxima. */
+/** Moldura das telas: coluna centralizada e, com `comBarra`, a navegação principal. */
 export function LayoutApp({ comBarra = false }: Props) {
   return (
-    <div className={comBarra ? `${styles.app} ${styles.comBarra}` : styles.app}>
-      <Outlet />
+    <div className={styles.moldura}>
+      {comBarra && <BarraTopo />}
+      <div className={comBarra ? `${styles.app} ${styles.comBarra}` : styles.app}>
+        <Outlet />
+      </div>
       {comBarra && <BarraInferior />}
     </div>
   );

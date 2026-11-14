@@ -1,17 +1,35 @@
 .botao {
-  width: 100%;
+  position: relative;
   height: var(--altura-botao);
-  display: flex;
+  padding: 0 var(--espaco-5);
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--cor-destaque);
-  color: var(--cor-sobre-destaque);
-  border: none;
-  border-radius: var(--raio-botao);
-  font-size: 16px;
-  font-weight: 700;
+  gap: var(--espaco-2);
+  border: 1px solid transparent;
+  border-radius: var(--raio-md);
+  font-size: var(--texto-base);
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  white-space: nowrap;
   cursor: pointer;
-  transition: opacity 0.15s, transform 0.1s;
+  transition:
+    background-color var(--transicao),
+    border-color var(--transicao),
+    color var(--transicao),
+    box-shadow var(--transicao),
+    transform var(--transicao-rapida);
+}
+
+.larguraTotal {
+  width: 100%;
+}
+
+.pequeno {
+  height: 40px;
+  padding: 0 var(--espaco-4);
+  font-size: var(--texto-sm);
+  border-radius: var(--raio-sm);
 }
 
 .botao:active:not(:disabled) {
@@ -19,6 +37,68 @@
 }
 
 .botao:disabled {
-  opacity: 0.6;
   cursor: default;
+}
+
+/* Desativado fica apagado; carregando mantém a cor (o indicador já mostra o estado). */
+.botao:disabled:not([aria-busy]) {
+  opacity: 0.45;
+}
+
+.botao[aria-busy] {
+  cursor: progress;
+}
+
+/* Principal: limão com um brilho leve embaixo. */
+.primario {
+  background: var(--cor-primaria);
+  color: var(--cor-sobre-primaria);
+  box-shadow: var(--realce-interno), var(--brilho-primaria);
+}
+
+@media (hover: hover) {
+  .primario:hover:not(:disabled) {
+    background: var(--cor-primaria-hover);
+  }
+}
+
+/* Secundário: contorno, fundo de superfície. */
+.secundario {
+  background: var(--cor-superficie);
+  border-color: var(--cor-borda-forte);
+  color: var(--cor-texto);
+}
+
+@media (hover: hover) {
+  .secundario:hover:not(:disabled) {
+    background: var(--cor-superficie-elevada);
+    border-color: var(--cor-texto-fraco);
+  }
+}
+
+/* Fantasma: só texto e ícone, sem fundo. */
+.fantasma {
+  background: transparent;
+  color: var(--cor-texto);
+}
+
+@media (hover: hover) {
+  .fantasma:hover:not(:disabled) {
+    background: var(--cor-superficie-elevada);
+  }
+}
+
+.indicador {
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: var(--raio-pilula);
+  animation: girar 0.7s linear infinite;
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
 }

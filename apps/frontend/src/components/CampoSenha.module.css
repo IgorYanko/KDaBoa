@@ -1,16 +1,26 @@
 .olho {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: none;
   border: none;
-  border-radius: 12px;
-  color: var(--cor-texto-suave);
+  border-radius: var(--raio-sm);
+  color: var(--cor-texto-fraco);
   cursor: pointer;
+  transition:
+    color var(--transicao),
+    background-color var(--transicao);
+}
+
+@media (hover: hover) {
+  .olho:hover {
+    color: var(--cor-texto);
+    background: var(--cor-superficie-elevada);
+  }
 }
 
 .ativo {
-  color: var(--cor-destaque);
+  color: var(--cor-secundaria-texto);
 }

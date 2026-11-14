@@ -1,0 +1,105 @@
+.topo {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .topo {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: block;
+    height: var(--altura-topo-desktop);
+    background: var(--cor-vidro);
+    border-bottom: 1px solid var(--cor-borda-suave);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    backdrop-filter: blur(20px) saturate(140%);
+  }
+}
+
+.conteudo {
+  height: 100%;
+  max-width: var(--largura-conteudo);
+  margin: 0 auto;
+  padding: 0 var(--espaco-8);
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-8);
+}
+
+.marca {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-lg);
+  font-weight: 700;
+  letter-spacing: var(--espacamento-titulo);
+}
+
+.marcaIcone {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cor-primaria);
+  border-radius: var(--raio-sm);
+  color: var(--cor-sobre-primaria);
+}
+
+.navegacao {
+  display: flex;
+  gap: var(--espaco-1);
+}
+
+.item {
+  height: 38px;
+  padding: 0 var(--espaco-3);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  border-radius: var(--raio-sm);
+  font-size: var(--texto-sm);
+  font-weight: 500;
+  color: var(--cor-texto-suave);
+  transition:
+    color var(--transicao),
+    background-color var(--transicao);
+}
+
+.item:hover {
+  color: var(--cor-texto);
+  background: var(--cor-superficie-elevada);
+}
+
+.ativo,
+.ativo:hover {
+  color: var(--cor-primaria);
+  background: var(--cor-primaria-tinta);
+}
+
+.acoes {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cor-secundaria-tinta);
+  border: 1px solid var(--cor-secundaria-borda);
+  border-radius: var(--raio-pilula);
+  color: var(--cor-secundaria-texto);
+  font-size: var(--texto-sm);
+  font-weight: 700;
+  transition: border-color var(--transicao);
+}
+
+.avatar:hover {
+  border-color: var(--cor-secundaria);
+}

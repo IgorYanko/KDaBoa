@@ -1,18 +1,26 @@
 .aviso {
-  padding: 12px 14px;
-  border-radius: var(--raio-campo);
-  font-size: 14px;
-  line-height: 1.4;
+  padding: var(--espaco-3) var(--espaco-4);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espaco-3);
+  border: 1px solid;
+  border-radius: var(--raio-md);
+  font-size: var(--texto-sm);
+  line-height: 1.45;
+}
+
+.aviso svg {
+  margin-top: 1px;
 }
 
 .erro {
   background: var(--cor-erro-fundo);
-  border: 1px solid var(--cor-erro);
+  border-color: color-mix(in oklch, var(--cor-erro) 45%, transparent);
   color: var(--cor-erro);
 }
 
 .sucesso {
-  background: var(--cor-superficie);
-  border: 1px solid var(--cor-destaque);
-  color: var(--cor-destaque);
+  background: var(--cor-sucesso-fundo);
+  border-color: var(--cor-primaria-borda);
+  color: var(--cor-primaria);
 }
