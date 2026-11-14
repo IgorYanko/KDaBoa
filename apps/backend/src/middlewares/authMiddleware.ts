@@ -1,5 +1,9 @@
-import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import type { NextFunction, Request, Response } from 'express';
+import jwt, { type JwtPayload } from 'jsonwebtoken';
+
+type RequestComUsuario = Request & {
+  usuario?: string | JwtPayload;
+};
 
 export const verificarToken = (req: Request, res: Response, next: NextFunction): void => {
   // Pega o token do cabeçalho da requisição
@@ -16,13 +20,13 @@ export const verificarToken = (req: Request, res: Response, next: NextFunction):
   try {
     // Tenta decodificar usando a mesma chave secreta do seu .env
     const decodificado = jwt.verify(token, process.env.JWT_SECRET as string);
-    
+
     // Injeta os dados do usuário na requisição para o controller poder usar depois
-    (req as any).usuario = decodificado;
-    
+    (req as RequestComUsuario).usuario = decodificado;
+
     // Libera a passagem para a rota final!
-    next(); 
-  } catch (error) {
+    next();
+  } catch (_error) {
     res.status(401).json({ erro: 'Token inválido ou expirado.' });
   }
 };

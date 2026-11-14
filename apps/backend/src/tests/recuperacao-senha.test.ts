@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 import bcrypt from 'bcrypt';
 import request from 'supertest';
 import { describe, expect, it, vi } from 'vitest';
@@ -62,7 +62,7 @@ vi.mock('../prisma', () => ({
     tokenRedefinicaoSenha: {
       create: vi.fn().mockImplementation(({ data }) => {
         const novo = {
-          id: 'token-uuid-' + (estadoMock.tokens.length + 1),
+          id: `token-uuid-${estadoMock.tokens.length + 1}`,
           usuarioId: data.usuarioId,
           tokenHash: data.tokenHash,
           expiraEm: data.expiraEm,

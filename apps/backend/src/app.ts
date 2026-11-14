@@ -23,7 +23,7 @@ app.use('/api/categorias', categoriaRoutes);
 app.use('/api/locais', localRoutes);
 app.use('/api/auth', authRoutes);
 
-app.get('/api/status', (req, res) => {
+app.get('/api/status', (_req, res) => {
   res.json({ status: 'API KdABoa rodando!', release: 2 });
 });
 

@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../prisma';
@@ -71,7 +71,7 @@ export const usuarioController = {
             : listaInteresses,
         },
       });
-    } catch (error) {
+    } catch (_error) {
       res.status(500).json({ erro: 'Erro ao cadastrar usuário' });
     }
   },
@@ -105,7 +105,7 @@ export const usuarioController = {
         token,
         usuario: { id: usuario.id, nome: usuario.nome },
       });
-    } catch (error) {
+    } catch (_error) {
       res.status(500).json({ erro: 'Erro interno ao realizar login' });
     }
   },

@@ -1,5 +1,5 @@
-import crypto from 'crypto';
-import { Request, Response } from 'express';
+import crypto from 'node:crypto';
+import type { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../prisma';
@@ -84,7 +84,7 @@ export const cadastrar = async (req: Request, res: Response): Promise<void> => {
           : listaInteresses,
       },
     });
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ erro: 'Erro interno ao cadastrar usuário' });
   }
 };
@@ -118,7 +118,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       token,
       usuario: { id: usuario.id, nome: usuario.nome },
     });
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ erro: 'Erro interno ao fazer login' });
   }
 };
@@ -162,7 +162,7 @@ export const solicitarRecuperacaoSenha = async (
       mensagem: 'E-mail de recuperação enviado com sucesso',
       previewUrl: resultadoEmail.previewUrl,
     });
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ erro: 'Erro ao solicitar recuperação de senha' });
   }
 };
@@ -209,7 +209,7 @@ export const redefinirSenha = async (
     });
 
     res.status(200).json({ mensagem: 'Senha redefinida com sucesso' });
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ erro: 'Erro ao redefinir senha' });
   }
 };

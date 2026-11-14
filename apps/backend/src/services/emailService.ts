@@ -1,10 +1,10 @@
-import nodemailer from 'nodemailer';
+import nodemailer, { type Transporter } from 'nodemailer';
 
 export async function enviarEmailRecuperacao(
   emailDestino: string,
   token: string,
 ): Promise<{ messageId: string; previewUrl: string | false }> {
-  let transporter;
+  let transporter: Transporter;
 
   if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
     transporter = nodemailer.createTransport({
@@ -31,9 +31,11 @@ export async function enviarEmailRecuperacao(
 
   const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
   const linkRedefinicao = `${baseUrl}/redefinir-senha?token=${token}`;
+  const remetente =
+    process.env.SMTP_FROM || process.env.SMTP_USER || 'no-reply@kdaboa.com';
 
   const info = await transporter.sendMail({
-    from: '"KDaBoa" <no-reply@kdaboa.com>',
+    from: `"KDaBoa" <${remetente}>`,
     to: emailDestino,
     subject: 'Recuperação de senha - KDaBoa',
     text: `Você solicitou a redefinição de senha. Use o token: ${token} ou acesse: ${linkRedefinicao}`,
