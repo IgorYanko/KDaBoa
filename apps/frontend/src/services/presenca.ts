@@ -4,6 +4,7 @@ import { USAR_MOCK } from '../config';
 import type { PresencaDTO } from '../dtos';
 import { atraso } from '../mocks/atraso';
 import { eventosMock } from '../mocks/eventos';
+import { lerEventosCriados } from '../mocks/eventosCriados';
 import { marcarPresenca } from '../mocks/presencas';
 
 /**
@@ -13,7 +14,8 @@ import { marcarPresenca } from '../mocks/presencas';
  */
 
 function garantirEventoNoMock(eventoId: string): void {
-  if (!eventosMock.some((e) => e.id === eventoId)) throw new ErroApi('Evento não encontrado', 404);
+  const existe = [...eventosMock, ...lerEventosCriados()].some((e) => e.id === eventoId);
+  if (!existe) throw new ErroApi('Evento não encontrado', 404);
 }
 
 /** POST /api/eventos/:id/presenca */

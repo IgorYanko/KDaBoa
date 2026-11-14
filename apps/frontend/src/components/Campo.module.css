@@ -37,8 +37,9 @@
   color: var(--cor-texto-fraco);
 }
 
-/* Data ainda vazia: "dd/mm/aaaa" com a cor de placeholder. */
-.input[type="date"][value=""] {
+/* Data ou horário ainda vazios: "dd/mm/aaaa" e "--:--" com a cor de placeholder. */
+.input[type="date"][value=""],
+.input[type="time"][value=""] {
   color: var(--cor-texto-fraco);
 }
 
@@ -108,4 +109,51 @@
   gap: 6px;
   font-size: var(--texto-xs);
   color: var(--cor-erro);
+}
+
+/* ---------- Usado também por AreaTexto e CampoSelecao ---------- */
+.rotuloLinha {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--espaco-2);
+}
+
+.contador {
+  font-size: var(--texto-xs);
+  color: var(--cor-texto-fraco);
+  font-variant-numeric: tabular-nums;
+}
+
+.areaTexto {
+  height: auto;
+  min-height: 112px;
+  padding: var(--espaco-3) var(--espaco-4);
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.selecao {
+  padding-right: 44px;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.selecaoVazia {
+  color: var(--cor-texto-fraco);
+}
+
+.selecao option {
+  background: var(--cor-superficie-alta);
+  color: var(--cor-texto);
+}
+
+.seta {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%) rotate(90deg);
+  color: var(--cor-texto-fraco);
+  pointer-events: none;
 }

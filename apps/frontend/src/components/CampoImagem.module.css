@@ -1,0 +1,133 @@
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+.rotulo {
+  font-size: var(--texto-sm);
+  font-weight: 500;
+  color: var(--cor-rotulo);
+}
+
+/* Input de arquivo escondido, mas ainda focável pelo teclado (o foco aparece na área). */
+.arquivo {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+}
+
+/* ---------- Área vazia (tracejada) ---------- */
+.area {
+  position: relative;
+  height: 168px;
+  padding: var(--espaco-4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espaco-1);
+  text-align: center;
+  background: var(--cor-campo);
+  border: 1.5px dashed var(--cor-borda-campo-hover);
+  border-radius: var(--raio-lg);
+  cursor: pointer;
+  transition:
+    background-color var(--transicao),
+    border-color var(--transicao);
+}
+
+.area:hover,
+.arrastando {
+  background: var(--cor-secundaria-tinta);
+  border-color: var(--cor-secundaria);
+}
+
+.area:focus-within {
+  border-color: var(--cor-secundaria);
+  box-shadow: var(--anel-foco);
+}
+
+.areaIcone {
+  width: 44px;
+  height: 44px;
+  margin-bottom: var(--espaco-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cor-secundaria-tinta);
+  border: 1px solid var(--cor-secundaria-borda);
+  border-radius: var(--raio-md);
+  color: var(--cor-secundaria-texto);
+}
+
+.areaTitulo {
+  font-size: var(--texto-base);
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+
+.areaDica {
+  font-size: var(--texto-xs);
+  color: var(--cor-texto-suave);
+}
+
+/* ---------- Com imagem ---------- */
+.previa {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-lg);
+}
+
+.imagem {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.acoes {
+  position: absolute;
+  right: var(--espaco-3);
+  bottom: var(--espaco-3);
+  display: flex;
+  gap: var(--espaco-2);
+}
+
+.acao {
+  position: relative;
+  height: 36px;
+  padding: 0 var(--espaco-3);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--cor-vidro-escuro);
+  border: 1px solid var(--cor-borda-vidro);
+  border-radius: var(--raio-pilula);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  color: var(--cor-texto);
+  font-size: var(--texto-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.acao:hover {
+  background: var(--cor-vidro);
+}
+
+.acao:focus-within {
+  outline: 2px solid var(--cor-secundaria);
+  outline-offset: 2px;
+}
+
+.erro {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--texto-xs);
+  color: var(--cor-erro);
+}

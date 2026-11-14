@@ -1,10 +1,13 @@
 import { ErroApi, requisicao } from '../api/client';
+import { lerSessao } from '../api/sessao';
 import { USAR_MOCK } from '../config';
-import type { CategoriaDTO, EventoDTO, FiltroEventosDTO, LocalDTO } from '../dtos';
+import type { CategoriaDTO, CriarEventoRequestDTO, EventoDTO, FiltroEventosDTO, LocalDTO } from '../dtos';
 import { atraso } from '../mocks/atraso';
 import { eventosMock } from '../mocks/eventos';
+import { lerEventosCriados, salvarEventoCriado } from '../mocks/eventosCriados';
 import { comPresenca } from '../mocks/presencas';
 import { intervaloDoPeriodo } from '../utils/datas';
+import { reduzirImagem } from '../utils/imagem';
 import { listarCategorias } from './categorias';
 import { listarLocais } from './locais';
 
@@ -61,10 +64,15 @@ function montarQuery(filtro: FiltroEventosDTO): string {
   return texto ? `?${texto}` : '';
 }
 
+/** Eventos do mock: os do esboço + os criados na tela Divulgar neste navegador. */
+function todosEventosMock(): EventoDTO[] {
+  return [...eventosMock, ...lerEventosCriados()];
+}
+
 async function buscarListaEventos(filtro: FiltroEventosDTO): Promise<EventoDTO[]> {
   if (USAR_MOCK) {
     await atraso(300);
-    return eventosMock.map(comPresenca);
+    return todosEventosMock().map(comPresenca);
   }
   return requisicao<EventoDTO[]>(`/api/eventos${montarQuery(filtro)}`);
 }
@@ -89,7 +97,7 @@ export async function buscarEvento(id: string): Promise<EventoCompleto> {
   let evento: EventoDTO;
   if (USAR_MOCK) {
     await atraso(250);
-    const encontrado = eventosMock.find((e) => e.id === id);
+    const encontrado = todosEventosMock().find((e) => e.id === id);
     if (!encontrado) throw new ErroApi('Evento não encontrado', 404);
     evento = comPresenca(encontrado);
   } else {
@@ -97,4 +105,34 @@ export async function buscarEvento(id: string): Promise<EventoCompleto> {
   }
   const [completo] = await completar([evento]);
   return completo;
+}
+
+/**
+ * POST /api/eventos — publica um evento (tela Divulgar, issues #43 e #45).
+ * A capa ainda não vai para a API (upload pendente, issue #46); no mock ela fica guardada no navegador.
+ */
+export async function criarEvento(dados: CriarEventoRequestDTO, capa?: File | null): Promise<EventoDTO> {
+  if (!USAR_MOCK) {
+    return requisicao<EventoDTO>('/api/eventos', { metodo: 'POST', corpo: dados });
+  }
+  await atraso(600);
+  const autor = lerSessao()?.usuario;
+  if (!autor) throw new ErroApi('Entre na sua conta para divulgar um evento.', 401);
+  const evento: EventoDTO = {
+    ...dados,
+    id: crypto.randomUUID(),
+    data_fim: null,
+    criador_id: autor.id,
+    organizador: autor,
+    capa_url: capa ? await reduzirImagem(capa) : null,
+    total_confirmados: 0,
+    eu_vou: false,
+    participantes_amostra: [],
+  };
+  try {
+    salvarEventoCriado(evento);
+  } catch {
+    throw new ErroApi('Não foi possível guardar o evento neste navegador (imagem grande demais?).', 413);
+  }
+  return evento;
 }

@@ -1,0 +1,46 @@
+/* Limão com a logo escura (e o brilho de dentro em limão). */
+.botao {
+  --logo-detalhe: var(--cor-primaria);
+  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cor-primaria);
+  border: none;
+  border-radius: var(--raio-pilula);
+  color: var(--cor-sobre-primaria);
+  box-shadow: var(--realce-interno), var(--brilho-primaria);
+  cursor: pointer;
+  transition:
+    transform var(--transicao-rapida),
+    background-color var(--transicao),
+    opacity var(--transicao);
+}
+
+.botao:hover:not(:disabled) {
+  background: var(--cor-primaria-hover);
+}
+
+.botao:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.girada {
+  transform: rotate(-90deg);
+  transition: transform var(--transicao-rapida);
+}
+
+/* Ao enviar, a logo dá um "pulinho" para frente. */
+.botao:active:not(:disabled) .girada {
+  transform: rotate(-90deg) translateY(2px);
+}
+
+.botao:disabled {
+  --logo-detalhe: var(--cor-superficie-alta);
+  background: var(--cor-superficie-alta);
+  color: var(--cor-texto-fraco);
+  box-shadow: none;
+  cursor: default;
+}

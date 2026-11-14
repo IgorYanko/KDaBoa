@@ -64,3 +64,17 @@ export function intervaloDoPeriodo(periodo: 'hoje' | 'fim-de-semana' | 'este-mes
   const segunda = new Date(sexta.getFullYear(), sexta.getMonth(), sexta.getDate() + 3);
   return [sexta < hoje ? hoje : sexta, segunda];
 }
+
+/** "20:14" (hora das mensagens do chat) */
+export function horaMinuto(data: DataIso): string {
+  const d = new Date(data);
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+/** "Hoje", "Ontem" ou "Sexta, 13 de novembro" (separador de dias do chat) */
+export function rotuloDoDia(data: DataIso, agora = new Date()): string {
+  const dias = Math.round((inicioDoDia(agora).getTime() - inicioDoDia(new Date(data)).getTime()) / 86_400_000);
+  if (dias === 0) return 'Hoje';
+  if (dias === 1) return 'Ontem';
+  return dataLonga(data);
+}
