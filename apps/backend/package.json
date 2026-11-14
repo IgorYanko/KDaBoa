@@ -4,16 +4,14 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {
-    "postinstall": "prisma generate --config ../db/prisma.config.ts",
+ "scripts": {
     "dev": "tsx watch src/server.ts",
     "lint": "biome lint ./src",
-    "test": "vitest run --coverage",
-    "build": "tsc",
-    "start": "pnpm db:migrate && node dist/server.js",
+    "test": "prisma generate --schema ../db/prisma/schema.prisma && vitest run",
+    "build": "prisma generate --schema ../db/prisma/schema.prisma && tsc",
     "db:migrate": "prisma migrate deploy --config ../db/prisma.config.ts",
     "db:dev": "prisma migrate dev --config ../db/prisma.config.ts",
-    "db:generate": "prisma generate --config ../db/prisma.config.ts"
+    "db:generate": "prisma generate --schema ../db/prisma/schema.prisma"
   },
   "keywords": [],
   "author": "",
@@ -27,6 +25,7 @@
     "dotenv": "^18.0.10",
     "express": "^5.3.0",
     "jsonwebtoken": "^9.0.3",
+    "nodemailer": "^10.5.0",
     "pg": "^8.23.1",
     "swagger-jsdoc": "^6.3.0",
     "swagger-ui-express": "^5.0.1"
@@ -38,6 +37,7 @@
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^26.6.6",
+    "@types/nodemailer": "^8.0.2",
     "@types/pg": "^8.23.1",
     "@types/supertest": "^7.2.1",
     "@types/swagger-jsdoc": "^6.0.4",

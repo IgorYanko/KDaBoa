@@ -1,11 +1,17 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { prisma } from '../prisma';
 
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+type RequestComUsuario = Request & {
+  usuario?: {
+    id?: string;
+  };
+};
+
 export const eventoController = {
   // READ - Lista todos os eventos
-  listar: async (req: Request, res: Response): Promise<void> => {
+  listar: async (_req: Request, res: Response): Promise<void> => {
     try {
       const eventos = await prisma.evento.findMany({
         include: {
@@ -15,7 +21,7 @@ export const eventoController = {
         orderBy: { dataInicio: 'asc' },
       });
       res.json(eventos);
-    } catch (error) {
+    } catch (_error) {
       res.status(500).json({ erro: 'Erro ao listar eventos' });
     }
   },
@@ -44,7 +50,7 @@ export const eventoController = {
       }
 
       res.json(evento);
-    } catch (error) {
+    } catch (_error) {
       res.status(500).json({ erro: 'Erro ao buscar evento' });
     }
   },
@@ -74,7 +80,8 @@ export const eventoController = {
         criadorId,
       } = req.body;
 
-      const idCriador = (req as any).usuario?.id || criadorId || criador_id;
+      const reqAuth = req as RequestComUsuario;
+      const idCriador = reqAuth.usuario?.id || criadorId || criador_id;
 
       const novoEvento = await prisma.evento.create({
         data: {
@@ -141,7 +148,7 @@ export const eventoController = {
       });
 
       res.json(eventoAtualizado);
-    } catch (error) {
+    } catch (_error) {
       res.status(404).json({ erro: 'Evento não encontrado ou erro ao atualizar' });
     }
   },
@@ -155,7 +162,7 @@ export const eventoController = {
       });
 
       res.status(204).send();
-    } catch (error) {
+    } catch (_error) {
       res.status(404).json({ erro: 'Evento não encontrado ou erro ao deletar' });
     }
   },
