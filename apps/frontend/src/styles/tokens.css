@@ -1,45 +1,157 @@
-/* Tokens visuais do KdABoa, tirados do esboço no Figma. Use sempre estas variáveis. */
+/*
+ * Tokens visuais do KdABoa. Use sempre estas variáveis.
+ * Guia visual de todos eles: rota /guia (só no `pnpm dev`).
+ *
+ * Paleta: o verde-limão é a cor da marca (ações principais); o ultravioleta é a
+ * cor de apoio (foco, seleção, interruptores, detalhes). As cores de categoria
+ * entram como acento (faixas finas, pontos, brilhos), não como blocos inteiros.
+ *
+ * Pontos de quebra (media queries não aceitam variáveis):
+ *   - 768px:  tablet / desktop pequeno — layout passa a usar mais largura.
+ *   - 1100px: desktop — navegação no topo e grades com mais colunas.
+ */
 :root {
-  /* Cores */
-  --cor-fundo: #111014;
-  --cor-fundo-barra: rgba(17, 16, 20, 0.96);
-  --cor-superficie: #1c1b22;
-  --cor-borda: #2e2c35;
-  --cor-borda-suave: #24232a;
-  --cor-borda-cartao: #2a2930;
-  --cor-borda-tracejada: #3a3842;
-  --cor-superficie-elevada: #26252d;
-  --cor-etiqueta: rgba(17, 16, 20, 0.88);
+  color-scheme: dark;
 
-  /* Cores das categorias (faixa do card, topo do detalhe e avatares) */
-  --cor-categoria-1: #ff7a45;
-  --cor-categoria-2: #7c8cff;
-  --cor-categoria-3: #e879d6;
-  --cor-categoria-4: #f2c14e;
-  --cor-categoria-5: #3dd6a8;
-  --cor-texto: #f4f3f7;
-  --cor-texto-suave: #a3a1ab;
-  --cor-rotulo: #c9c7d0;
-  --cor-placeholder: #7d7b86;
-  --cor-destaque: #d4ff3a;
-  --cor-sobre-destaque: #111014;
+  /* ---------- Marca ---------- */
+  --cor-primaria: #d4ff3a;
+  --cor-primaria-hover: #e0ff6b;
+  --cor-primaria-pressionada: #bde52c;
+  --cor-primaria-tinta: rgba(212, 255, 58, 0.12);
+  --cor-primaria-borda: rgba(212, 255, 58, 0.35);
+  --cor-sobre-primaria: #0d0c12;
+
+  --cor-secundaria: #8b6cff;
+  --cor-secundaria-hover: #9e84ff;
+  --cor-secundaria-forte: #6f4cff;
+  --cor-secundaria-texto: #b9a8ff;
+  --cor-secundaria-tinta: rgba(139, 108, 255, 0.14);
+  --cor-secundaria-borda: rgba(139, 108, 255, 0.45);
+
+  /* ---------- Superfícies (tons de tinta com um fundo violeta, menos cinza) ---------- */
+  --cor-fundo: #0d0c12;
+  --cor-superficie: #15131c;
+  --cor-superficie-elevada: #1d1a26;
+  --cor-superficie-alta: #262231;
+  --cor-campo: #17142a;
+  --cor-campo-hover: #1b1830;
+  --cor-vidro: rgba(13, 12, 18, 0.72);
+
+  /* ---------- Bordas (o "stroke" dos cards e campos) ---------- */
+  --cor-borda: #2a2636;
+  --cor-borda-suave: #1f1c29;
+  --cor-borda-forte: #3a3549;
+  --cor-borda-campo: #2e2945;
+  --cor-borda-campo-hover: #3d3660;
+
+  /* ---------- Texto ---------- */
+  --cor-texto: #f6f5fa;
+  --cor-texto-suave: #aaa6b8;
+  --cor-texto-fraco: #77728a;
+  --cor-rotulo: #d3d0dd;
+
+  /* ---------- Categorias (acentos) ---------- */
+  --cor-categoria-1: #ff7a45; /* Shows */
+  --cor-categoria-2: #7c8cff; /* Cultura / Teatro */
+  --cor-categoria-3: #e879d6; /* Festas */
+  --cor-categoria-4: #f2c14e; /* Gastronomia */
+  --cor-categoria-5: #3dd6a8; /* Esporte */
+
+  /* ---------- Feedback ---------- */
   --cor-erro: #ff6b6b;
   --cor-erro-fundo: rgba(255, 107, 107, 0.1);
+  --cor-sucesso: var(--cor-primaria);
+  --cor-sucesso-fundo: var(--cor-primaria-tinta);
 
-  /* Fontes */
+  /* ---------- Gradientes e brilhos ---------- */
+  --gradiente-marca: linear-gradient(135deg, #d4ff3a 0%, #5fe3c0 50%, #8b6cff 100%);
+  --gradiente-ambiente:
+    radial-gradient(60% 40% at 85% 0%, rgba(139, 108, 255, 0.16) 0%, transparent 70%),
+    radial-gradient(50% 35% at 0% 0%, rgba(212, 255, 58, 0.06) 0%, transparent 70%);
+  --brilho-primaria: 0 8px 24px -8px rgba(212, 255, 58, 0.45);
+  --brilho-secundaria: 0 8px 24px -8px rgba(139, 108, 255, 0.55);
+  --anel-foco: 0 0 0 3px rgba(139, 108, 255, 0.28);
+
+  /* ---------- Sombras ---------- */
+  --sombra-1: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 1px 2px rgba(0, 0, 0, 0.4);
+  --sombra-2: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 12px 32px -12px rgba(0, 0, 0, 0.7);
+  --sombra-3: 0 24px 64px -16px rgba(0, 0, 0, 0.8);
+
+  /* ---------- Fontes e escala de texto ---------- */
   --fonte-titulo: "Space Grotesk", system-ui, sans-serif;
   --fonte-texto: "Inter", system-ui, sans-serif;
 
-  /* Raios */
-  --raio-campo: 14px;
-  --raio-botao: 16px;
-  --raio-logo: 18px;
+  --texto-2xs: 11px;
+  --texto-xs: 12px;
+  --texto-sm: 13px;
+  --texto-base: 15px;
+  --texto-md: 16px;
+  --texto-lg: 18px;
+  --texto-xl: 22px;
+  --texto-2xl: 28px;
+  --texto-3xl: 36px;
+  --texto-4xl: 48px;
+
+  --espacamento-titulo: -0.02em;
+  --espacamento-sobrancelha: 0.08em;
+
+  /* ---------- Espaçamento (múltiplos de 4) ---------- */
+  --espaco-1: 4px;
+  --espaco-2: 8px;
+  --espaco-3: 12px;
+  --espaco-4: 16px;
+  --espaco-5: 20px;
+  --espaco-6: 24px;
+  --espaco-8: 32px;
+  --espaco-10: 40px;
+  --espaco-12: 48px;
+  --espaco-16: 64px;
+
+  /* ---------- Raios ---------- */
+  --raio-xs: 6px;
+  --raio-sm: 10px;
+  --raio-md: 12px;
+  --raio-lg: 16px;
+  --raio-xl: 20px;
   --raio-pilula: 999px;
 
-  /* Medidas */
+  /* ---------- Medidas ---------- */
   --largura-app: 390px;
-  --margem-tela: 28px;
-  --altura-campo: 52px;
-  --altura-botao: 54px;
-  --altura-barra: 84px;
+  --largura-conteudo: 1120px;
+  --margem-tela: 20px;
+  --altura-campo: 48px;
+  --altura-botao: 48px;
+  --altura-barra: 72px;
+  --altura-topo-desktop: 68px;
+
+  /* ---------- Movimento ---------- */
+  --transicao-rapida: 120ms cubic-bezier(0.2, 0, 0, 1);
+  --transicao: 200ms cubic-bezier(0.2, 0, 0, 1);
+
+  /* ---------- Nomes antigos (mantidos para as telas que ainda usam) ---------- */
+  --cor-destaque: var(--cor-primaria);
+  --cor-sobre-destaque: var(--cor-sobre-primaria);
+  --cor-fundo-barra: var(--cor-vidro);
+  --cor-borda-cartao: var(--cor-borda);
+  --cor-borda-tracejada: var(--cor-borda-forte);
+  --cor-etiqueta: rgba(13, 12, 18, 0.78);
+  --cor-placeholder: var(--cor-texto-fraco);
+  --raio-campo: var(--raio-md);
+  --raio-botao: var(--raio-md);
+  --raio-logo: 14px;
+}
+
+/* Quem pede menos movimento no sistema fica sem transições (os componentes usam estes tokens). */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transicao-rapida: 0ms linear;
+    --transicao: 0ms linear;
+  }
+}
+
+/* Interpolação em OKLCH deixa o gradiente da marca vivo no meio (sem o "cinza" do sRGB). */
+@supports (background: linear-gradient(in oklch, red, blue)) {
+  :root {
+    --gradiente-marca: linear-gradient(in oklch 135deg, #d4ff3a 0%, #8b6cff 100%);
+  }
 }

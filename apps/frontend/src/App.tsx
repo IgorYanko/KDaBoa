@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
 import { LayoutApp } from './components/LayoutApp';
 import { RotaPrivada, RotaPublica } from './components/RotaPrivada';
@@ -8,6 +9,11 @@ import { DetalheEvento } from './pages/DetalheEvento/DetalheEvento';
 import { Inicio } from './pages/Inicio/Inicio';
 import { Login } from './pages/Login/Login';
 import { Perfil } from './pages/Perfil/Perfil';
+
+/** Guia de estilo: só no `pnpm dev` (não entra no build de produção). */
+const GuiaEstilo = import.meta.env.DEV
+  ? lazy(() => import('./pages/GuiaEstilo/GuiaEstilo').then((m) => ({ default: m.GuiaEstilo })))
+  : null;
 
 /** Rotas do app. */
 export function App() {
@@ -41,6 +47,17 @@ export function App() {
               <Route path="/divulgar" element={<TelaEmConstrucao titulo="Divulgar evento" issue={43} />} />
             </Route>
           </Route>
+
+          {GuiaEstilo && (
+            <Route
+              path="/guia"
+              element={
+                <Suspense>
+                  <GuiaEstilo />
+                </Suspense>
+              }
+            />
+          )}
 
           <Route path="*" element={<Navigate to="/inicio" replace />} />
         </Routes>
