@@ -10,6 +10,7 @@
     "lint": "biome lint ./src",
     "test": "vitest run --coverage",
     "build": "tsc",
+    "start": "pnpm db:migrate && node dist/server.js",
     "db:migrate": "prisma migrate deploy --config ../db/prisma.config.ts",
     "db:dev": "prisma migrate dev --config ../db/prisma.config.ts",
     "db:generate": "prisma generate --config ../db/prisma.config.ts"
