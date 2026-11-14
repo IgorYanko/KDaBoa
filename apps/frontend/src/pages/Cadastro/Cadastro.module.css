@@ -51,6 +51,11 @@
   margin: 0;
   padding: 4px 0 0;
   border: none;
+  min-width: 0;
+}
+
+/* flex no fieldset esconde o conteúdo em alguns navegadores */
+.lista {
   display: flex;
   flex-direction: column;
   gap: 10px;

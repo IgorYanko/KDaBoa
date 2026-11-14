@@ -136,21 +136,23 @@ export function Cadastro() {
 
         <fieldset className={styles.interesses} aria-describedby={erros.interesses ? 'erro-interesses' : undefined}>
           <legend className={styles.legenda}>O que você curte?</legend>
-          <div className={styles.chips}>
-            {categorias.map((categoria) => (
-              <Chip
-                key={categoria.id}
-                rotulo={categoria.nome}
-                selecionado={dados.interesses.includes(categoria.id)}
-                onAlternar={() => alternarInteresse(categoria.id)}
-              />
-            ))}
+          <div className={styles.lista}>
+            <div className={styles.chips}>
+              {categorias.map((categoria) => (
+                <Chip
+                  key={categoria.id}
+                  rotulo={categoria.nome}
+                  selecionado={dados.interesses.includes(categoria.id)}
+                  onAlternar={() => alternarInteresse(categoria.id)}
+                />
+              ))}
+            </div>
+            {erros.interesses && (
+              <p id="erro-interesses" className={styles.erro}>
+                {erros.interesses}
+              </p>
+            )}
           </div>
-          {erros.interesses && (
-            <p id="erro-interesses" className={styles.erro}>
-              {erros.interesses}
-            </p>
-          )}
         </fieldset>
 
         <div className={styles.presenca}>
