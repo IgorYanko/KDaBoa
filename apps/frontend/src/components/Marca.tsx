@@ -1,4 +1,4 @@
-import { Icone } from './Icone';
+import { Logo, type VarianteLogo } from './Logo';
 import styles from './Marca.module.css';
 
 interface Props {
@@ -6,16 +6,22 @@ interface Props {
   tamanho?: 'sm' | 'md' | 'lg';
   /** Mostra o nome ao lado do símbolo (padrão: sim). */
   comNome?: boolean;
+  /** Proposta de logo (padrão: a escolhida em Logo.tsx). */
+  variante?: VarianteLogo;
 }
 
-/** Símbolo + nome do KdABoa. Decorativo: quem usa dá o nome acessível (ex.: aria-label do link). */
-export function Marca({ tamanho = 'md', comNome = true }: Props) {
+const PIXELS = { sm: 28, md: 36, lg: 48 };
+
+/** Símbolo + nome do KdABoa ("KdABoa" + "?" em limão). Decorativo: quem usa dá o nome acessível. */
+export function Marca({ tamanho = 'md', comNome = true, variante }: Props) {
   return (
     <span className={`${styles.marca} ${styles[tamanho]}`} aria-hidden="true">
-      <span className={styles.simbolo}>
-        <Icone nome="local" traco={2.25} className={styles.icone} />
-      </span>
-      {comNome && <span className={styles.nome}>KdABoa?</span>}
+      <Logo tamanho={PIXELS[tamanho]} variante={variante} className={styles.simbolo} />
+      {comNome && (
+        <span className={styles.nome}>
+          KdABoa<span className={styles.interrogacao}>?</span>
+        </span>
+      )}
     </span>
   );
 }

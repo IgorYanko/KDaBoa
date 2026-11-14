@@ -1,0 +1,121 @@
+/* Faixa de cima com o gradiente da marca e a logo. */
+.topo {
+  position: relative;
+  height: 132px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--gradiente-painel), var(--cor-superficie-elevada);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.topo::before {
+  content: "";
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  border-radius: var(--raio-pilula);
+  background: var(--gradiente-marca);
+  opacity: 0.22;
+  filter: blur(48px);
+}
+
+.logo {
+  position: relative;
+  width: 88px;
+  height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-xl);
+  box-shadow: var(--sombra-2);
+  color: var(--cor-primaria);
+  animation: flutuar 3.6s ease-in-out infinite;
+}
+
+@keyframes flutuar {
+  50% {
+    transform: translateY(-4px) rotate(-3deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logo {
+    animation: none;
+  }
+}
+
+.corpo {
+  padding: var(--espaco-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+}
+
+.sobrancelha {
+  font-size: var(--texto-2xs);
+  font-weight: 600;
+  letter-spacing: var(--espacamento-sobrancelha);
+  text-transform: uppercase;
+  color: var(--cor-secundaria-texto);
+}
+
+.titulo {
+  font-size: var(--texto-2xl);
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.nome {
+  color: var(--cor-primaria);
+}
+
+.texto {
+  font-size: var(--texto-base);
+  line-height: 1.5;
+  color: var(--cor-texto-suave);
+}
+
+.passos {
+  margin: var(--espaco-2) 0 var(--espaco-3);
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+}
+
+.passo {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espaco-3);
+  font-size: var(--texto-sm);
+  color: var(--cor-texto-suave);
+}
+
+.passo > span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.passo strong {
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+
+.passoIcone {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cor-secundaria-tinta);
+  border: 1px solid var(--cor-secundaria-borda);
+  border-radius: var(--raio-md);
+  color: var(--cor-secundaria-texto);
+}

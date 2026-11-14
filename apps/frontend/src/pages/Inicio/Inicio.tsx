@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ErroApi } from '../../api/client';
 import { Aviso } from '../../components/Aviso';
+import { BoasVindas } from '../../components/BoasVindas';
 import { BotaoIcone } from '../../components/BotaoIcone';
 import { CampoBusca } from '../../components/CampoBusca';
 import { Chip } from '../../components/Chip';
@@ -84,6 +85,8 @@ export function Inicio() {
 
   return (
     <main className={styles.tela}>
+      <BoasVindas />
+
       <header className={styles.cabecalho}>
         <div className={styles.saudacao}>
           <p className={styles.cidade}>

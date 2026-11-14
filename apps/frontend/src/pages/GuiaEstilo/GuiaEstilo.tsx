@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react';
 import { Icone, nomesIcones } from '../../components/Icone';
 import styles from './GuiaEstilo.module.css';
 import { SecaoComponentes } from './SecaoComponentes';
+import { SecaoLogo } from './SecaoLogo';
 
 interface Amostra {
   nome: string;
@@ -78,6 +79,8 @@ export function GuiaEstilo() {
           Tokens de <code>src/styles/tokens.css</code>. Esta página só existe no <code>pnpm dev</code>.
         </p>
       </header>
+
+      <SecaoLogo />
 
       {grupos.map((grupo) => (
         <section key={grupo.titulo} className={styles.secao}>
