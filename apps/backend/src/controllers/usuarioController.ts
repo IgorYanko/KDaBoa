@@ -2,23 +2,41 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../prisma';
+import {
+  redefinirSenha,
+  solicitarRecuperacaoSenha,
+} from './authController';
 
 export const usuarioController = {
   cadastrar: async (req: Request, res: Response): Promise<void> => {
     try {
-      const { nome, email, senha, data_nascimento, dataNascimento } = req.body;
+      const {
+        nome,
+        email,
+        senha,
+        data_nascimento,
+        dataNascimento,
+        mostrar_presenca,
+        mostrarPresenca,
+        interesses,
+      } = req.body;
 
       const usuarioExistente = await prisma.usuario.findUnique({
         where: { email },
       });
 
       if (usuarioExistente) {
-        res.status(400).json({ erro: 'E-mail já cadastrado' });
+        res.status(409).json({ erro: 'E-mail já cadastrado' });
         return;
       }
 
       const senhaHash = await bcrypt.hash(senha || '123456', 10);
       const dataNasc = dataNascimento || data_nascimento || '2000-01-01';
+      const presencaVisivel = mostrarPresenca ?? mostrar_presenca ?? true;
+
+      const listaInteresses = Array.isArray(interesses)
+        ? interesses.map((id) => Number(id)).filter((id) => !Number.isNaN(id))
+        : [];
 
       const novoUsuario = await prisma.usuario.create({
         data: {
@@ -26,6 +44,17 @@ export const usuarioController = {
           email,
           senhaHash,
           dataNascimento: new Date(dataNasc),
+          mostrarPresenca: Boolean(presencaVisivel),
+          ...(listaInteresses.length > 0 && {
+            interesses: {
+              create: listaInteresses.map((categoriaId) => ({
+                categoriaId,
+              })),
+            },
+          }),
+        },
+        include: {
+          interesses: true,
         },
       });
 
@@ -36,6 +65,10 @@ export const usuarioController = {
           nome: novoUsuario.nome,
           email: novoUsuario.email,
           data_nascimento: novoUsuario.dataNascimento,
+          mostrar_presenca: novoUsuario.mostrarPresenca,
+          interesses: novoUsuario.interesses
+            ? novoUsuario.interesses.map((i) => i.categoriaId)
+            : listaInteresses,
         },
       });
     } catch (error) {
@@ -76,4 +109,7 @@ export const usuarioController = {
       res.status(500).json({ erro: 'Erro interno ao realizar login' });
     }
   },
+
+  esqueciSenha: solicitarRecuperacaoSenha,
+  redefinirSenha,
 };

@@ -72,7 +72,7 @@ describe('API de usuários', () => {
       senha: 'qualquer_senha',
     });
 
-    expect(resposta.status).toBe(400);
+    expect(resposta.status).toBe(409);
   });
 
   it('POST /api/usuarios/cadastro usa senha e data padrão', async () => {
