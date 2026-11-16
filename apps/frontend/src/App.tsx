@@ -11,6 +11,7 @@ import { Divulgar } from './pages/Divulgar/Divulgar';
 import { Inicio } from './pages/Inicio/Inicio';
 import { Login } from './pages/Login/Login';
 import { Perfil } from './pages/Perfil/Perfil';
+import { RedefinirSenha } from './pages/RedefinirSenha/RedefinirSenha';
 
 /** Guia de estilo: só no `pnpm dev` (não entra no build de produção). */
 const GuiaEstilo = import.meta.env.DEV
@@ -30,8 +31,9 @@ export function App() {
               <Route path="/cadastro" element={<Cadastro />} />
             </Route>
           </Route>
-          <Route element={<LayoutApp />}>
-            <Route path="/redefinir-senha" element={<TelaEmConstrucao titulo="Redefinir senha" issue={19} />} />
+          {/* Fora da RotaPublica: o link do e-mail precisa abrir mesmo com alguém logado. */}
+          <Route element={<LayoutApp entrada />}>
+            <Route path="/redefinir-senha" element={<RedefinirSenha />} />
           </Route>
 
           {/* Privadas (#21) */}

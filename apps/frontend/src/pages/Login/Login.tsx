@@ -10,9 +10,10 @@ import { useAuth } from '../../contexts/useAuth';
 import { SENHA_MAXIMA } from '../Cadastro/validarCadastro';
 import styles from './Login.module.css';
 
-/** Estado enviado pelo cadastro ao voltar para cá. */
+/** Estado enviado pelo cadastro e pela redefinição de senha ao voltar para cá. */
 interface EstadoLogin {
   emailCadastrado?: string;
+  senhaRedefinida?: boolean;
 }
 
 /** Tela 1 · Login (issue #14). */
@@ -54,6 +55,7 @@ export function Login() {
 
       <form className={styles.formulario} onSubmit={aoEnviar} noValidate>
         {estado.emailCadastrado && !erro && <Aviso tipo="sucesso">Conta criada! Agora é só entrar.</Aviso>}
+        {estado.senhaRedefinida && !erro && <Aviso tipo="sucesso">Senha alterada! Entre com a nova senha.</Aviso>}
         {erro && <Aviso tipo="erro">{erro}</Aviso>}
 
         <Campo
