@@ -15,7 +15,16 @@ function segredoJwt(): string {
 
 export const cadastrar = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { nome, email, senha, data_nascimento, dataNascimento } = req.body;
+    const {
+      nome,
+      email,
+      senha,
+      data_nascimento,
+      dataNascimento,
+      mostrar_presenca,
+      mostrarPresenca,
+      interesses,
+    } = req.body;
 
     const usuarioExiste = await prisma.usuario.findUnique({
       where: { email },
@@ -30,6 +39,11 @@ export const cadastrar = async (req: Request, res: Response): Promise<void> => {
     const senhaHash = await bcrypt.hash(senha, salt);
 
     const dataNasc = dataNascimento || data_nascimento || '2000-01-01';
+    const presencaVisivel = mostrarPresenca ?? mostrar_presenca ?? true;
+
+    const listaInteresses = Array.isArray(interesses)
+      ? interesses.map((id) => Number(id)).filter((id) => !Number.isNaN(id))
+      : [];
 
     const novoUsuario = await prisma.usuario.create({
       data: {
@@ -37,6 +51,17 @@ export const cadastrar = async (req: Request, res: Response): Promise<void> => {
         email,
         senhaHash,
         dataNascimento: new Date(dataNasc),
+        mostrarPresenca: Boolean(presencaVisivel),
+        ...(listaInteresses.length > 0 && {
+          interesses: {
+            create: listaInteresses.map((categoriaId) => ({
+              categoriaId,
+            })),
+          },
+        }),
+      },
+      include: {
+        interesses: true,
       },
     });
 
@@ -46,6 +71,11 @@ export const cadastrar = async (req: Request, res: Response): Promise<void> => {
         id: novoUsuario.id,
         nome: novoUsuario.nome,
         email: novoUsuario.email,
+        data_nascimento: novoUsuario.dataNascimento,
+        mostrar_presenca: novoUsuario.mostrarPresenca,
+        interesses: novoUsuario.interesses
+          ? novoUsuario.interesses.map((i) => i.categoriaId)
+          : listaInteresses,
       },
     });
   } catch (error) {
