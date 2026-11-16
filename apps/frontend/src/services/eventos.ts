@@ -1,7 +1,7 @@
 import { ErroApi, requisicao } from '../api/client';
 import { lerSessao } from '../api/sessao';
 import { USAR_MOCK } from '../config';
-import type { CategoriaDTO, CriarEventoRequestDTO, EventoDTO, FiltroEventosDTO, LocalDTO } from '../dtos';
+import type { AgendaDTO, CategoriaDTO, CriarEventoRequestDTO, EventoDTO, FiltroEventosDTO, LocalDTO } from '../dtos';
 import { atraso } from '../mocks/atraso';
 import { eventosMock } from '../mocks/eventos';
 import { lerEventosCriados, salvarEventoCriado } from '../mocks/eventosCriados';
@@ -90,6 +90,42 @@ async function completar(eventos: EventoDTO[]): Promise<EventoCompleto[]> {
 export async function listarEventos(filtro: FiltroEventosDTO = {}): Promise<EventoCompleto[]> {
   const eventos = await buscarListaEventos(filtro);
   return filtrar(await completar(eventos), filtro);
+}
+
+/** Agenda já com categoria e local em cada evento. */
+export interface AgendaCompleta {
+  proximos: EventoCompleto[];
+  passados: EventoCompleto[];
+}
+
+/** Um evento ainda não acabou (sem término, vale o horário de início). */
+function aindaNaoAcabou(evento: EventoDTO, agora: Date): boolean {
+  return new Date(evento.data_fim ?? evento.data_inicio) >= agora;
+}
+
+/**
+ * GET /api/usuarios/me/agenda (issue #39, rota ainda não existe) — eventos em que o
+ * usuário confirmou presença, separados em próximos e passados.
+ */
+export async function listarAgenda(): Promise<AgendaCompleta> {
+  let proximos: EventoDTO[];
+  let passados: EventoDTO[];
+  if (USAR_MOCK) {
+    await atraso(300);
+    const agora = new Date();
+    const confirmados = todosEventosMock()
+      .map(comPresenca)
+      .filter((e) => e.eu_vou);
+    proximos = confirmados.filter((e) => aindaNaoAcabou(e, agora));
+    passados = confirmados.filter((e) => !aindaNaoAcabou(e, agora));
+  } else {
+    ({ proximos, passados } = await requisicao<AgendaDTO>('/api/usuarios/me/agenda'));
+  }
+  const [proximosCompletos, passadosCompletos] = await Promise.all([completar(proximos), completar(passados)]);
+  return {
+    proximos: proximosCompletos.sort((a, b) => a.evento.data_inicio.localeCompare(b.evento.data_inicio)),
+    passados: passadosCompletos.sort((a, b) => b.evento.data_inicio.localeCompare(a.evento.data_inicio)),
+  };
 }
 
 /** GET /api/eventos/:id — um evento, já com categoria e local. */

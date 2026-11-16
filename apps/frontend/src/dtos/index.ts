@@ -221,6 +221,16 @@ export interface CriarEventoRequestDTO {
 // Presença e social
 // ---------------------------------------------------------------------------
 
+/**
+ * PENDENTE (issue #39): eventos em que o usuário logado confirmou presença,
+ * separados pela data do evento. Rota sugerida: GET /api/usuarios/me/agenda (exige login).
+ * Próximos em ordem de data; passados do mais recente para o mais antigo.
+ */
+export interface AgendaDTO {
+  proximos: EventoDTO[];
+  passados: EventoDTO[];
+}
+
 /** PENDENTE (issue #29): resposta de confirmar/cancelar presença. */
 export interface PresencaDTO {
   evento_id: Uuid;

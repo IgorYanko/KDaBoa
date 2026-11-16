@@ -4,6 +4,7 @@ import { LayoutApp } from './components/LayoutApp';
 import { RotaPrivada, RotaPublica } from './components/RotaPrivada';
 import { TelaEmConstrucao } from './components/TelaEmConstrucao';
 import { AuthProvider } from './contexts/AuthContext';
+import { Agenda } from './pages/Agenda/Agenda';
 import { Cadastro } from './pages/Cadastro/Cadastro';
 import { Chat } from './pages/Chat/Chat';
 import { DetalheEvento } from './pages/DetalheEvento/DetalheEvento';
@@ -40,7 +41,7 @@ export function App() {
           <Route element={<RotaPrivada />}>
             <Route element={<LayoutApp navegacao="completa" />}>
               <Route path="/inicio" element={<Inicio />} />
-              <Route path="/agenda" element={<TelaEmConstrucao titulo="Minha agenda" issue={38} comVoltar={false} />} />
+              <Route path="/agenda" element={<Agenda />} />
               <Route path="/perfil" element={<Perfil />} />
             </Route>
             <Route element={<LayoutApp navegacao="topo" />}>

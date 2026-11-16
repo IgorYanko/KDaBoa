@@ -1,0 +1,141 @@
+.linha {
+  position: relative;
+  min-height: 88px;
+  padding: var(--espaco-3) var(--espaco-3) var(--espaco-3) var(--espaco-3);
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-4);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-lg);
+  transition:
+    border-color var(--transicao),
+    background-color var(--transicao),
+    transform var(--transicao);
+}
+
+@media (hover: hover) {
+  .linha:hover {
+    background: var(--cor-superficie-elevada);
+    border-color: color-mix(in oklch, var(--cor-evento) 45%, var(--cor-borda));
+  }
+
+  .linha:hover .seta {
+    color: var(--cor-texto);
+    transform: translateX(2px);
+  }
+}
+
+.linha:active {
+  transform: scale(0.99);
+}
+
+/* Foco do teclado: contorna a linha inteira. */
+.linha:has(.link:focus-visible) {
+  outline: 2px solid var(--cor-secundaria);
+  outline-offset: 2px;
+}
+
+/* ---------- Data, tingida pela cor da categoria ---------- */
+.data {
+  flex-shrink: 0;
+  width: 56px;
+  height: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in oklch, var(--cor-evento) 18%, var(--cor-superficie));
+  border: 1px solid color-mix(in oklch, var(--cor-evento) 40%, transparent);
+  border-radius: var(--raio-md);
+  font-family: var(--fonte-titulo);
+  line-height: 1;
+}
+
+.dia {
+  font-size: var(--texto-xl);
+  font-weight: 600;
+  letter-spacing: var(--espacamento-titulo);
+  color: var(--cor-texto);
+}
+
+.mes {
+  padding-top: 3px;
+  font-size: var(--texto-2xs);
+  font-weight: 600;
+  letter-spacing: var(--espacamento-sobrancelha);
+  color: var(--cor-evento);
+}
+
+/* ---------- Texto ---------- */
+.corpo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.titulo {
+  font-size: var(--texto-base);
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--cor-texto);
+}
+
+/* O link do título cobre a linha inteira. */
+.link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.link:focus-visible {
+  outline: none;
+}
+
+.meta,
+.quemVai {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--texto-sm);
+}
+
+.meta {
+  color: var(--cor-texto-suave);
+}
+
+.quemVai {
+  font-size: var(--texto-xs);
+  color: var(--cor-texto-fraco);
+}
+
+.seta {
+  flex-shrink: 0;
+  color: var(--cor-texto-fraco);
+  transition:
+    color var(--transicao),
+    transform var(--transicao);
+}
+
+/* ---------- Evento que já passou ---------- */
+.passado .data {
+  background: var(--cor-superficie-elevada);
+  border-color: var(--cor-borda);
+}
+
+.passado .mes {
+  color: var(--cor-texto-fraco);
+}
+
+.passado .titulo {
+  color: var(--cor-texto-suave);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .linha,
+  .seta {
+    transition: none;
+  }
+}
