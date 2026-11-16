@@ -67,9 +67,10 @@
   letter-spacing: normal;
 }
 
+/* Lado a lado quando cabe; em celular estreito, um embaixo do outro (senão "dd/mm/aaaa" fica cortado). */
 .duasColunas {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(11.5rem, 1fr));
   gap: var(--espaco-3);
 }
 

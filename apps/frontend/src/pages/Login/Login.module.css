@@ -44,8 +44,11 @@
   gap: var(--espaco-2);
 }
 
+/* min-height de 44px: área de toque confortável no celular. */
 .esqueci {
-  padding: var(--espaco-1) 0;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   font-size: var(--texto-sm);
   font-weight: 500;
   color: var(--cor-secundaria-texto);
@@ -69,7 +72,11 @@
   color: var(--cor-texto-suave);
 }
 
+/* O padding aumenta a área de toque para ~44px e a margem negativa mantém o texto no lugar. */
 .destaque {
+  display: inline-block;
+  padding: 14px var(--espaco-2);
+  margin: -14px calc(-1 * var(--espaco-2));
   font-weight: 600;
   color: var(--cor-primaria);
 }
