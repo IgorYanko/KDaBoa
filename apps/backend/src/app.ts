@@ -1,12 +1,12 @@
-import express from 'express';
 import cors from 'cors';
+import express from 'express';
 import swaggerUi from 'swagger-ui-express';
-import { swaggerSpec } from './swagger';
-import eventoRoutes from './routes/eventoRoutes';
-import usuarioRoutes from './routes/usuarioRoutes';
-import categoriaRoutes from './routes/categoriaRoutes';
-import localRoutes from './routes/localRoutes';
 import authRoutes from './routes/authRoutes';
+import categoriaRoutes from './routes/categoriaRoutes';
+import eventoRoutes from './routes/eventoRoutes';
+import localRoutes from './routes/localRoutes';
+import usuarioRoutes from './routes/usuarioRoutes';
+import { swaggerSpec } from './swagger';
 
 const app = express();
 

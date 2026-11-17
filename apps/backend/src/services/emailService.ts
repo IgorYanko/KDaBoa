@@ -1,38 +1,30 @@
-import nodemailer, { type Transporter } from 'nodemailer';
+import nodemailer from 'nodemailer';
 
 export async function enviarEmailRecuperacao(
   emailDestino: string,
   token: string,
-): Promise<{ messageId: string; previewUrl: string | false }> {
-  let transporter: Transporter;
+): Promise<{ messageId: string }> {
+  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM, FRONTEND_URL } =
+    process.env;
 
-  if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
-    transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT) || 587,
-      secure: false,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
-  } else {
-    const contaTeste = await nodemailer.createTestAccount();
-    transporter = nodemailer.createTransport({
-      host: contaTeste.smtp.host,
-      port: contaTeste.smtp.port,
-      secure: contaTeste.smtp.secure,
-      auth: {
-        user: contaTeste.user,
-        pass: contaTeste.pass,
-      },
-    });
+  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
+    throw new Error('Configuração SMTP ausente (SMTP_HOST, SMTP_USER, SMTP_PASS).');
   }
 
-  const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+  const porta = Number(SMTP_PORT) || 587;
+  const transporter = nodemailer.createTransport({
+    host: SMTP_HOST,
+    port: porta,
+    secure: porta === 465,
+    auth: {
+      user: SMTP_USER,
+      pass: SMTP_PASS,
+    },
+  });
+
+  const baseUrl = FRONTEND_URL || 'http://localhost:5173';
   const linkRedefinicao = `${baseUrl}/redefinir-senha?token=${token}`;
-  const remetente =
-    process.env.SMTP_FROM || process.env.SMTP_USER || 'no-reply@kdaboa.com';
+  const remetente = SMTP_FROM || SMTP_USER;
 
   const info = await transporter.sendMail({
     from: `"KDaBoa" <${remetente}>`,
@@ -42,10 +34,7 @@ export async function enviarEmailRecuperacao(
     html: `<p>Você solicitou a redefinição de senha.</p><p>Seu token (válido por 1 hora): <b>${token}</b></p><p><a href="${linkRedefinicao}">Clique aqui para redefinir sua senha</a></p>`,
   });
 
-  const previewUrl = nodemailer.getTestMessageUrl(info);
-
   return {
     messageId: info.messageId,
-    previewUrl,
   };
 }
