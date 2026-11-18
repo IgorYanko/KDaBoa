@@ -3,15 +3,6 @@ import { prisma } from '../prisma';
 
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-type RequestComUsuario = Request & {
-  usuario?: {
-    id?: string;
-  };
-};
-
-export const eventoController = {
-  // READ - Lista todos os eventos
-  listar: async (_req: Request, res: Response): Promise<void> => {
 type PeriodoFiltro = 'hoje' | 'fim-de-semana' | 'este-mes';
 
 interface RequisicaoAutenticada extends Request {
@@ -131,8 +122,6 @@ export const eventoController = {
           local: true,
         },
         orderBy: { dataInicio: 'asc' },
-      });
-      res.json(eventos);
       })) as unknown as EventoBanco[];
 
       const termoBusca = typeof busca === 'string' ? semAcento(busca.trim()) : '';
@@ -173,7 +162,6 @@ export const eventoController = {
         return;
       }
 
-      res.json(evento);
       res.json(formatarEventoParaResposta(evento));
     } catch (_error) {
       res.status(500).json({ erro: 'Erro ao buscar evento' });
@@ -205,7 +193,6 @@ export const eventoController = {
         criadorId,
       } = req.body;
 
-      const reqAuth = req as RequestComUsuario;
       const reqAuth = req as RequisicaoAutenticada;
       const idCriador = reqAuth.usuario?.id || criadorId || criador_id;
 
