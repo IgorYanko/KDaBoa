@@ -2,6 +2,10 @@ import bcrypt from 'bcrypt';
 import type { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../prisma';
+import {
+  redefinirSenha,
+  solicitarRecuperacaoSenha,
+} from './authController';
 
 export const usuarioController = {
   cadastrar: async (req: Request, res: Response): Promise<void> => {
@@ -67,7 +71,7 @@ export const usuarioController = {
             : listaInteresses,
         },
       });
-    } catch (error) {
+    } catch (_error) {
       res.status(500).json({ erro: 'Erro ao cadastrar usuário' });
     }
   },
@@ -101,8 +105,11 @@ export const usuarioController = {
         token,
         usuario: { id: usuario.id, nome: usuario.nome },
       });
-    } catch (error) {
+    } catch (_error) {
       res.status(500).json({ erro: 'Erro interno ao realizar login' });
     }
   },
+
+  esqueciSenha: solicitarRecuperacaoSenha,
+  redefinirSenha,
 };
