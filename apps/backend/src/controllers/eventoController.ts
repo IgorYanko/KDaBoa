@@ -1,21 +1,140 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { prisma } from '../prisma';
 
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+type PeriodoFiltro = 'hoje' | 'fim-de-semana' | 'este-mes';
+
+interface RequisicaoAutenticada extends Request {
+  usuario?: {
+    id?: string;
+    email?: string;
+  };
+}
+
+interface EventoBanco {
+  id: string;
+  titulo: string;
+  descricao: string;
+  dataInicio: Date;
+  dataFim?: Date | null;
+  preco: unknown;
+  classificacaoEtaria: number;
+  imagemUrl?: string | null;
+  latitude?: unknown;
+  longitude?: unknown;
+  categoriaId: number;
+  localId: number;
+  criadorId: string;
+  categoria?: { id: number; nome: string; icone?: string | null } | null;
+  local?: { id: number; nome: string; endereco?: string | null } | null;
+  _count?: { presencas: number };
+}
+
+function inicioDoDia(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+export function intervaloDoPeriodo(
+  periodo: PeriodoFiltro,
+  agora = new Date(),
+): [Date, Date] {
+  const hoje = inicioDoDia(agora);
+  if (periodo === 'hoje') {
+    return [hoje, new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() + 1)];
+  }
+  if (periodo === 'este-mes') {
+    return [hoje, new Date(hoje.getFullYear(), hoje.getMonth() + 1, 1)];
+  }
+  const diaSemana = hoje.getDay();
+  const diasAteSexta = diaSemana === 0 ? -2 : 5 - diaSemana;
+  const sexta = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() + diasAteSexta);
+  const segunda = new Date(sexta.getFullYear(), sexta.getMonth(), sexta.getDate() + 3);
+  return [sexta < hoje ? hoje : sexta, segunda];
+}
+
+function semAcento(texto: string): string {
+  return texto
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+function formatarEventoParaResposta(ev: EventoBanco) {
+  const dataInicioIso =
+    ev.dataInicio instanceof Date ? ev.dataInicio.toISOString() : String(ev.dataInicio);
+  const dataFimIso =
+    ev.dataFim instanceof Date ? ev.dataFim.toISOString() : (ev.dataFim ?? null);
+  const capa = ev.imagemUrl ?? null;
+
+  return {
+    ...ev,
+    data_inicio: dataInicioIso,
+    data_fim: dataFimIso,
+    classificacao_etaria: ev.classificacaoEtaria,
+    imagem_url: capa,
+    capa_url: capa,
+    categoria_id: ev.categoriaId,
+    local_id: ev.localId,
+    criador_id: ev.criadorId,
+    confirmados: ev._count?.presencas ?? 0,
+  };
+}
+
 export const eventoController = {
-  // READ - Lista todos os eventos
+  // READ - Lista próximos eventos com filtros opcionais (Card 20 / Issue #23)
   listar: async (req: Request, res: Response): Promise<void> => {
     try {
-      const eventos = await prisma.evento.findMany({
+      const { periodo, categoria_id, categoriaId, busca } = req.query;
+      const agora = new Date();
+
+      const where: Record<string, unknown> = {};
+
+      const catBruta = categoria_id ?? categoriaId;
+      if (catBruta !== undefined && String(catBruta).trim() !== '') {
+        const catNum = Number(catBruta);
+        if (!Number.isNaN(catNum)) {
+          where.categoriaId = catNum;
+        }
+      }
+
+      const periodoStr = typeof periodo === 'string' ? periodo.trim() : '';
+      if (
+        periodoStr === 'hoje' ||
+        periodoStr === 'fim-de-semana' ||
+        periodoStr === 'este-mes'
+      ) {
+        const [inicio, fim] = intervaloDoPeriodo(periodoStr, agora);
+        where.dataInicio = {
+          gte: inicio,
+          lt: fim,
+        };
+      } else {
+        where.dataInicio = {
+          gte: agora,
+        };
+      }
+
+      const eventos = (await prisma.evento.findMany({
+        where,
         include: {
           categoria: true,
           local: true,
         },
         orderBy: { dataInicio: 'asc' },
-      });
-      res.json(eventos);
-    } catch (error) {
+      })) as unknown as EventoBanco[];
+
+      const termoBusca = typeof busca === 'string' ? semAcento(busca.trim()) : '';
+      const filtrados = termoBusca
+        ? eventos.filter((ev) =>
+            [ev.titulo, ev.descricao, ev.categoria?.nome, ev.local?.nome].some(
+              (campo) => campo && semAcento(campo).includes(termoBusca),
+            ),
+          )
+        : eventos;
+
+      res.json(filtrados.map(formatarEventoParaResposta));
+    } catch (_error) {
       res.status(500).json({ erro: 'Erro ao listar eventos' });
     }
   },
@@ -30,21 +149,21 @@ export const eventoController = {
         return;
       }
 
-      const evento = await prisma.evento.findUnique({
+      const evento = (await prisma.evento.findUnique({
         where: { id },
         include: {
           categoria: true,
           local: true,
         },
-      });
+      })) as unknown as EventoBanco | null;
 
       if (!evento) {
         res.status(404).json({ erro: 'Evento não encontrado' });
         return;
       }
 
-      res.json(evento);
-    } catch (error) {
+      res.json(formatarEventoParaResposta(evento));
+    } catch (_error) {
       res.status(500).json({ erro: 'Erro ao buscar evento' });
     }
   },
@@ -74,14 +193,15 @@ export const eventoController = {
         criadorId,
       } = req.body;
 
-      const idCriador = (req as any).usuario?.id || criadorId || criador_id;
+      const reqAuth = req as RequisicaoAutenticada;
+      const idCriador = reqAuth.usuario?.id || criadorId || criador_id;
 
       const novoEvento = await prisma.evento.create({
         data: {
           titulo,
           descricao,
           dataInicio: new Date(dataInicio || data_inicio),
-          dataFim: (dataFim || data_fim) ? new Date(dataFim || data_fim) : null,
+          dataFim: dataFim || data_fim ? new Date(dataFim || data_fim) : null,
           preco: preco ?? 0,
           classificacaoEtaria: Number(classificacaoEtaria ?? classificacao_etaria ?? 0),
           imagemUrl: imagemUrl || imagem_url,
@@ -126,22 +246,31 @@ export const eventoController = {
         data: {
           ...(titulo !== undefined && { titulo }),
           ...(descricao !== undefined && { descricao }),
-          ...((dataInicio || data_inicio) && { dataInicio: new Date(dataInicio || data_inicio) }),
-          ...((dataFim || data_fim) && { dataFim: new Date(dataFim || data_fim) }),
+          ...((dataInicio || data_inicio) && {
+            dataInicio: new Date(dataInicio || data_inicio),
+          }),
+          ...((dataFim || data_fim) && {
+            dataFim: new Date(dataFim || data_fim),
+          }),
           ...(preco !== undefined && { preco }),
-          ...((classificacaoEtaria !== undefined || classificacao_etaria !== undefined) && {
+          ...((classificacaoEtaria !== undefined ||
+            classificacao_etaria !== undefined) && {
             classificacaoEtaria: Number(classificacaoEtaria ?? classificacao_etaria),
           }),
           ...((imagemUrl !== undefined || imagem_url !== undefined) && {
             imagemUrl: imagemUrl ?? imagem_url,
           }),
-          ...((categoriaId || categoria_id) && { categoriaId: Number(categoriaId || categoria_id) }),
-          ...((localId || local_id) && { localId: Number(localId || local_id) }),
+          ...((categoriaId || categoria_id) && {
+            categoriaId: Number(categoriaId || categoria_id),
+          }),
+          ...((localId || local_id) && {
+            localId: Number(localId || local_id),
+          }),
         },
       });
 
       res.json(eventoAtualizado);
-    } catch (error) {
+    } catch (_error) {
       res.status(404).json({ erro: 'Evento não encontrado ou erro ao atualizar' });
     }
   },
@@ -155,7 +284,7 @@ export const eventoController = {
       });
 
       res.status(204).send();
-    } catch (error) {
+    } catch (_error) {
       res.status(404).json({ erro: 'Evento não encontrado ou erro ao deletar' });
     }
   },
