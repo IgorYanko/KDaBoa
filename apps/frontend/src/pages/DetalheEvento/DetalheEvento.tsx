@@ -29,7 +29,10 @@ export function DetalheEvento() {
   const [erro, setErro] = useState<string | null>(null);
   const [erroPresenca, setErroPresenca] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
-  const [aviso, setAviso] = useState<string | null>(null);
+  // Vindo do Divulgar: avisa que o evento foi publicado.
+  const [aviso, setAviso] = useState<string | null>(() =>
+    (local.state as { publicado?: boolean } | null)?.publicado ? 'Evento publicado! Agora é só chamar a galera.' : null,
+  );
 
   useEffect(() => {
     let ativo = true;

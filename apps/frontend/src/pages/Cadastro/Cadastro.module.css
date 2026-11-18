@@ -41,10 +41,11 @@
   gap: 14px;
 }
 
+/* Lado a lado quando cabe; em celular estreito, um embaixo do outro (senão "dd/mm/aaaa" fica cortado). */
 .duasColunas {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(11.5rem, 1fr));
+  gap: var(--espaco-3);
 }
 
 .interesses {
@@ -93,7 +94,11 @@
   color: var(--cor-texto-suave);
 }
 
+/* O padding aumenta a área de toque para ~44px e a margem negativa mantém o texto no lugar. */
 .destaque {
+  display: inline-block;
+  padding: 14px var(--espaco-2);
+  margin: -14px calc(-1 * var(--espaco-2));
   font-weight: 600;
   color: var(--cor-destaque);
 }
