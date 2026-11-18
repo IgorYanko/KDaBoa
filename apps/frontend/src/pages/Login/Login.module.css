@@ -2,74 +2,95 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 40px;
-  padding: 72px var(--margem-tela) 40px;
+  gap: var(--espaco-8);
+  padding: var(--espaco-16) var(--margem-tela) var(--espaco-8);
 }
 
 .cabecalho {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding-top: 40px;
+  gap: var(--espaco-3);
 }
 
-.logo {
-  width: 56px;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--cor-destaque);
-  border-radius: var(--raio-logo);
+.marca {
+  display: inline-flex;
+  margin-bottom: var(--espaco-8);
 }
 
 .titulo {
-  font-family: var(--fonte-titulo);
-  font-weight: 700;
-  font-size: 44px;
-  line-height: 44px;
-  letter-spacing: -1.5px;
+  font-size: var(--texto-3xl);
+  font-weight: 600;
+  line-height: 1.1;
   color: var(--cor-texto);
 }
 
 .subtitulo {
-  font-size: 16px;
-  line-height: 23.2px;
+  max-width: 34ch;
+  font-size: var(--texto-base);
+  line-height: 1.5;
   color: var(--cor-texto-suave);
 }
 
 .formulario {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: var(--espaco-5);
 }
 
 .grupoSenha {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 8px;
+  gap: var(--espaco-2);
 }
 
 .esqueci {
-  padding: 6px 0;
-  font-size: 13px;
+  padding: var(--espaco-1) 0;
+  font-size: var(--texto-sm);
   font-weight: 500;
-  color: var(--cor-destaque);
+  color: var(--cor-secundaria-texto);
+  transition: color var(--transicao);
+}
+
+.esqueci:hover {
+  color: var(--cor-texto);
 }
 
 .entrar {
-  margin-top: 6px;
+  margin-top: var(--espaco-1);
 }
 
 .rodape {
   margin-top: auto;
+  padding-top: var(--espaco-5);
+  border-top: 1px solid var(--cor-borda-suave);
   text-align: center;
-  font-size: 14px;
+  font-size: var(--texto-sm);
   color: var(--cor-texto-suave);
 }
 
 .destaque {
   font-weight: 600;
-  color: var(--cor-destaque);
+  color: var(--cor-primaria);
+}
+
+.destaque:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* No desktop o painel ao lado já mostra a marca: o formulário fica centralizado e sem ela. */
+@media (min-width: 1024px) {
+  .tela {
+    flex: 0 1 auto;
+    padding-top: var(--espaco-8);
+  }
+
+  .marca {
+    display: none;
+  }
+
+  .rodape {
+    margin-top: 0;
+  }
 }

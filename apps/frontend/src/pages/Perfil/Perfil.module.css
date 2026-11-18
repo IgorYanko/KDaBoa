@@ -1,13 +1,102 @@
-.acoes {
-  padding: 0 var(--margem-tela) 24px;
+.tela {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: var(--espaco-12) var(--margem-tela) var(--espaco-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
 }
 
-.sair {
-  background: none;
-  border: none;
-  padding: 12px 0;
-  color: var(--cor-erro);
-  font-size: 14px;
+.cartao {
+  padding: var(--espaco-5);
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-4);
+  background: var(--gradiente-painel), var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-xl);
+}
+
+.avatar {
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cor-primaria);
+  border-radius: var(--raio-pilula);
+  color: var(--cor-sobre-primaria);
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-xl);
+  font-weight: 700;
+  box-shadow: var(--realce-interno), var(--brilho-primaria);
+}
+
+.identidade {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nome {
+  font-size: var(--texto-xl);
   font-weight: 600;
-  cursor: pointer;
+}
+
+.apelido {
+  font-size: var(--texto-sm);
+  color: var(--cor-texto-suave);
+}
+
+.cidade {
+  margin-top: var(--espaco-1);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--texto-xs);
+  color: var(--cor-texto-suave);
+}
+
+.emBreve {
+  padding: var(--espaco-4);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espaco-3);
+  background: var(--cor-superficie);
+  border: 1px dashed var(--cor-borda-forte);
+  border-radius: var(--raio-lg);
+  font-size: var(--texto-sm);
+  line-height: 1.5;
+  color: var(--cor-texto-suave);
+}
+
+.emBreve strong {
+  color: var(--cor-texto);
+  font-weight: 600;
+}
+
+.emBreveIcone {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cor-secundaria-tinta);
+  border-radius: var(--raio-md);
+  color: var(--cor-secundaria-texto);
+}
+
+.tela .sair {
+  margin-top: var(--espaco-2);
+  color: var(--cor-erro);
+}
+
+@media (min-width: 1024px) {
+  .tela {
+    padding-top: var(--espaco-16);
+  }
 }

@@ -1,14 +1,14 @@
 .campo {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--espaco-2);
   width: 100%;
   min-width: 0;
 }
 
 .rotulo {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--texto-sm);
+  font-weight: 500;
   color: var(--cor-rotulo);
 }
 
@@ -19,40 +19,80 @@
 .input {
   width: 100%;
   height: var(--altura-campo);
-  padding: 0 16px;
-  background: var(--cor-superficie);
-  border: 1px solid var(--cor-borda);
-  border-radius: var(--raio-campo);
-  font-size: 16px; /* 16px evita o zoom automático do iOS */
+  padding: 0 var(--espaco-4);
+  background: var(--cor-campo);
+  border: 1px solid var(--cor-borda-campo);
+  border-radius: var(--raio-md);
+  font-size: var(--texto-md); /* 16px evita o zoom automático do iOS */
   color: var(--cor-texto);
+  caret-color: var(--cor-primaria);
   color-scheme: dark;
-  transition: border-color 0.15s;
+  transition:
+    background-color var(--transicao),
+    border-color var(--transicao),
+    box-shadow var(--transicao);
 }
 
 .input::placeholder {
-  color: var(--cor-placeholder);
+  color: var(--cor-texto-fraco);
 }
 
-/* Data ainda vazia: "dd/mm/aaaa" com a cor de placeholder, como no Figma. */
+/* Data ainda vazia: "dd/mm/aaaa" com a cor de placeholder. */
 .input[type="date"][value=""] {
-  color: var(--cor-placeholder);
+  color: var(--cor-texto-fraco);
+}
+
+.input::-webkit-calendar-picker-indicator {
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .input:hover:not(:focus) {
+    background: var(--cor-campo-hover);
+    border-color: var(--cor-borda-campo-hover);
+  }
 }
 
 .input:focus {
   outline: none;
-  border-color: var(--cor-destaque);
+  border-color: var(--cor-secundaria);
+  box-shadow: var(--anel-foco);
 }
 
 .compacto {
-  height: 50px;
+  height: 44px;
+}
+
+.comIcone {
+  padding-left: 44px;
 }
 
 .comAcessorio {
-  padding-right: 56px;
+  padding-right: 52px;
 }
 
-.invalido {
+.invalido,
+.invalido:focus {
   border-color: var(--cor-erro);
+}
+
+.invalido:focus {
+  box-shadow: 0 0 0 3px var(--cor-erro-fundo);
+}
+
+.icone {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  transform: translateY(-50%);
+  color: var(--cor-texto-fraco);
+  pointer-events: none;
+  transition: color var(--transicao);
+}
+
+.caixa:focus-within .icone {
+  color: var(--cor-secundaria-texto);
 }
 
 .acessorio {
@@ -63,6 +103,9 @@
 }
 
 .erro {
-  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--texto-xs);
   color: var(--cor-erro);
 }

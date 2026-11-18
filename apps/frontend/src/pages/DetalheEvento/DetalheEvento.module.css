@@ -1,119 +1,180 @@
 .tela {
+  width: 100%;
   display: flex;
   flex-direction: column;
-  padding-bottom: 120px;
+  padding-bottom: 116px; /* espaço para a barra de presença fixa */
 }
 
 .estado {
-  padding: 72px 20px;
+  padding: var(--espaco-16) var(--margem-tela);
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--espaco-4);
 }
 
 .carregando {
   text-align: center;
-  font-size: 14px;
+  font-size: var(--texto-sm);
   color: var(--cor-texto-suave);
 }
 
 .linkDestaque {
-  font-size: 14px;
+  font-size: var(--texto-sm);
   font-weight: 600;
-  color: var(--cor-destaque);
+  color: var(--cor-primaria);
 }
 
-/* Topo colorido */
-.topo {
-  height: 300px;
-  padding: 52px 20px 22px;
+/* ---------- Capa (antes 300px de cor chapada; agora 220px com degradê) ---------- */
+.capa {
+  position: relative;
+  height: 220px;
+  padding: var(--espaco-4) var(--margem-tela) var(--espaco-5);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  background: var(--cor-evento);
+  overflow: hidden;
+  background:
+    radial-gradient(110% 120% at 100% 0%, color-mix(in oklch, var(--cor-evento) 60%, transparent) 0%, transparent 60%),
+    linear-gradient(165deg, color-mix(in oklch, var(--cor-evento) 26%, var(--cor-superficie)) 0%, var(--cor-fundo) 100%);
+  border-bottom: 1px solid var(--cor-borda-suave);
 }
 
-.acoesTopo {
+.imagem {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Com imagem: escurece em cima e embaixo para os botões e a data ficarem legíveis. */
+.capa:has(.imagem)::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, var(--cor-vidro-escuro) 0%, transparent 35%, transparent 55%, var(--cor-veu) 100%);
+}
+
+.marcaDagua {
+  position: absolute;
+  right: -40px;
+  bottom: -70px;
+  color: var(--cor-evento);
+  opacity: 0.28;
+  transform: rotate(-12deg);
+}
+
+.acoesTopo,
+.capaRodape {
+  position: relative;
+  z-index: 1;
   display: flex;
   justify-content: space-between;
 }
 
-.botaoTopo {
-  width: 44px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--cor-etiqueta);
-  border: none;
-  border-radius: var(--raio-campo);
-  cursor: pointer;
-}
-
-.dataGrande {
-  display: flex;
+.capaRodape {
   align-items: flex-end;
-  justify-content: space-between;
+}
+
+/* Compartilhar sem fundo (só o ícone), diferente do "voltar". */
+.acoesTopo .compartilharTopo {
+  color: var(--cor-texto);
 }
 
 .data {
   display: flex;
   flex-direction: column;
   font-family: var(--fonte-titulo);
-  font-weight: 700;
-  color: var(--cor-sobre-destaque);
+  line-height: 1;
 }
 
 .dia {
-  font-size: 72px;
-  line-height: 61.2px;
-  letter-spacing: -3px;
+  font-size: var(--texto-4xl);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  color: var(--cor-texto);
 }
 
 .mesSemana {
-  padding-top: 6px;
-  font-size: 20px;
-  line-height: 17px;
+  padding-top: var(--espaco-1);
+  font-size: var(--texto-sm);
+  font-weight: 600;
+  letter-spacing: var(--espacamento-sobrancelha);
+  text-transform: uppercase;
+  color: var(--cor-evento);
 }
 
 .etiqueta {
   height: 30px;
-  padding: 0 14px;
+  padding: 0 var(--espaco-3) 0 var(--espaco-2);
   display: inline-flex;
   align-items: center;
-  background: var(--cor-etiqueta);
+  gap: 6px;
+  background: var(--cor-vidro-claro);
+  border: 1px solid var(--cor-borda-vidro);
   border-radius: var(--raio-pilula);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
   color: var(--cor-texto);
-  font-size: 13px;
+  font-size: var(--texto-xs);
   font-weight: 600;
   white-space: nowrap;
 }
 
-/* Conteúdo */
+.etiquetaIcone {
+  display: inline-flex;
+  color: var(--cor-evento);
+}
+
+/* ---------- Conteúdo ---------- */
+.grade {
+  display: block;
+}
+
 .conteudo {
-  padding: 22px 20px 0;
+  padding: var(--espaco-6) var(--margem-tela) 0;
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: var(--espaco-6);
 }
 
 .cabecalho {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--espaco-3);
 }
 
 .titulo {
-  font-family: var(--fonte-titulo);
-  font-weight: 700;
-  font-size: 28px;
-  letter-spacing: -0.8px;
+  font-size: var(--texto-2xl);
+  font-weight: 600;
+  line-height: 1.15;
   color: var(--cor-texto);
 }
 
 .organizador {
-  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  font-size: var(--texto-sm);
   color: var(--cor-texto-suave);
+}
+
+.organizador strong {
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+
+.organizadorAvatar {
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cor-secundaria-tinta);
+  border-radius: var(--raio-pilula);
+  color: var(--cor-secundaria-texto);
+  font-size: 10px;
+  font-weight: 700;
 }
 
 .infos {
@@ -121,21 +182,22 @@
   padding: 0;
   list-style: none;
   background: var(--cor-superficie);
-  border: 1px solid var(--cor-borda-cartao);
-  border-radius: 18px;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-lg);
 }
 
 .info {
-  padding: 14px 16px;
+  padding: var(--espaco-4);
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: var(--espaco-3);
 }
 
 .info + .info {
-  border-top: 1px solid var(--cor-borda-cartao);
+  border-top: 1px solid var(--cor-borda-suave);
 }
 
+/* Ícones tingidos com a cor da categoria do evento. */
 .infoIcone {
   flex-shrink: 0;
   width: 40px;
@@ -143,8 +205,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--cor-superficie-elevada);
-  border-radius: 12px;
+  background: color-mix(in oklch, var(--cor-evento) 14%, var(--cor-superficie-elevada));
+  border-radius: var(--raio-md);
+  color: var(--cor-evento);
 }
 
 .infoTextos {
@@ -156,54 +219,68 @@
 }
 
 .infoTitulo {
-  font-size: 15px;
+  font-size: var(--texto-base);
   font-weight: 600;
   color: var(--cor-texto);
 }
 
 .infoDetalhe {
-  font-size: 13px;
+  font-size: var(--texto-sm);
   color: var(--cor-texto-suave);
 }
 
 .linkMapa {
-  padding: 10px 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--cor-destaque);
+  flex-shrink: 0;
+  color: var(--cor-secundaria-texto);
 }
 
 .sobre {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--espaco-2);
 }
 
-.sobreTitulo {
-  font-size: 16px;
-  font-weight: 700;
+.secaoTitulo {
+  font-size: var(--texto-lg);
+  font-weight: 600;
   color: var(--cor-texto);
 }
 
 .sobreTexto {
-  font-size: 15px;
-  line-height: 23.25px;
+  max-width: 65ch;
+  font-size: var(--texto-base);
+  line-height: 1.6;
   color: var(--cor-rotulo);
 }
 
-/* Cartões "Quem vai" e "Chat" */
+/* ---------- Cartões "Quem vai" e "Chat" ---------- */
+.cartoes {
+  display: grid;
+  gap: var(--espaco-3);
+}
+
 .cartao {
-  padding: 16px;
+  padding: var(--espaco-4);
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: var(--espaco-3);
   background: var(--cor-superficie);
-  border: 1px solid var(--cor-borda-cartao);
-  border-radius: 18px;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-lg);
+  transition:
+    border-color var(--transicao),
+    background-color var(--transicao);
+}
+
+a.cartao:hover {
+  border-color: var(--cor-borda-forte);
+  background: var(--cor-superficie-elevada);
 }
 
 .bloqueado {
-  border: 1px dashed var(--cor-borda-tracejada);
+  border-style: dashed;
+  border-color: var(--cor-borda-forte);
+  background: transparent;
 }
 
 .cartaoTextos {
@@ -215,17 +292,17 @@
 }
 
 .cartaoTitulo {
-  font-size: 15px;
-  font-weight: 700;
+  font-size: var(--texto-base);
+  font-weight: 600;
   color: var(--cor-texto);
 }
 
 .cartaoDetalhe {
-  font-size: 13px;
+  font-size: var(--texto-sm);
   color: var(--cor-texto-suave);
 }
 
-.chatIcone {
+.cartaoIcone {
   flex-shrink: 0;
   width: 44px;
   height: 44px;
@@ -233,43 +310,58 @@
   align-items: center;
   justify-content: center;
   background: var(--cor-superficie-elevada);
-  border-radius: var(--raio-campo);
+  border-radius: var(--raio-md);
+  color: var(--cor-texto-suave);
 }
 
-/* Barra fixa de presença */
-.rodape {
+.chatAberto {
+  background: var(--cor-secundaria-tinta);
+  color: var(--cor-secundaria-texto);
+}
+
+.seta {
+  display: flex;
+  color: var(--cor-texto-fraco);
+}
+
+/* ---------- Presença (barra fixa no celular) ---------- */
+.presenca {
   position: fixed;
+  right: 0;
   bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  max-width: var(--largura-app);
-  padding: 14px 20px calc(30px + env(safe-area-inset-bottom));
+  left: 0;
+  z-index: 10;
+  padding: var(--espaco-3) max(var(--margem-tela), calc(50% - 340px)) calc(var(--espaco-4) + env(safe-area-inset-bottom));
   display: flex;
   align-items: center;
-  gap: 12px;
-  background: var(--cor-fundo-barra);
+  gap: var(--espaco-4);
+  background: var(--cor-vidro);
   border-top: 1px solid var(--cor-borda-suave);
-  z-index: 10;
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  backdrop-filter: blur(20px) saturate(140%);
+}
+
+.resumo,
+.presenca .compartilharLateral {
+  display: none;
 }
 
 .confirmados {
-  width: 110px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
 }
 
 .confirmadosRotulo {
-  font-size: 12px;
+  font-size: var(--texto-xs);
   color: var(--cor-texto-suave);
 }
 
 .confirmadosNumero {
   font-family: var(--fonte-titulo);
-  font-weight: 700;
-  font-size: 22px;
+  font-size: var(--texto-xl);
+  font-weight: 600;
+  line-height: 1.1;
   color: var(--cor-texto);
 }
 
@@ -278,9 +370,130 @@
   min-width: 0;
 }
 
-/* Depois de confirmar: botão secundário para poder cancelar. */
-.vou {
-  background: var(--cor-superficie);
-  border: 1px solid var(--cor-destaque);
-  color: var(--cor-destaque);
+/* ---------- Tablet: conteúdo centralizado ---------- */
+@media (min-width: 768px) {
+  .conteudo {
+    width: 100%;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  .capa {
+    padding-inline: max(var(--margem-tela), calc(50% - 360px));
+  }
+
+  .cartoes {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ---------- Desktop: capa arredondada + duas colunas ---------- */
+@media (min-width: 1024px) {
+  .tela {
+    padding: var(--espaco-8) var(--espaco-8) var(--espaco-16);
+  }
+
+  .capa {
+    height: 280px;
+    padding: var(--espaco-6);
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-xl);
+  }
+
+  .acoesTopo .compartilharTopo {
+    display: none;
+  }
+
+  .dia {
+    font-size: 64px;
+  }
+
+  .grade {
+    margin-top: var(--espaco-8);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    align-items: start;
+    gap: var(--espaco-10);
+  }
+
+  .conteudo {
+    max-width: none;
+    padding: 0;
+  }
+
+  .titulo {
+    font-size: var(--texto-3xl);
+  }
+
+  .lateral {
+    position: sticky;
+    top: calc(var(--altura-topo-desktop) + var(--espaco-6));
+  }
+
+  .presenca {
+    position: static;
+    padding: var(--espaco-5);
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--espaco-4);
+    background: var(--cor-superficie);
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-xl);
+    box-shadow: var(--sombra-2);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .resumo {
+    margin: 0;
+    padding: 0 0 var(--espaco-4);
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--espaco-3);
+    border-bottom: 1px solid var(--cor-borda-suave);
+  }
+
+  .resumo li {
+    display: flex;
+    gap: var(--espaco-3);
+    font-size: var(--texto-sm);
+    font-weight: 600;
+    color: var(--cor-texto);
+  }
+
+  .resumo li svg {
+    margin-top: 1px;
+    color: var(--cor-evento);
+  }
+
+  .resumo li span {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .resumo small {
+    font-size: var(--texto-xs);
+    font-weight: 400;
+    color: var(--cor-texto-suave);
+  }
+
+  .confirmados {
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+
+  .confirmadosNumero {
+    font-size: var(--texto-2xl);
+  }
+
+  .botaoPresenca {
+    flex: none;
+  }
+
+  .presenca .compartilharLateral {
+    display: inline-flex;
+  }
 }

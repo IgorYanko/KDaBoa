@@ -1,23 +1,45 @@
 .chip {
   height: 40px;
-  padding: 0 16px;
+  padding: 0 var(--espaco-4) 0 var(--espaco-3);
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: var(--espaco-2);
   background: var(--cor-superficie);
-  border: 1px solid var(--cor-borda);
+  border: 1px solid var(--cor-borda-campo);
   border-radius: var(--raio-pilula);
   color: var(--cor-rotulo);
-  font-size: 14px;
+  font-size: var(--texto-sm);
   font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background-color var(--transicao),
+    border-color var(--transicao),
+    color var(--transicao),
+    transform var(--transicao-rapida);
+}
+
+.chip:active {
+  transform: scale(0.97);
+}
+
+.icone {
+  display: inline-flex;
+  color: var(--cor-chip);
+}
+
+@media (hover: hover) {
+  .chip:hover:not(.selecionado) {
+    background: var(--cor-superficie-elevada);
+    border-color: color-mix(in oklch, var(--cor-chip) 45%, var(--cor-borda-campo));
+    color: var(--cor-texto);
+  }
 }
 
 .selecionado {
-  background: var(--cor-destaque);
-  border-color: var(--cor-destaque);
-  color: var(--cor-sobre-destaque);
+  background: color-mix(in oklch, var(--cor-chip) 16%, var(--cor-superficie));
+  border-color: color-mix(in oklch, var(--cor-chip) 70%, transparent);
+  color: var(--cor-texto);
   font-weight: 600;
 }

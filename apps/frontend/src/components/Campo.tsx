@@ -1,5 +1,6 @@
 import { type InputHTMLAttributes, type ReactNode, useId } from 'react';
 import styles from './Campo.module.css';
+import { Icone, type NomeIcone } from './Icone';
 
 export interface CampoProps extends InputHTMLAttributes<HTMLInputElement> {
   rotulo: string;
@@ -7,17 +8,25 @@ export interface CampoProps extends InputHTMLAttributes<HTMLInputElement> {
   erro?: string;
   /** Algo dentro do input, à direita (ex.: botão de mostrar senha). */
   acessorio?: ReactNode;
-  /** Altura menor (50px), usada no cadastro. */
+  /** Ícone dentro do input, à esquerda. */
+  icone?: NomeIcone;
+  /** Altura menor (44px), usada no cadastro. */
   compacto?: boolean;
 }
 
-/** Rótulo + input no estilo do Figma. */
-export function Campo({ rotulo, erro, acessorio, compacto, id, className, ...props }: CampoProps) {
+/** Rótulo + input. */
+export function Campo({ rotulo, erro, acessorio, icone, compacto, id, className, ...props }: CampoProps) {
   const idGerado = useId();
   const idCampo = id ?? idGerado;
   const idErro = `${idCampo}-erro`;
 
-  const classesInput = [styles.input, compacto && styles.compacto, acessorio && styles.comAcessorio, erro && styles.invalido]
+  const classesInput = [
+    styles.input,
+    compacto && styles.compacto,
+    icone && styles.comIcone,
+    acessorio && styles.comAcessorio,
+    erro && styles.invalido,
+  ]
     .filter(Boolean)
     .join(' ');
 
@@ -27,6 +36,11 @@ export function Campo({ rotulo, erro, acessorio, compacto, id, className, ...pro
         {rotulo}
       </label>
       <div className={styles.caixa}>
+        {icone && (
+          <span className={styles.icone}>
+            <Icone nome={icone} tamanho={18} />
+          </span>
+        )}
         <input
           id={idCampo}
           className={classesInput}
@@ -38,6 +52,7 @@ export function Campo({ rotulo, erro, acessorio, compacto, id, className, ...pro
       </div>
       {erro && (
         <p id={idErro} className={styles.erro}>
+          <Icone nome="alerta" tamanho={14} />
           {erro}
         </p>
       )}

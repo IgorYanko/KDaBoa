@@ -4,6 +4,7 @@ import jwt, { type JwtPayload } from 'jsonwebtoken';
 type RequestComUsuario = Request & {
   usuario?: string | JwtPayload;
 };
+import jwt from 'jsonwebtoken';
 
 export const verificarToken = (req: Request, res: Response, next: NextFunction): void => {
   // Pega o token do cabeçalho da requisição

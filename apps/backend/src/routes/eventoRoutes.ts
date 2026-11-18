@@ -8,13 +8,13 @@ const router = Router();
  * @swagger
  * /api/eventos:
  *   get:
- *     summary: Retorna a lista de todos os eventos
+ *     summary: Retorna a lista de próximos eventos com filtros opcionais
  *     tags: [Eventos]
  *     responses:
  *       200:
  *         description: Lista de eventos retornada com sucesso.
  */
-router.get('/', eventoController.listar);
+router.get('/', verificarToken, eventoController.listar);
 router.get('/:id', eventoController.buscarPorId);
 router.post('/', verificarToken, eventoController.criar);
 router.put('/:id', verificarToken, eventoController.atualizar);

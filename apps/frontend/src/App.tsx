@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
 import { LayoutApp } from './components/LayoutApp';
 import { RotaPrivada, RotaPublica } from './components/RotaPrivada';
@@ -9,6 +10,11 @@ import { Inicio } from './pages/Inicio/Inicio';
 import { Login } from './pages/Login/Login';
 import { Perfil } from './pages/Perfil/Perfil';
 
+/** Guia de estilo: só no `pnpm dev` (não entra no build de produção). */
+const GuiaEstilo = import.meta.env.DEV
+  ? lazy(() => import('./pages/GuiaEstilo/GuiaEstilo').then((m) => ({ default: m.GuiaEstilo })))
+  : null;
+
 /** Rotas do app. */
 export function App() {
   return (
@@ -17,7 +23,7 @@ export function App() {
         <Routes>
           {/* Públicas */}
           <Route element={<RotaPublica />}>
-            <Route element={<LayoutApp />}>
+            <Route element={<LayoutApp entrada />}>
               <Route path="/login" element={<Login />} />
               <Route path="/cadastro" element={<Cadastro />} />
             </Route>
@@ -28,12 +34,12 @@ export function App() {
 
           {/* Privadas (#21) */}
           <Route element={<RotaPrivada />}>
-            <Route element={<LayoutApp comBarra />}>
+            <Route element={<LayoutApp navegacao="completa" />}>
               <Route path="/inicio" element={<Inicio />} />
-              <Route path="/agenda" element={<TelaEmConstrucao titulo="Minha agenda" issue={38} />} />
+              <Route path="/agenda" element={<TelaEmConstrucao titulo="Minha agenda" issue={38} comVoltar={false} />} />
               <Route path="/perfil" element={<Perfil />} />
             </Route>
-            <Route element={<LayoutApp />}>
+            <Route element={<LayoutApp navegacao="topo" />}>
               <Route path="/eventos/:id" element={<DetalheEvento />} />
               <Route path="/eventos/:id/mapa" element={<TelaEmConstrucao titulo="Mapa do evento" issue={24} />} />
               <Route path="/eventos/:id/chat" element={<TelaEmConstrucao titulo="Chat do evento" issue={32} />} />
@@ -41,6 +47,17 @@ export function App() {
               <Route path="/divulgar" element={<TelaEmConstrucao titulo="Divulgar evento" issue={43} />} />
             </Route>
           </Route>
+
+          {GuiaEstilo && (
+            <Route
+              path="/guia"
+              element={
+                <Suspense>
+                  <GuiaEstilo />
+                </Suspense>
+              }
+            />
+          )}
 
           <Route path="*" element={<Navigate to="/inicio" replace />} />
         </Routes>

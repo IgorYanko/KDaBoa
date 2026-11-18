@@ -1,5 +1,7 @@
+import http from 'node:http';
 import dotenv from 'dotenv';
 import app from './app';
+import { configurarSocket } from './socket';
 
 dotenv.config();
 
@@ -9,6 +11,9 @@ if (!process.env.JWT_SECRET) {
 
 const PORT = process.env.PORT || 3333;
 
-app.listen(PORT, () => {
+const server = http.createServer(app);
+configurarSocket(server);
+
+server.listen(PORT, () => {
   console.log(`Servidor rodando em http://localhost:${PORT}`);
 });

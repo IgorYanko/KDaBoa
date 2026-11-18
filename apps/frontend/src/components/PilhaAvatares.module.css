@@ -3,18 +3,20 @@
   flex-shrink: 0;
 }
 
+/* Fundo tingido com a cor e iniciais na cor cheia: mais sóbrio que a bolinha colorida. */
 .avatar {
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border: 2px solid var(--cor-superficie);
   border-radius: var(--raio-pilula);
-  background: var(--cor-avatar);
-  color: var(--cor-sobre-destaque);
+  background: color-mix(in oklch, var(--cor-avatar) 26%, var(--cor-superficie-elevada));
+  color: var(--cor-avatar);
   font-size: 10px;
   font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
 .avatar + .avatar {
@@ -22,9 +24,9 @@
 }
 
 .grande .avatar {
-  width: 40px;
-  height: 40px;
-  font-size: 12px;
+  width: 38px;
+  height: 38px;
+  font-size: var(--texto-xs);
 }
 
 .grande .avatar + .avatar {

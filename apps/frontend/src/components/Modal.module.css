@@ -1,0 +1,50 @@
+.modal {
+  width: min(440px, calc(100% - 2 * var(--margem-tela)));
+  max-height: calc(100dvh - 2 * var(--espaco-6));
+  margin: auto;
+  padding: 0;
+  overflow: auto;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-xl);
+  box-shadow: var(--sombra-3);
+  color: var(--cor-texto);
+}
+
+.modal::backdrop {
+  background: var(--cor-veu);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.modal[open] {
+  animation: entrar var(--transicao) both;
+}
+
+.modal[open]::backdrop {
+  animation: aparecer var(--transicao) both;
+}
+
+@keyframes entrar {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+}
+
+@keyframes aparecer {
+  from {
+    opacity: 0;
+  }
+}
+
+.conteudo {
+  position: relative;
+}
+
+.fechar {
+  position: absolute;
+  top: var(--espaco-3);
+  right: var(--espaco-3);
+  z-index: 1;
+}
