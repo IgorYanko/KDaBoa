@@ -62,27 +62,27 @@ export async function cadastrar(dados: CadastroRequestDTO): Promise<CadastroResp
   };
 }
 
-/**
- * POST /api/auth/esqueci-senha (issue #18): envia o e-mail com o link de redefinição.
- * No mock não há e-mail: o `previewUrl` já é o caminho do link (/redefinir-senha?token=...),
- * para dar para testar o fluxo inteiro no navegador.
- */
-export async function pedirRedefinicaoSenha(dados: EsqueciSenhaRequestDTO): Promise<EsqueciSenhaResponseDTO> {
+/** Resposta do pedido de redefinição, com o link do e-mail quando é o mock (lá não há e-mail). */
+export interface RespostaPedidoSenha extends EsqueciSenhaResponseDTO {
+  /** Só no modo mock: o caminho que iria no e-mail (/redefinir-senha?token=...), para testar o fluxo. */
+  link_teste?: string;
+}
+
+const MENSAGEM_RECUPERACAO = 'E-mail de recuperação enviado com sucesso';
+
+/** POST /api/auth/esqueci-senha (issue #18): envia o e-mail com o link de redefinição. */
+export async function pedirRedefinicaoSenha(dados: EsqueciSenhaRequestDTO): Promise<RespostaPedidoSenha> {
   if (!USAR_MOCK) {
     return requisicao<EsqueciSenhaResponseDTO>('/api/auth/esqueci-senha', { metodo: 'POST', corpo: dados });
   }
 
   await atraso();
   const email = dados.email.trim().toLowerCase();
-  // Mesmas respostas da API do backend.
+  // Como a API: mesma resposta para e-mail sem conta, só que sem link.
   if (!usuariosMock.some((u) => u.email === email)) {
-    throw new ErroApi('Usuário não encontrado', 404);
+    return { mensagem: MENSAGEM_RECUPERACAO };
   }
-  const token = criarTokenSenha(email);
-  return {
-    mensagem: 'E-mail de recuperação enviado com sucesso',
-    previewUrl: `/redefinir-senha?token=${token}`,
-  };
+  return { mensagem: MENSAGEM_RECUPERACAO, link_teste: `/redefinir-senha?token=${criarTokenSenha(email)}` };
 }
 
 /** POST /api/auth/redefinir-senha (issue #18): grava a nova senha usando o token do e-mail. */
