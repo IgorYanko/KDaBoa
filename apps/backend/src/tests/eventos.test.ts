@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import request from 'supertest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { intervaloDoPeriodo } from '../controllers/eventoController';
 
 const prismaMock = vi.hoisted(() => ({
   evento: {
@@ -22,21 +23,30 @@ const eventoExistente = {
   id: '123e4567-e89b-12d3-a456-426614174000',
   titulo: 'Noite de rock autoral',
   descricao: 'Bandas autorais da região tocando a noite toda.',
-  dataInicio: new Date('2026-11-13T21:00:00Z'),
+  dataInicio: new Date('2026-12-13T21:00:00Z'),
+  dataFim: new Date('2026-12-14T02:00:00Z'),
   preco: 0,
   classificacaoEtaria: 16,
+  imagemUrl: 'https://exemplo.com/capa-rock.jpg',
   categoriaId: 1,
   localId: 1,
   criadorId: '987fcdeb-51a2-43d7-9012-345678901234',
+  categoria: { id: 1, nome: 'Shows', icone: 'music' },
+  local: { id: 1, nome: 'Bar do Rock', endereco: 'Centro' },
 };
 
 function token(payload: { id?: string; email: string }) {
   return jwt.sign(payload, 'segredo_de_teste');
 }
 
-describe('API de eventos', () => {
+function authHeader() {
+  return `Bearer ${token({ id: 'usuario-1', email: 'joao@kdaboa.com' })}`;
+}
+
+describe('API de eventos e Listagem com filtros (#23)', () => {
   beforeEach(() => {
     process.env.JWT_SECRET = 'segredo_de_teste';
+    prismaMock.evento.findMany.mockReset();
     prismaMock.evento.findMany.mockResolvedValue([
       eventoExistente,
       {
@@ -44,10 +54,14 @@ describe('API de eventos', () => {
         id: '123e4567-e89b-12d3-a456-426614174001',
         titulo: 'Sarau na praça',
         descricao: 'Evento cultural aberto ao público.',
-        dataInicio: new Date('2026-11-14T18:00:00Z'),
+        dataInicio: new Date('2026-12-14T18:00:00Z'),
+        dataFim: null,
+        imagemUrl: null,
         classificacaoEtaria: 0,
         categoriaId: 3,
         localId: 2,
+        categoria: { id: 3, nome: 'Cultura', icone: 'book' },
+        local: { id: 2, nome: 'Praça Central', endereco: 'Centro' },
       },
     ]);
     prismaMock.evento.findUnique.mockImplementation(({ where: { id } }) => {
@@ -71,17 +85,88 @@ describe('API de eventos', () => {
     expect(resposta.body.status).toBe('API KdABoa rodando!');
   });
 
-  it('GET /api/eventos lista todos os eventos', async () => {
+  it('GET /api/eventos exige autenticação (retorna 401 sem token)', async () => {
     const resposta = await request(app).get('/api/eventos');
+
+    expect(resposta.status).toBe(401);
+  });
+
+  it('GET /api/eventos sem filtro devolve os próximos eventos com os dados de lista e capa', async () => {
+    const resposta = await request(app)
+      .get('/api/eventos')
+      .set('Authorization', authHeader());
 
     expect(resposta.status).toBe(200);
     expect(resposta.body).toHaveLength(2);
+
+    const argChamada = prismaMock.evento.findMany.mock.calls[0][0];
+    expect(argChamada.where.dataInicio.gte).toBeInstanceOf(Date);
+    expect(argChamada.orderBy).toEqual({ dataInicio: 'asc' });
+
+    const primeiro = resposta.body[0];
+    expect(primeiro.titulo).toBe('Noite de rock autoral');
+    expect(primeiro.capa_url).toBe('https://exemplo.com/capa-rock.jpg');
+    expect(primeiro.data_inicio).toBe('2026-12-13T21:00:00.000Z');
+    expect(primeiro.categoria_id).toBe(1);
+    expect(primeiro.local_id).toBe(1);
+    expect(primeiro.categoria.nome).toBe('Shows');
+    expect(primeiro.local.nome).toBe('Bar do Rock');
+  });
+
+  it('GET /api/eventos restringe pelo período (hoje, fim-de-semana e este-mes)', async () => {
+    for (const periodo of ['hoje', 'fim-de-semana', 'este-mes'] as const) {
+      prismaMock.evento.findMany.mockClear();
+      const res = await request(app)
+        .get(`/api/eventos?periodo=${periodo}`)
+        .set('Authorization', authHeader());
+
+      expect(res.status).toBe(200);
+      const arg = prismaMock.evento.findMany.mock.calls[0][0];
+      expect(arg.where.dataInicio.gte).toBeInstanceOf(Date);
+      expect(arg.where.dataInicio.lt).toBeInstanceOf(Date);
+    }
+
+    // Exercita cálculo de domingo no intervaloDoPeriodo para cobrir 100% dos branches
+    const domingo = new Date(2026, 10, 15, 14, 0, 0);
+    const [inicioDom, fimDom] = intervaloDoPeriodo('fim-de-semana', domingo);
+    expect(inicioDom.getDate()).toBe(15);
+    expect(fimDom.getDate()).toBe(16);
+
+    const quarta = new Date(2026, 10, 11, 10, 0, 0);
+    const [inicioQua] = intervaloDoPeriodo('fim-de-semana', quarta);
+    expect(inicioQua.getDay()).toBe(5);
+  });
+
+  it('GET /api/eventos restringe pela categoria', async () => {
+    const resposta = await request(app)
+      .get('/api/eventos?categoria_id=3')
+      .set('Authorization', authHeader());
+
+    expect(resposta.status).toBe(200);
+    const arg = prismaMock.evento.findMany.mock.calls[0][0];
+    expect(arg.where.categoriaId).toBe(3);
+  });
+
+  it('GET /api/eventos com período, categoria e busca aplicados juntos respeita todos', async () => {
+    const resposta = await request(app)
+      .get('/api/eventos?periodo=este-mes&categoria_id=1&busca=autoral')
+      .set('Authorization', authHeader());
+
+    expect(resposta.status).toBe(200);
+    const arg = prismaMock.evento.findMany.mock.calls[0][0];
+    expect(arg.where.categoriaId).toBe(1);
+    expect(arg.where.dataInicio.gte).toBeInstanceOf(Date);
+    expect(arg.where.dataInicio.lt).toBeInstanceOf(Date);
+    expect(resposta.body).toHaveLength(1);
+    expect(resposta.body[0].titulo).toBe('Noite de rock autoral');
   });
 
   it('GET /api/eventos devolve 500 quando a consulta falha', async () => {
     prismaMock.evento.findMany.mockRejectedValueOnce(new Error('falha'));
 
-    const resposta = await request(app).get('/api/eventos');
+    const resposta = await request(app)
+      .get('/api/eventos')
+      .set('Authorization', authHeader());
 
     expect(resposta.status).toBe(500);
   });
