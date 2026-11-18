@@ -1,11 +1,15 @@
 generator client {
   provider = "prisma-client"
   output   = "../../backend/src/generated/prisma"
-
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+enum Perfil {
+  USUARIO
+  ADMIN
 }
 
 model Usuario {
@@ -13,6 +17,7 @@ model Usuario {
   nome            String   @db.VarChar(100)
   email           String   @unique @db.VarChar(150)
   senhaHash       String   @map("senha_hash") @db.VarChar(255)
+  perfil          Perfil   @default(USUARIO)
   dataNascimento  DateTime @map("data_nascimento") @db.Date
   fotoUrl         String?  @map("foto_url") @db.VarChar(255)
   mostrarPresenca Boolean  @default(true) @map("mostrar_presenca")
