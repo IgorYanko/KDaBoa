@@ -1,0 +1,130 @@
+/* O stacking context isolado deixa os botões da tela por cima das camadas do Leaflet. */
+.mapa {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: var(--cor-fundo);
+  font-family: var(--fonte-texto);
+}
+
+/* Mapa do OpenStreetMap escurecido para combinar com o app. */
+.mapa :global(.leaflet-tile-pane) {
+  filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9) saturate(0.35);
+}
+
+.mapa :global(.leaflet-control-attribution) {
+  background: var(--cor-vidro-escuro);
+  color: var(--cor-texto-fraco);
+  font-size: 10px;
+}
+
+.mapa :global(.leaflet-control-attribution a) {
+  color: var(--cor-texto-suave);
+}
+
+/* Abaixo dos botões do topo da tela. */
+.mapa :global(.leaflet-top.leaflet-right) {
+  margin-top: 68px;
+}
+
+/* Tira a caixa branca padrão do divIcon. */
+.marcador {
+  background: none;
+  border: none;
+}
+
+.marcador:focus-visible {
+  outline: none;
+}
+
+/* ---------- Evento em destaque: etiqueta com o local + gota ---------- */
+.destaque {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transform: translate(-50%, -100%);
+  pointer-events: auto;
+}
+
+.etiqueta {
+  max-width: 180px;
+  padding: 5px var(--espaco-3);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-primaria);
+  border-radius: var(--raio-pilula);
+  font-size: var(--texto-xs);
+  font-weight: 600;
+  color: var(--cor-texto);
+  box-shadow: var(--sombra-2);
+}
+
+.gota {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cor-primaria);
+  border-radius: var(--raio-pilula);
+  color: var(--cor-sobre-primaria);
+  box-shadow: var(--brilho-primaria), var(--sombra-2);
+}
+
+/* ---------- Outros eventos: bolinha com o dia, na cor da categoria ---------- */
+.ponto {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translate(-50%, -50%);
+  background: color-mix(in oklch, var(--cor-pino) 30%, var(--cor-superficie-elevada));
+  border: 2px solid var(--cor-pino);
+  border-radius: var(--raio-pilula);
+  font-size: var(--texto-xs);
+  font-weight: 700;
+  color: var(--cor-texto);
+  box-shadow: var(--sombra-1);
+  cursor: pointer;
+  transition: transform var(--transicao-rapida);
+}
+
+.ponto:hover {
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+/* Foco do teclado no pino (Tab entre os eventos). */
+.marcador:focus-visible .gota,
+.marcador:focus-visible .ponto {
+  box-shadow: var(--anel-foco);
+}
+
+/* ---------- Você ---------- */
+.usuario {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 18px;
+  height: 18px;
+  transform: translate(-50%, -50%);
+  background: var(--cor-categoria-2);
+  border: 3px solid var(--cor-texto);
+  border-radius: var(--raio-pilula);
+  box-shadow: 0 0 0 10px color-mix(in oklch, var(--cor-categoria-2) 28%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ponto {
+    transition: none;
+  }
+}
