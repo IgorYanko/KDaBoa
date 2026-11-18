@@ -1,11 +1,11 @@
 import { type FormEvent, useState } from 'react';
 import { Link, useLocation } from 'react-router';
 import { ErroApi } from '../../api/client';
-import iconePin from '../../assets/icones/pin.svg';
 import { Aviso } from '../../components/Aviso';
 import { Botao } from '../../components/Botao';
 import { Campo } from '../../components/Campo';
 import { CampoSenha } from '../../components/CampoSenha';
+import { Marca } from '../../components/Marca';
 import { useAuth } from '../../contexts/useAuth';
 import { SENHA_MAXIMA } from '../Cadastro/validarCadastro';
 import styles from './Login.module.css';
@@ -45,11 +45,11 @@ export function Login() {
   return (
     <main className={styles.tela}>
       <header className={styles.cabecalho}>
-        <div className={styles.logo}>
-          <img src={iconePin} alt="" width={28} height={28} />
-        </div>
-        <h1 className={styles.titulo}>KdABoa?</h1>
-        <p className={styles.subtitulo}>Descubra o que está rolando em Pouso Alegre e veja quem vai.</p>
+        <span className={styles.marca}>
+          <Marca />
+        </span>
+        <h1 className={styles.titulo}>Bora ver o que tá rolando?</h1>
+        <p className={styles.subtitulo}>Entre para descobrir os eventos de Pouso Alegre e ver quem vai.</p>
       </header>
 
       <form className={styles.formulario} onSubmit={aoEnviar} noValidate>

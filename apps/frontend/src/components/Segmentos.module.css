@@ -2,11 +2,11 @@
   margin: 0;
   min-width: 0;
   display: flex;
-  gap: 6px;
-  padding: 4px;
+  gap: var(--espaco-1);
+  padding: var(--espaco-1);
   background: var(--cor-superficie);
-  border: none;
-  border-radius: var(--raio-campo);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-md);
 }
 
 /* Nome do grupo só para leitores de tela. */
@@ -20,23 +20,34 @@
 }
 
 .opcao {
-  flex: 1;
-  min-width: 0;
-  height: 38px;
-  padding: 0 6px;
+  /* auto: o rótulo maior ("Fim de semana") ganha mais espaço que os outros. */
+  flex: 1 1 auto;
+  height: 36px;
+  padding: 0 var(--espaco-3);
   background: none;
-  border: none;
-  border-radius: 10px;
+  border: 1px solid transparent;
+  border-radius: var(--raio-sm);
   color: var(--cor-texto-suave);
-  font-size: 14px;
+  font-size: var(--texto-sm);
   font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background-color var(--transicao),
+    border-color var(--transicao),
+    color var(--transicao);
+}
+
+@media (hover: hover) {
+  .opcao:hover:not(.ativo) {
+    color: var(--cor-texto);
+  }
 }
 
 .ativo {
-  background: var(--cor-texto);
-  color: var(--cor-sobre-destaque);
+  background: var(--cor-superficie-alta);
+  border-color: var(--cor-borda-forte);
+  color: var(--cor-texto);
   font-weight: 600;
+  box-shadow: var(--sombra-1);
 }

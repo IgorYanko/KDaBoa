@@ -1,11 +1,29 @@
 .cartao {
+  width: 100%;
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 14px 16px;
+  gap: var(--espaco-4);
+  padding: var(--espaco-4);
   background: var(--cor-superficie);
   border: 1px solid var(--cor-borda);
-  border-radius: var(--raio-botao);
+  border-radius: var(--raio-lg);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color var(--transicao),
+    border-color var(--transicao);
+}
+
+@media (hover: hover) {
+  .cartao:hover {
+    border-color: var(--cor-borda-forte);
+  }
+}
+
+.ligado,
+.ligado:hover {
+  background: linear-gradient(135deg, var(--cor-secundaria-tinta) 0%, transparent 70%), var(--cor-superficie);
+  border-color: var(--cor-secundaria-borda);
 }
 
 .textos {
@@ -13,48 +31,70 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
 }
 
 .titulo {
-  font-size: 14px;
+  font-size: var(--texto-base);
   font-weight: 600;
   color: var(--cor-texto);
 }
 
 .descricao {
-  font-size: 12px;
-  line-height: 16.8px;
+  font-size: var(--texto-xs);
+  line-height: 1.45;
   color: var(--cor-texto-suave);
 }
 
-.switch {
+/* Trilho: cinza quando desligado, ultravioleta quando ligado. */
+.trilho {
+  position: relative;
   flex-shrink: 0;
-  width: 52px;
-  height: 32px;
-  padding: 3px;
-  display: flex;
-  justify-content: flex-start;
-  background: var(--cor-borda);
-  border: none;
+  width: 48px;
+  height: 28px;
+  background: var(--cor-superficie-alta);
+  border: 1px solid var(--cor-borda-forte);
   border-radius: var(--raio-pilula);
-  cursor: pointer;
-  transition: background 0.15s;
+  transition:
+    background var(--transicao),
+    border-color var(--transicao);
 }
 
+.ligado .trilho {
+  background: linear-gradient(135deg, var(--cor-secundaria) 0%, var(--cor-secundaria-forte) 100%);
+  border-color: var(--cor-secundaria-hover);
+  box-shadow: var(--brilho-secundaria);
+}
+
+/* Bolinha: desliza e fica limão (com um "check") quando ligado. */
 .bolinha {
-  width: 26px;
-  height: 26px;
-  border-radius: var(--raio-pilula);
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: var(--cor-texto-suave);
-  transition: background 0.15s;
-}
-
-.ligado {
-  justify-content: flex-end;
-  background: var(--cor-destaque);
+  border-radius: var(--raio-pilula);
+  color: var(--cor-sobre-primaria);
+  box-shadow: var(--sombra-1);
+  transition:
+    transform var(--transicao),
+    background-color var(--transicao);
 }
 
 .ligado .bolinha {
-  background: var(--cor-sobre-destaque);
+  transform: translateX(20px);
+  background: var(--cor-primaria);
+}
+
+.check {
+  opacity: 0;
+  transition: opacity var(--transicao);
+}
+
+.ligado .check {
+  opacity: 1;
 }

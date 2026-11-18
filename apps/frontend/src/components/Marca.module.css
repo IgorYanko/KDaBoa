@@ -1,0 +1,35 @@
+.marca {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  font-family: var(--fonte-titulo);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--cor-texto);
+}
+
+.simbolo {
+  color: var(--cor-primaria);
+  filter: var(--filtro-brilho-logo);
+}
+
+.interrogacao {
+  color: var(--cor-primaria);
+}
+
+.sm .nome {
+  font-size: var(--texto-lg);
+}
+
+.md .nome {
+  font-size: var(--texto-xl);
+}
+
+.lg {
+  gap: var(--espaco-3);
+}
+
+.lg .nome {
+  font-size: var(--texto-2xl);
+}

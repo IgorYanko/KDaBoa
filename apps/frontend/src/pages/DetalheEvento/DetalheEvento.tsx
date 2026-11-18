@@ -1,19 +1,14 @@
 import { type CSSProperties, useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import { ErroApi } from '../../api/client';
-import iconeChat from '../../assets/icones/chat.svg';
-import iconeCompartilhar from '../../assets/icones/compartilhar.svg';
-import iconeIngresso from '../../assets/icones/ingresso.svg';
-import iconeLocal from '../../assets/icones/local.svg';
-import iconeRelogio from '../../assets/icones/relogio.svg';
-import iconeSeta from '../../assets/icones/seta-direita.svg';
-import iconeVoltar from '../../assets/icones/voltar.svg';
 import { Aviso } from '../../components/Aviso';
-import { Botao } from '../../components/Botao';
+import { Botao, classesBotao } from '../../components/Botao';
+import { BotaoIcone } from '../../components/BotaoIcone';
+import { Icone } from '../../components/Icone';
 import { PilhaAvatares } from '../../components/PilhaAvatares';
 import { type EventoCompleto, buscarEvento } from '../../services/eventos';
 import { cancelarPresenca, confirmarPresenca } from '../../services/presenca';
-import { corDaCategoria } from '../../utils/cores';
+import { corDaCategoria, iconeDaCategoria, iniciais } from '../../utils/cores';
 import { dataLonga, dia, diaSemanaCurto, intervaloHoras, mesCurto } from '../../utils/datas';
 import styles from './DetalheEvento.module.css';
 
@@ -115,129 +110,199 @@ export function DetalheEvento() {
   const { evento, categoria, local: lugar } = item;
   const total = evento.total_confirmados ?? 0;
   const euVou = evento.eu_vou ?? false;
+  const icone = iconeDaCategoria(categoria);
+  const preco = evento.preco > 0 ? formatoPreco.format(evento.preco) : 'Gratuito';
   const estilo = { '--cor-evento': corDaCategoria(categoria) } as CSSProperties;
 
   return (
     <main className={styles.tela} style={estilo}>
-      <header className={styles.topo}>
+      {/* Capa: mais baixa que antes; degradê da categoria ou a imagem do evento. */}
+      <header className={styles.capa}>
+        {evento.capa_url ? (
+          <img className={styles.imagem} src={evento.capa_url} alt="" />
+        ) : (
+          <span className={styles.marcaDagua} aria-hidden="true">
+            <Icone nome={icone} tamanho={220} traco={1} />
+          </span>
+        )}
         <div className={styles.acoesTopo}>
-          <button type="button" className={styles.botaoTopo} onClick={voltar} aria-label="Voltar">
-            <img src={iconeVoltar} alt="" width={20} height={20} />
-          </button>
-          <button type="button" className={styles.botaoTopo} onClick={compartilhar} aria-label="Compartilhar evento">
-            <img src={iconeCompartilhar} alt="" width={20} height={20} />
-          </button>
+          <BotaoIcone icone="voltar" rotulo="Voltar" variante="vidro" onClick={voltar} />
+          <BotaoIcone
+            icone="compartilhar"
+            rotulo="Compartilhar evento"
+            variante="fantasma"
+            onClick={compartilhar}
+            className={styles.compartilharTopo}
+          />
         </div>
-        <div className={styles.dataGrande}>
+        <div className={styles.capaRodape}>
           <p className={styles.data}>
             <span className={styles.dia}>{dia(evento.data_inicio)}</span>
             <span className={styles.mesSemana}>
               {mesCurto(evento.data_inicio)} · {diaSemanaCurto(evento.data_inicio)}
             </span>
           </p>
-          {categoria && <span className={styles.etiqueta}>{categoria.nome}</span>}
+          {categoria && (
+            <span className={styles.etiqueta}>
+              <span className={styles.etiquetaIcone}>
+                <Icone nome={icone} tamanho={14} />
+              </span>
+              {categoria.nome}
+            </span>
+          )}
         </div>
       </header>
 
-      <div className={styles.conteudo}>
-        {aviso && <Aviso tipo="sucesso">{aviso}</Aviso>}
+      <div className={styles.grade}>
+        <div className={styles.conteudo}>
+          {aviso && <Aviso tipo="sucesso">{aviso}</Aviso>}
 
-        <div className={styles.cabecalho}>
-          <h1 className={styles.titulo}>{evento.titulo}</h1>
-          {evento.organizador && <p className={styles.organizador}>Organizado por {evento.organizador.nome}</p>}
-        </div>
+          <div className={styles.cabecalho}>
+            <h1 className={styles.titulo}>{evento.titulo}</h1>
+            {evento.organizador && (
+              <p className={styles.organizador}>
+                <span className={styles.organizadorAvatar} aria-hidden="true">
+                  {iniciais(evento.organizador.nome)}
+                </span>
+                <span>
+                  Organizado por <strong>{evento.organizador.nome}</strong>
+                </span>
+              </p>
+            )}
+          </div>
 
-        <ul className={styles.infos}>
-          <li className={styles.info}>
-            <span className={styles.infoIcone}>
-              <img src={iconeRelogio} alt="" width={20} height={20} />
-            </span>
-            <span className={styles.infoTextos}>
-              <span className={styles.infoTitulo}>{dataLonga(evento.data_inicio)}</span>
-              <span className={styles.infoDetalhe}>{intervaloHoras(evento.data_inicio, evento.data_fim)}</span>
-            </span>
-          </li>
-          {lugar && (
+          <ul className={styles.infos}>
             <li className={styles.info}>
               <span className={styles.infoIcone}>
-                <img src={iconeLocal} alt="" width={20} height={20} />
+                <Icone nome="relogio" />
               </span>
               <span className={styles.infoTextos}>
-                <span className={styles.infoTitulo}>{lugar.nome}</span>
-                <span className={styles.infoDetalhe}>{lugar.endereco}</span>
+                <span className={styles.infoTitulo}>{dataLonga(evento.data_inicio)}</span>
+                <span className={styles.infoDetalhe}>{intervaloHoras(evento.data_inicio, evento.data_fim)}</span>
               </span>
-              <Link to={`/eventos/${evento.id}/mapa`} className={styles.linkMapa}>
-                Mapa
-              </Link>
             </li>
-          )}
-          <li className={styles.info}>
-            <span className={styles.infoIcone}>
-              <img src={iconeIngresso} alt="" width={20} height={20} />
-            </span>
-            <span className={styles.infoTextos}>
-              <span className={styles.infoTitulo}>{evento.preco > 0 ? formatoPreco.format(evento.preco) : 'Gratuito'}</span>
-              <span className={styles.infoDetalhe}>
-                {evento.preco > 0 ? 'Na portaria' : 'Entrada franca'}
-                {evento.classificacao_etaria > 0 && ` · ${evento.classificacao_etaria}+`}
+            {lugar && (
+              <li className={styles.info}>
+                <span className={styles.infoIcone}>
+                  <Icone nome="local" />
+                </span>
+                <span className={styles.infoTextos}>
+                  <span className={styles.infoTitulo}>{lugar.nome}</span>
+                  <span className={styles.infoDetalhe}>{lugar.endereco}</span>
+                </span>
+                <Link
+                  to={`/eventos/${evento.id}/mapa`}
+                  className={`${classesBotao({ variante: 'fantasma', tamanho: 'sm', larguraTotal: false })} ${styles.linkMapa}`}
+                >
+                  <Icone nome="mapa" tamanho={16} />
+                  Mapa
+                </Link>
+              </li>
+            )}
+            <li className={styles.info}>
+              <span className={styles.infoIcone}>
+                <Icone nome="ingresso" />
               </span>
-            </span>
-          </li>
-        </ul>
+              <span className={styles.infoTextos}>
+                <span className={styles.infoTitulo}>{preco}</span>
+                <span className={styles.infoDetalhe}>
+                  {evento.preco > 0 ? 'Na portaria' : 'Entrada franca'}
+                  {evento.classificacao_etaria > 0 && ` · ${evento.classificacao_etaria}+`}
+                </span>
+              </span>
+            </li>
+          </ul>
 
-        <section className={styles.sobre}>
-          <h2 className={styles.sobreTitulo}>Sobre</h2>
-          <p className={styles.sobreTexto}>{evento.descricao}</p>
-        </section>
+          <section className={styles.sobre}>
+            <h2 className={styles.secaoTitulo}>Sobre</h2>
+            <p className={styles.sobreTexto}>{evento.descricao}</p>
+          </section>
 
-        <Link to={`/eventos/${evento.id}/quem-vai`} className={styles.cartao}>
-          <PilhaAvatares pessoas={evento.participantes_amostra ?? []} tamanho={40} maximo={4} />
-          <span className={styles.cartaoTextos}>
-            <span className={styles.cartaoTitulo}>{textoPessoas(total)}</span>
-            <span className={styles.cartaoDetalhe}>Ver quem vai</span>
-          </span>
-          <img src={iconeSeta} alt="" width={20} height={20} />
-        </Link>
+          <div className={styles.cartoes}>
+            <Link to={`/eventos/${evento.id}/quem-vai`} className={styles.cartao}>
+              {total > 0 ? (
+                <PilhaAvatares pessoas={evento.participantes_amostra ?? []} tamanho={40} maximo={4} />
+              ) : (
+                <span className={styles.cartaoIcone}>
+                  <Icone nome="pessoas" />
+                </span>
+              )}
+              <span className={styles.cartaoTextos}>
+                <span className={styles.cartaoTitulo}>{textoPessoas(total)}</span>
+                <span className={styles.cartaoDetalhe}>Ver quem vai</span>
+              </span>
+              <span className={styles.seta}>
+                <Icone nome="seta-direita" />
+              </span>
+            </Link>
 
-        {euVou ? (
-          <Link to={`/eventos/${evento.id}/chat`} className={styles.cartao}>
-            <span className={styles.chatIcone}>
-              <img src={iconeChat} alt="" width={22} height={22} />
-            </span>
-            <span className={styles.cartaoTextos}>
-              <span className={styles.cartaoTitulo}>Chat do evento</span>
-              <span className={styles.cartaoDetalhe}>Converse com quem vai</span>
-            </span>
-            <img src={iconeSeta} alt="" width={20} height={20} />
-          </Link>
-        ) : (
-          <div className={`${styles.cartao} ${styles.bloqueado}`}>
-            <span className={styles.chatIcone}>
-              <img src={iconeChat} alt="" width={22} height={22} />
-            </span>
-            <span className={styles.cartaoTextos}>
-              <span className={styles.cartaoTitulo}>Chat do evento</span>
-              <span className={styles.cartaoDetalhe}>Confirme presença para entrar na conversa</span>
-            </span>
+            {euVou ? (
+              <Link to={`/eventos/${evento.id}/chat`} className={styles.cartao}>
+                <span className={`${styles.cartaoIcone} ${styles.chatAberto}`}>
+                  <Icone nome="chat" />
+                </span>
+                <span className={styles.cartaoTextos}>
+                  <span className={styles.cartaoTitulo}>Chat do evento</span>
+                  <span className={styles.cartaoDetalhe}>Converse com quem vai</span>
+                </span>
+                <span className={styles.seta}>
+                  <Icone nome="seta-direita" />
+                </span>
+              </Link>
+            ) : (
+              <div className={`${styles.cartao} ${styles.bloqueado}`}>
+                <span className={styles.cartaoIcone}>
+                  <Icone nome="cadeado" />
+                </span>
+                <span className={styles.cartaoTextos}>
+                  <span className={styles.cartaoTitulo}>Chat do evento</span>
+                  <span className={styles.cartaoDetalhe}>Confirme presença para entrar na conversa</span>
+                </span>
+              </div>
+            )}
           </div>
-        )}
 
-        {erroPresenca && <Aviso tipo="erro">{erroPresenca}</Aviso>}
-      </div>
+          {erroPresenca && <Aviso tipo="erro">{erroPresenca}</Aviso>}
+        </div>
 
-      <div className={styles.rodape}>
-        <p className={styles.confirmados}>
-          <span className={styles.confirmadosRotulo}>Confirmados</span>
-          <span className={styles.confirmadosNumero}>{total}</span>
-        </p>
-        <Botao
-          className={euVou ? `${styles.botaoPresenca} ${styles.vou}` : styles.botaoPresenca}
-          onClick={alternarPresenca}
-          carregando={salvando}
-          aria-pressed={euVou}
-        >
-          {euVou ? 'Você vai! · Cancelar' : 'Eu vou!'}
-        </Botao>
+        {/* Presença: barra fixa embaixo no celular; cartão fixo na lateral no desktop. */}
+        <aside className={styles.lateral} aria-label="Presença">
+          <div className={styles.presenca}>
+            <ul className={styles.resumo}>
+              <li>
+                <Icone nome="calendario" tamanho={18} />
+                <span>
+                  {dataLonga(evento.data_inicio)}
+                  <small>{intervaloHoras(evento.data_inicio, evento.data_fim)}</small>
+                </span>
+              </li>
+              <li>
+                <Icone nome="ingresso" tamanho={18} />
+                <span>
+                  {preco}
+                  <small>{evento.preco > 0 ? 'Na portaria' : 'Entrada franca'}</small>
+                </span>
+              </li>
+            </ul>
+            <p className={styles.confirmados}>
+              <span className={styles.confirmadosRotulo}>Confirmados</span>
+              <span className={styles.confirmadosNumero}>{total}</span>
+            </p>
+            <Botao
+              className={styles.botaoPresenca}
+              variante={euVou ? 'secundario' : 'primario'}
+              icone={euVou ? 'check' : undefined}
+              onClick={alternarPresenca}
+              carregando={salvando}
+              aria-pressed={euVou}
+            >
+              {euVou ? 'Você vai! · Cancelar' : 'Eu vou!'}
+            </Botao>
+            <Botao variante="fantasma" icone="compartilhar" className={styles.compartilharLateral} onClick={compartilhar}>
+              Compartilhar
+            </Botao>
+          </div>
+        </aside>
       </div>
     </main>
   );
