@@ -1,0 +1,142 @@
+/* Mesma estrutura do Login: no desktop o painel da marca fica ao lado (LayoutApp entrada). */
+.tela {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-8);
+  padding: var(--espaco-10) var(--margem-tela) var(--espaco-8);
+}
+
+.voltar {
+  align-self: flex-start;
+}
+
+.cabecalho {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+}
+
+.selo {
+  width: 52px;
+  height: 52px;
+  margin-bottom: var(--espaco-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cor-secundaria-tinta);
+  border: 1px solid var(--cor-secundaria-borda);
+  border-radius: var(--raio-md);
+  color: var(--cor-secundaria-texto);
+}
+
+.titulo {
+  font-size: var(--texto-3xl);
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--cor-texto);
+}
+
+.subtitulo {
+  max-width: 36ch;
+  font-size: var(--texto-base);
+  line-height: 1.5;
+  color: var(--cor-texto-suave);
+}
+
+/* E-mail longo quebra em vez de empurrar a tela para o lado. */
+.email {
+  font-weight: 600;
+  color: var(--cor-texto);
+  overflow-wrap: anywhere;
+}
+
+.formulario,
+.acoes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+}
+
+.acoes {
+  gap: var(--espaco-3);
+}
+
+/* Aviso do ambiente de teste (o e-mail não é enviado de verdade). */
+.teste {
+  padding: var(--espaco-4);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--espaco-2);
+  background: var(--cor-superficie);
+  border: 1px dashed var(--cor-borda-forte);
+  border-radius: var(--raio-md);
+  font-size: var(--texto-sm);
+  color: var(--cor-texto-suave);
+}
+
+.teste strong {
+  color: var(--cor-texto);
+}
+
+.linkTeste {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  font-weight: 600;
+  color: var(--cor-secundaria-texto);
+}
+
+.linkTeste:hover {
+  color: var(--cor-texto);
+}
+
+.textoAcao {
+  min-height: 44px;
+  background: none;
+  border: none;
+  font-size: var(--texto-sm);
+  font-weight: 600;
+  color: var(--cor-secundaria-texto);
+  cursor: pointer;
+}
+
+.textoAcao:hover {
+  color: var(--cor-texto);
+}
+
+.rodape {
+  margin-top: auto;
+  padding-top: var(--espaco-5);
+  border-top: 1px solid var(--cor-borda-suave);
+  text-align: center;
+  font-size: var(--texto-sm);
+  color: var(--cor-texto-suave);
+}
+
+/* O padding aumenta a área de toque para ~44px e a margem negativa mantém o texto no lugar. */
+.destaque {
+  display: inline-block;
+  padding: 14px var(--espaco-2);
+  margin: -14px calc(-1 * var(--espaco-2));
+  font-weight: 600;
+  color: var(--cor-primaria);
+}
+
+.destaque:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (min-width: 1024px) {
+  .tela {
+    flex: 0 1 auto;
+    padding-top: var(--espaco-8);
+  }
+
+  .rodape {
+    margin-top: 0;
+  }
+}

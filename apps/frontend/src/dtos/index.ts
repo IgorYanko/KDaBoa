@@ -123,15 +123,34 @@ export interface CadastroResponseDTO {
   usuario: Pick<UsuarioDTO, 'id' | 'nome' | 'email' | 'data_nascimento'>;
 }
 
-/** PENDENTE (issue #18): pedir o e-mail de redefinição de senha. */
+/**
+ * Pedir o e-mail de redefinição de senha (issue #18, já na API).
+ * POST /api/auth/esqueci-senha. O link do e-mail abre /redefinir-senha?token=... e vale 1 hora.
+ */
 export interface EsqueciSenhaRequestDTO {
   email: string;
 }
 
-/** PENDENTE (issue #18): definir a nova senha com o token recebido por e-mail. */
+/**
+ * Resposta do pedido de redefinição (issue #18). A API responde igual para e-mail com ou sem conta,
+ * para não revelar quem tem cadastro; pedir de novo invalida o link anterior.
+ */
+export interface EsqueciSenhaResponseDTO {
+  mensagem: string;
+}
+
+/**
+ * Definir a nova senha com o token recebido por e-mail (issue #18, já na API).
+ * POST /api/auth/redefinir-senha. A API aceita a senha nova como `senha` (ou `novaSenha`).
+ */
 export interface RedefinirSenhaRequestDTO {
   token: string;
-  nova_senha: string;
+  senha: string;
+}
+
+/** Resposta da redefinição (issue #18). */
+export interface RedefinirSenhaResponseDTO {
+  mensagem: string;
 }
 
 /** PENDENTE (issue #41): campos editáveis no Perfil. */
@@ -199,6 +218,16 @@ export interface CriarEventoRequestDTO {
 // ---------------------------------------------------------------------------
 // Presença e social
 // ---------------------------------------------------------------------------
+
+/**
+ * PENDENTE (issue #39): eventos em que o usuário logado confirmou presença,
+ * separados pela data do evento. Rota sugerida: GET /api/usuarios/me/agenda (exige login).
+ * Próximos em ordem de data; passados do mais recente para o mais antigo.
+ */
+export interface AgendaDTO {
+  proximos: EventoDTO[];
+  passados: EventoDTO[];
+}
 
 /** PENDENTE (issue #29): resposta de confirmar/cancelar presença. */
 export interface PresencaDTO {
