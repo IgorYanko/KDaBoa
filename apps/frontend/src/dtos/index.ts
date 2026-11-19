@@ -55,6 +55,10 @@ export interface LocalDTO {
   nome: string;
   endereco: string;
   capacidade: number;
+  /** CEP (o banco já tem a coluna). */
+  cep?: string | null;
+  /** Bairro (o banco já tem a coluna). */
+  bairro?: string | null;
   /** PENDENTE: coordenadas para o mapa (issue #25). */
   latitude?: number;
   /** PENDENTE: coordenadas para o mapa (issue #25). */
@@ -204,7 +208,19 @@ export interface FiltroEventosDTO {
   categoria_id?: number;
 }
 
-/** PENDENTE (issue #45): corpo enviado na tela Divulgar evento. */
+/**
+ * PENDENTE (issue #44): local novo informado no Divulgar, com o endereço preenchido pelo ViaCEP.
+ * A API ainda não cria locais; até aceitar este campo, o evento precisa de um `local_id` da lista.
+ */
+export interface NovoLocalDTO {
+  nome: string;
+  cep: string;
+  /** "Rua Tal, 150 - Centro" (o mesmo formato dos locais da lista). */
+  endereco: string;
+  bairro: string;
+}
+
+/** PENDENTE (issue #45): corpo enviado na tela Divulgar evento. Vai `local_id` (da lista) ou `novo_local`. */
 export interface CriarEventoRequestDTO {
   titulo: string;
   descricao: string;
@@ -212,7 +228,8 @@ export interface CriarEventoRequestDTO {
   preco: number;
   classificacao_etaria: number;
   categoria_id: number;
-  local_id: number;
+  local_id?: number;
+  novo_local?: NovoLocalDTO;
 }
 
 // ---------------------------------------------------------------------------

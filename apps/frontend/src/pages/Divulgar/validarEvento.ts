@@ -1,4 +1,5 @@
 import type { CriarEventoRequestDTO } from '../../dtos';
+import { digitosDoCep, formatarCep } from '../../services/cep';
 
 /** Valores do formulário Divulgar (como digitados; viram o DTO em `paraRequisicao`). */
 export interface FormularioEvento {
@@ -9,7 +10,17 @@ export interface FormularioEvento {
   data: string;
   /** "hh:mm" */
   horario: string;
+  /** "lista" = um local já cadastrado · "novo" = endereço pelo CEP (issue #44). */
+  modoLocal: 'lista' | 'novo';
   localId: string;
+  novoLocalNome: string;
+  cep: string;
+  /** Rua: o ViaCEP preenche (dá para corrigir). */
+  logradouro: string;
+  numero: string;
+  bairro: string;
+  /** "Pouso Alegre/MG", vindo do ViaCEP (só para mostrar). */
+  cidade: string;
   /** Texto livre: "", "25" ou "25,50". Vazio = gratuito. */
   preco: string;
   /** Idade mínima ("0" = livre). */
@@ -27,7 +38,14 @@ export const FORMULARIO_INICIAL: FormularioEvento = {
   categoriaId: null,
   data: '',
   horario: '',
+  modoLocal: 'lista',
   localId: '',
+  novoLocalNome: '',
+  cep: '',
+  logradouro: '',
+  numero: '',
+  bairro: '',
+  cidade: '',
   preco: '',
   classificacao: '0',
 };
@@ -69,7 +87,15 @@ export function validarEvento(formulario: FormularioEvento, agora = new Date()):
   const inicio = dataInicioIso(formulario);
   if (inicio && new Date(inicio) <= agora) erros.data = 'A data e o horário precisam ser no futuro.';
 
-  if (!formulario.localId) erros.localId = 'Escolha o local.';
+  if (formulario.modoLocal === 'lista') {
+    if (!formulario.localId) erros.localId = 'Escolha o local.';
+  } else {
+    if (!formulario.novoLocalNome.trim()) erros.novoLocalNome = 'Dê um nome ao local.';
+    if (digitosDoCep(formulario.cep).length !== 8) erros.cep = 'Informe o CEP (8 números).';
+    else if (!formulario.cidade) erros.cep = 'Busque o CEP para preencher o endereço.';
+    if (!formulario.logradouro.trim()) erros.logradouro = 'Informe a rua.';
+    if (!formulario.numero.trim()) erros.numero = 'Informe o número (ou s/n).';
+  }
   if (lerPreco(formulario.preco) === null) erros.preco = 'Use só números, como 25 ou 25,50.';
 
   return erros;
@@ -84,6 +110,23 @@ export function paraRequisicao(formulario: FormularioEvento): CriarEventoRequest
     preco: lerPreco(formulario.preco) ?? 0,
     classificacao_etaria: Number(formulario.classificacao),
     categoria_id: formulario.categoriaId ?? 0,
-    local_id: Number(formulario.localId),
+    ...(formulario.modoLocal === 'novo'
+      ? { novo_local: novoLocalDoFormulario(formulario) }
+      : { local_id: Number(formulario.localId) }),
+  };
+}
+
+/** "Rua Tal, 150 - Centro", no mesmo formato dos locais da lista. */
+export function enderecoDoFormulario(formulario: FormularioEvento): string {
+  const bairro = formulario.bairro.trim();
+  return `${formulario.logradouro.trim()}, ${formulario.numero.trim()}${bairro ? ` - ${bairro}` : ''}`;
+}
+
+function novoLocalDoFormulario(formulario: FormularioEvento) {
+  return {
+    nome: formulario.novoLocalNome.trim(),
+    cep: formatarCep(formulario.cep),
+    endereco: enderecoDoFormulario(formulario),
+    bairro: formulario.bairro.trim(),
   };
 }

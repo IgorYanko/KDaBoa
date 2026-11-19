@@ -11,14 +11,17 @@ import { CampoSelecao } from '../../components/CampoSelecao';
 import { Chip } from '../../components/Chip';
 import { EventoCard } from '../../components/EventoCard';
 import { Icone } from '../../components/Icone';
+import { Segmentos } from '../../components/Segmentos';
 import type { CategoriaDTO, LocalDTO } from '../../dtos';
 import { listarCategorias } from '../../services/categorias';
 import { criarEvento, type EventoCompleto } from '../../services/eventos';
 import { listarLocais } from '../../services/locais';
 import styles from './Divulgar.module.css';
+import { NovoLocal } from './NovoLocal';
 import {
   DESCRICAO_MAXIMA,
   dataInicioIso,
+  enderecoDoFormulario,
   type ErrosEvento,
   FORMULARIO_INICIAL,
   type FormularioEvento,
@@ -28,6 +31,11 @@ import {
   TITULO_MAXIMO,
   validarEvento,
 } from './validarEvento';
+
+const MODOS_LOCAL: { valor: FormularioEvento['modoLocal']; rotulo: string }[] = [
+  { valor: 'lista', rotulo: 'Local cadastrado' },
+  { valor: 'novo', rotulo: 'Novo local' },
+];
 
 const CLASSIFICACOES = [
   { valor: '0', rotulo: 'Livre' },
@@ -77,6 +85,10 @@ export function Divulgar() {
     setErros((atual) => ({ ...atual, [campo]: undefined }));
   }
 
+  function marcarErro(campo: keyof FormularioEvento, mensagem: string) {
+    setErros((atual) => ({ ...atual, [campo]: mensagem }));
+  }
+
   function fechar() {
     if (local.key === 'default') navegar('/inicio');
     else navegar(-1);
@@ -120,7 +132,15 @@ export function Divulgar() {
       participantes_amostra: [],
     },
     categoria: categorias.find((c) => c.id === formulario.categoriaId),
-    local: locais.find((l) => String(l.id) === formulario.localId),
+    local:
+      formulario.modoLocal === 'novo'
+        ? {
+            id: 0,
+            nome: formulario.novoLocalNome.trim() || 'Novo local',
+            endereco: formulario.cidade ? enderecoDoFormulario(formulario) : '',
+            capacidade: 0,
+          }
+        : locais.find((l) => String(l.id) === formulario.localId),
   };
 
   return (
@@ -210,15 +230,25 @@ export function Divulgar() {
                 onChange={(e) => alterar('horario', e.target.value)}
               />
             </div>
-            <CampoSelecao
-              rotulo="Local"
-              name="local"
-              marcador="Escolha o local"
-              opcoes={locais.map((l) => ({ valor: String(l.id), rotulo: `${l.nome} — ${l.endereco}` }))}
-              value={formulario.localId}
-              erro={erros.localId}
-              onChange={(e) => alterar('localId', e.target.value)}
+            <Segmentos
+              rotulo="Onde vai ser"
+              opcoes={MODOS_LOCAL}
+              selecionado={formulario.modoLocal}
+              onMudar={(modo) => modo && alterar('modoLocal', modo)}
             />
+            {formulario.modoLocal === 'lista' ? (
+              <CampoSelecao
+                rotulo="Local"
+                name="local"
+                marcador="Escolha o local"
+                opcoes={locais.map((l) => ({ valor: String(l.id), rotulo: `${l.nome} — ${l.endereco}` }))}
+                value={formulario.localId}
+                erro={erros.localId}
+                onChange={(e) => alterar('localId', e.target.value)}
+              />
+            ) : (
+              <NovoLocal formulario={formulario} erros={erros} alterar={alterar} marcarErro={marcarErro} />
+            )}
           </section>
 
           <section className={styles.secao}>
