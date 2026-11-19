@@ -10,6 +10,7 @@ import { intervaloDoPeriodo } from '../utils/datas';
 import { reduzirImagem } from '../utils/imagem';
 import { listarCategorias } from './categorias';
 import { listarLocais } from './locais';
+import { presencasLembradas } from './presenca';
 
 /** Evento com a categoria e o local já resolvidos, pronto para as telas. */
 export interface EventoCompleto {
@@ -69,12 +70,30 @@ function todosEventosMock(): EventoDTO[] {
   return [...eventosMock, ...lerEventosCriados()];
 }
 
+/** Evento como a API manda hoje (release 3): o total vem em `confirmados`. */
+type EventoDaApi = EventoDTO & { confirmados?: number };
+
+/**
+ * Ajusta o evento da API ao formato do front: o total de confirmados vem como `confirmados`,
+ * o preço (Decimal no banco) pode chegar como texto e `eu_vou` ainda não vem (PENDENTE, issue #29).
+ */
+function doFormatoDaApi(evento: EventoDaApi, lembradas: Set<string>): EventoDTO {
+  return {
+    ...evento,
+    preco: Number(evento.preco) || 0,
+    total_confirmados: evento.total_confirmados ?? evento.confirmados ?? 0,
+    eu_vou: evento.eu_vou ?? lembradas.has(evento.id),
+  };
+}
+
 async function buscarListaEventos(filtro: FiltroEventosDTO): Promise<EventoDTO[]> {
   if (USAR_MOCK) {
     await atraso(300);
     return todosEventosMock().map(comPresenca);
   }
-  return requisicao<EventoDTO[]>(`/api/eventos${montarQuery(filtro)}`);
+  const lista = await requisicao<EventoDaApi[]>(`/api/eventos${montarQuery(filtro)}`);
+  const lembradas = presencasLembradas();
+  return lista.map((evento) => doFormatoDaApi(evento, lembradas));
 }
 
 async function completar(eventos: EventoDTO[]): Promise<EventoCompleto[]> {
@@ -101,7 +120,8 @@ export async function buscarEvento(id: string): Promise<EventoCompleto> {
     if (!encontrado) throw new ErroApi('Evento não encontrado', 404);
     evento = comPresenca(encontrado);
   } else {
-    evento = await requisicao<EventoDTO>(`/api/eventos/${encodeURIComponent(id)}`);
+    const bruto = await requisicao<EventoDaApi>(`/api/eventos/${encodeURIComponent(id)}`);
+    evento = doFormatoDaApi(bruto, presencasLembradas());
   }
   const [completo] = await completar([evento]);
   return completo;
