@@ -124,25 +124,23 @@ export interface CadastroResponseDTO {
 }
 
 /**
- * PENDENTE (issue #18, branch recuperacao-email): pedir o e-mail de redefinição de senha.
+ * Pedir o e-mail de redefinição de senha (issue #18, já na API).
  * POST /api/auth/esqueci-senha. O link do e-mail abre /redefinir-senha?token=... e vale 1 hora.
  */
 export interface EsqueciSenhaRequestDTO {
   email: string;
 }
 
-/** PENDENTE (issue #18): resposta do pedido de redefinição. */
+/**
+ * Resposta do pedido de redefinição (issue #18). A API responde igual para e-mail com ou sem conta,
+ * para não revelar quem tem cadastro; pedir de novo invalida o link anterior.
+ */
 export interface EsqueciSenhaResponseDTO {
   mensagem: string;
-  /**
-   * Só em ambiente de teste (SMTP de teste): endereço para ver o e-mail enviado.
-   * Vem em camelCase porque é assim que a API manda.
-   */
-  previewUrl?: string | false;
 }
 
 /**
- * PENDENTE (issue #18): definir a nova senha com o token recebido por e-mail.
+ * Definir a nova senha com o token recebido por e-mail (issue #18, já na API).
  * POST /api/auth/redefinir-senha. A API aceita a senha nova como `senha` (ou `novaSenha`).
  */
 export interface RedefinirSenhaRequestDTO {
@@ -150,7 +148,7 @@ export interface RedefinirSenhaRequestDTO {
   senha: string;
 }
 
-/** PENDENTE (issue #18): resposta da redefinição. */
+/** Resposta da redefinição (issue #18). */
 export interface RedefinirSenhaResponseDTO {
   mensagem: string;
 }
