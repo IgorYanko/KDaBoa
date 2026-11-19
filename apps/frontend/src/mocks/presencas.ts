@@ -10,9 +10,24 @@ function chave(): string {
   return `kdaboa:mock:presencas:${lerSessao()?.usuario.id ?? 'anonimo'}`;
 }
 
+/**
+ * Presenças iniciais do usuário de teste (kayo@email.com), para a Agenda já ter o que mostrar:
+ * dois eventos que vêm aí e dois que já passaram. Depois da primeira mudança, vale o que ficou salvo.
+ */
+const PRESENCAS_INICIAIS: Record<string, string[]> = {
+  '987fcdeb-51a2-43d7-9012-345678901234': [
+    '123e4567-e89b-12d3-a456-426614174000',
+    '123e4567-e89b-12d3-a456-426614174001',
+    '123e4567-e89b-12d3-a456-426614174005',
+    '123e4567-e89b-12d3-a456-426614174006',
+  ],
+};
+
 export function lerPresencas(): Set<string> {
   try {
-    return new Set(JSON.parse(localStorage.getItem(chave()) ?? '[]') as string[]);
+    const salvas = localStorage.getItem(chave());
+    if (salvas === null) return new Set(PRESENCAS_INICIAIS[lerSessao()?.usuario.id ?? ''] ?? []);
+    return new Set(JSON.parse(salvas) as string[]);
   } catch {
     return new Set();
   }

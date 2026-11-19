@@ -4,6 +4,7 @@ import { LayoutApp } from './components/LayoutApp';
 import { RotaPrivada, RotaPublica } from './components/RotaPrivada';
 import { TelaEmConstrucao } from './components/TelaEmConstrucao';
 import { AuthProvider } from './contexts/AuthContext';
+import { Agenda } from './pages/Agenda/Agenda';
 import { Cadastro } from './pages/Cadastro/Cadastro';
 import { Chat } from './pages/Chat/Chat';
 import { DetalheEvento } from './pages/DetalheEvento/DetalheEvento';
@@ -11,6 +12,7 @@ import { Divulgar } from './pages/Divulgar/Divulgar';
 import { Inicio } from './pages/Inicio/Inicio';
 import { Login } from './pages/Login/Login';
 import { Perfil } from './pages/Perfil/Perfil';
+import { RedefinirSenha } from './pages/RedefinirSenha/RedefinirSenha';
 
 /** Guia de estilo: só no `pnpm dev` (não entra no build de produção). */
 const GuiaEstilo = import.meta.env.DEV
@@ -30,15 +32,16 @@ export function App() {
               <Route path="/cadastro" element={<Cadastro />} />
             </Route>
           </Route>
-          <Route element={<LayoutApp />}>
-            <Route path="/redefinir-senha" element={<TelaEmConstrucao titulo="Redefinir senha" issue={19} />} />
+          {/* Fora da RotaPublica: o link do e-mail precisa abrir mesmo com alguém logado. */}
+          <Route element={<LayoutApp entrada />}>
+            <Route path="/redefinir-senha" element={<RedefinirSenha />} />
           </Route>
 
           {/* Privadas (#21) */}
           <Route element={<RotaPrivada />}>
             <Route element={<LayoutApp navegacao="completa" />}>
               <Route path="/inicio" element={<Inicio />} />
-              <Route path="/agenda" element={<TelaEmConstrucao titulo="Minha agenda" issue={38} comVoltar={false} />} />
+              <Route path="/agenda" element={<Agenda />} />
               <Route path="/perfil" element={<Perfil />} />
             </Route>
             <Route element={<LayoutApp navegacao="topo" />}>

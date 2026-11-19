@@ -65,6 +65,34 @@ export function intervaloDoPeriodo(periodo: 'hoje' | 'fim-de-semana' | 'este-mes
   return [sexta < hoje ? hoje : sexta, segunda];
 }
 
+function somarDias(d: Date, dias: number): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate() + dias);
+}
+
+/** "Novembro" ou "Dezembro de 2027" (o ano só aparece quando não é o atual). */
+export function mesPorExtenso(data: DataIso, agora = new Date()): string {
+  const d = new Date(data);
+  const mes = MESES[d.getMonth()];
+  const nome = mes[0].toUpperCase() + mes.slice(1);
+  return d.getFullYear() === agora.getFullYear() ? nome : `${nome} de ${d.getFullYear()}`;
+}
+
+/**
+ * Grupo de um evento futuro na Agenda: "Hoje", "Este fim de semana", "Esta semana",
+ * "Semana que vem" ou o mês ("Dezembro"). Semanas começam na segunda.
+ */
+export function grupoDaAgenda(data: DataIso, agora = new Date()): string {
+  const d = new Date(data);
+  const hoje = inicioDoDia(agora);
+  if (d < somarDias(hoje, 1)) return 'Hoje';
+  const [inicioFimDeSemana, fimFimDeSemana] = intervaloDoPeriodo('fim-de-semana', agora);
+  if (d >= inicioFimDeSemana && d < fimFimDeSemana) return 'Este fim de semana';
+  const proximaSegunda = somarDias(hoje, (8 - hoje.getDay()) % 7 || 7);
+  if (d < proximaSegunda) return 'Esta semana';
+  if (d < somarDias(proximaSegunda, 7)) return 'Semana que vem';
+  return mesPorExtenso(data, agora);
+}
+
 /** "20:14" (hora das mensagens do chat) */
 export function horaMinuto(data: DataIso): string {
   const d = new Date(data);

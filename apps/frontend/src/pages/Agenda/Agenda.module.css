@@ -1,0 +1,153 @@
+.tela {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+  padding: var(--espaco-12) var(--margem-tela) var(--espaco-8);
+}
+
+.cabecalho {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+}
+
+.titulo {
+  font-size: var(--texto-2xl);
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--cor-texto);
+}
+
+.subtitulo {
+  font-size: var(--texto-sm);
+  color: var(--cor-texto-suave);
+}
+
+/* ---------- Grupos ("Este fim de semana", "Novembro"...) ---------- */
+.grupo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+}
+
+.grupoTitulo {
+  font-size: var(--texto-xs);
+  font-weight: 600;
+  letter-spacing: var(--espacamento-sobrancelha);
+  text-transform: uppercase;
+  color: var(--cor-texto-suave);
+}
+
+.lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+}
+
+/* Linha "fantasma" enquanto carrega. */
+.esqueleto {
+  height: 88px;
+  background:
+    linear-gradient(100deg, transparent 30%, var(--cor-superficie-elevada) 50%, transparent 70%) 0 0 / 200% 100%,
+    var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-lg);
+  animation: brilhar 1.4s ease-in-out infinite;
+}
+
+@keyframes brilhar {
+  from {
+    background-position: 150% 0, 0 0;
+  }
+  to {
+    background-position: -50% 0, 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .esqueleto {
+    animation: none;
+  }
+}
+
+/* ---------- Procurar mais / vazio ---------- */
+.procurar {
+  min-height: 56px;
+  margin-top: var(--espaco-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espaco-2);
+  border: 1px dashed var(--cor-borda-forte);
+  border-radius: var(--raio-lg);
+  font-size: var(--texto-sm);
+  font-weight: 600;
+  color: var(--cor-texto-suave);
+  transition:
+    color var(--transicao),
+    border-color var(--transicao),
+    background-color var(--transicao);
+}
+
+.procurar:hover {
+  background: var(--cor-superficie);
+  border-color: var(--cor-secundaria-borda);
+  color: var(--cor-texto);
+}
+
+.vazio {
+  padding: var(--espaco-10) var(--espaco-6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espaco-2);
+  text-align: center;
+  background: var(--cor-superficie);
+  border: 1px dashed var(--cor-borda-forte);
+  border-radius: var(--raio-lg);
+}
+
+.vazioIcone {
+  width: 48px;
+  height: 48px;
+  margin-bottom: var(--espaco-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cor-secundaria-tinta);
+  border-radius: var(--raio-pilula);
+  color: var(--cor-secundaria-texto);
+}
+
+.vazioTitulo {
+  font-size: var(--texto-md);
+  font-weight: 600;
+}
+
+.vazioTexto {
+  max-width: 30ch;
+  font-size: var(--texto-sm);
+  color: var(--cor-texto-suave);
+}
+
+.vazioBotao {
+  margin-top: var(--espaco-3);
+}
+
+/* ---------- Tablet e desktop ---------- */
+@media (min-width: 768px) {
+  .tela {
+    padding: var(--espaco-10) var(--espaco-8) var(--espaco-12);
+    gap: var(--espaco-6);
+  }
+
+  .titulo {
+    font-size: var(--texto-3xl);
+  }
+}
