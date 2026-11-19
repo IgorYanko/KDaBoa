@@ -9,7 +9,7 @@ COPY apps/backend/package.json apps/backend/
 # O postinstall do backend gera o client do Prisma a partir de apps/db.
 COPY apps/db apps/db
 
-RUN pnpm install --frozen-lockfile --filter kdaboa-backend
+RUN DATABASE_URL=postgresql://build:build@localhost:5432/build pnpm install --frozen-lockfile --filter kdaboa-backend
 
 COPY apps/backend apps/backend
 
