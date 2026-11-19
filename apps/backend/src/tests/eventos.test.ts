@@ -35,12 +35,20 @@ const eventoExistente = {
   local: { id: 1, nome: 'Bar do Rock', endereco: 'Centro' },
 };
 
-function token(payload: { id?: string; email: string }) {
+function token(payload: { id?: string; email: string; perfil?: 'USUARIO' | 'ADMIN' }) {
   return jwt.sign(payload, 'segredo_de_teste');
 }
 
 function authHeader() {
-  return `Bearer ${token({ id: 'usuario-1', email: 'joao@kdaboa.com' })}`;
+  return `Bearer ${token({ id: 'usuario-1', email: 'joao@kdaboa.com', perfil: 'USUARIO' })}`;
+}
+
+function authCriador() {
+  return `Bearer ${token({ id: eventoExistente.criadorId, email: 'a@email.com', perfil: 'USUARIO' })}`;
+}
+
+function authAdmin() {
+  return `Bearer ${token({ id: 'admin-1', email: 'admin@kdaboa.com', perfil: 'ADMIN' })}`;
 }
 
 describe('API de eventos e Listagem com filtros (#23)', () => {
@@ -290,7 +298,7 @@ describe('API de eventos e Listagem com filtros (#23)', () => {
   it('PUT /api/eventos/:id atualiza os campos em camelCase', async () => {
     const resposta = await request(app)
       .put(`/api/eventos/${eventoExistente.id}`)
-      .set('Authorization', `Bearer ${token({ id: 'criador-1', email: 'a@email.com' })}`)
+      .set('Authorization', authCriador())
       .send({
         titulo: 'Título novo',
         descricao: 'Outra descrição',
@@ -310,7 +318,7 @@ describe('API de eventos e Listagem com filtros (#23)', () => {
   it('PUT /api/eventos/:id atualiza os campos em snake_case', async () => {
     const resposta = await request(app)
       .put(`/api/eventos/${eventoExistente.id}`)
-      .set('Authorization', `Bearer ${token({ id: 'criador-1', email: 'a@email.com' })}`)
+      .set('Authorization', authCriador())
       .send({
         data_inicio: '2026-12-05T20:00:00Z',
         data_fim: '2026-12-05T22:00:00Z',
@@ -327,7 +335,7 @@ describe('API de eventos e Listagem com filtros (#23)', () => {
   it('PUT /api/eventos/:id aceita imagem e classificação nulas no camelCase', async () => {
     const resposta = await request(app)
       .put(`/api/eventos/${eventoExistente.id}`)
-      .set('Authorization', `Bearer ${token({ id: 'criador-1', email: 'a@email.com' })}`)
+      .set('Authorization', authCriador())
       .send({
         classificacaoEtaria: null,
         classificacao_etaria: 8,
@@ -343,37 +351,81 @@ describe('API de eventos e Listagem com filtros (#23)', () => {
   it('PUT /api/eventos/:id aceita corpo vazio', async () => {
     const resposta = await request(app)
       .put(`/api/eventos/${eventoExistente.id}`)
-      .set('Authorization', `Bearer ${token({ id: 'criador-1', email: 'a@email.com' })}`)
+      .set('Authorization', authCriador())
       .send({});
 
     expect(resposta.status).toBe(200);
   });
 
-  it('PUT /api/eventos/:id devolve 404 quando a atualização falha', async () => {
-    prismaMock.evento.update.mockRejectedValueOnce(new Error('falha'));
-
+  it('PUT /api/eventos/:id bloqueia usuário que não é o criador nem ADMIN (403)', async () => {
     const resposta = await request(app)
       .put(`/api/eventos/${eventoExistente.id}`)
-      .set('Authorization', `Bearer ${token({ id: 'criador-1', email: 'a@email.com' })}`)
+      .set('Authorization', authHeader())
+      .send({ titulo: 'Tentativa indevida' });
+
+    expect(resposta.status).toBe(403);
+  });
+
+  it('PUT /api/eventos/:id permite ADMIN atualizar evento de outro usuário', async () => {
+    const resposta = await request(app)
+      .put(`/api/eventos/${eventoExistente.id}`)
+      .set('Authorization', authAdmin())
+      .send({ titulo: 'Editado pelo admin' });
+
+    expect(resposta.status).toBe(200);
+    expect(resposta.body.titulo).toBe('Editado pelo admin');
+  });
+
+  it('PUT /api/eventos/:id devolve 404 quando o evento não existe ou a atualização falha', async () => {
+    const naoExiste = await request(app)
+      .put('/api/eventos/123e4567-e89b-12d3-a456-426614174099')
+      .set('Authorization', authCriador())
+      .send({ titulo: 'Inexistente' });
+    expect(naoExiste.status).toBe(404);
+
+    prismaMock.evento.update.mockRejectedValueOnce(new Error('falha'));
+    const resposta = await request(app)
+      .put(`/api/eventos/${eventoExistente.id}`)
+      .set('Authorization', authCriador())
       .send({ titulo: 'Não grava' });
 
     expect(resposta.status).toBe(404);
   });
 
-  it('DELETE /api/eventos/:id remove o evento', async () => {
+  it('DELETE /api/eventos/:id remove o evento pelo criador', async () => {
     const resposta = await request(app)
       .delete(`/api/eventos/${eventoExistente.id}`)
-      .set('Authorization', `Bearer ${token({ id: 'criador-1', email: 'a@email.com' })}`);
+      .set('Authorization', authCriador());
 
     expect(resposta.status).toBe(204);
   });
 
-  it('DELETE /api/eventos/:id devolve 404 quando a remoção falha', async () => {
-    prismaMock.evento.delete.mockRejectedValueOnce(new Error('falha'));
-
+  it('DELETE /api/eventos/:id bloqueia usuário que não é o criador nem ADMIN (403)', async () => {
     const resposta = await request(app)
       .delete(`/api/eventos/${eventoExistente.id}`)
-      .set('Authorization', `Bearer ${token({ id: 'criador-1', email: 'a@email.com' })}`);
+      .set('Authorization', authHeader());
+
+    expect(resposta.status).toBe(403);
+  });
+
+  it('DELETE /api/eventos/:id permite ADMIN remover evento de outro usuário', async () => {
+    const resposta = await request(app)
+      .delete(`/api/eventos/${eventoExistente.id}`)
+      .set('Authorization', authAdmin());
+
+    expect(resposta.status).toBe(204);
+  });
+
+  it('DELETE /api/eventos/:id devolve 404 quando o evento não existe ou a remoção falha', async () => {
+    const naoExiste = await request(app)
+      .delete('/api/eventos/123e4567-e89b-12d3-a456-426614174099')
+      .set('Authorization', authCriador());
+    expect(naoExiste.status).toBe(404);
+
+    prismaMock.evento.delete.mockRejectedValueOnce(new Error('falha'));
+    const resposta = await request(app)
+      .delete(`/api/eventos/${eventoExistente.id}`)
+      .set('Authorization', authCriador());
 
     expect(resposta.status).toBe(404);
   });

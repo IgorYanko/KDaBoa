@@ -13,8 +13,8 @@ const EMAIL_VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 interface Enviado {
   email: string;
-  /** Só em teste: link do e-mail (mock) ou endereço para ver o e-mail (SMTP de teste da API). */
-  previewUrl?: string | false;
+  /** Só no modo mock: o link que iria no e-mail. */
+  linkTeste?: string;
 }
 
 /** Passo 1: a pessoa informa o e-mail e recebe o link para criar uma nova senha. */
@@ -31,7 +31,7 @@ export function PedirLink() {
     setCarregando(true);
     try {
       const resposta = await pedirRedefinicaoSenha({ email: destino });
-      setEnviado({ email: destino, previewUrl: resposta.previewUrl });
+      setEnviado({ email: destino, linkTeste: resposta.link_teste });
       return true;
     } catch (e) {
       setErro(e instanceof ErroApi ? e.message : 'Algo deu errado. Tente de novo.');
@@ -63,7 +63,7 @@ export function PedirLink() {
   }
 
   if (enviado) {
-    const { previewUrl } = enviado;
+    const { linkTeste } = enviado;
     return (
       <main className={styles.tela}>
         <BotaoIcone icone="voltar" rotulo="Voltar para o login" para="/login" className={styles.voltar} />
@@ -74,30 +74,23 @@ export function PedirLink() {
           </span>
           <h1 className={styles.titulo}>Confira seu e-mail</h1>
           <p className={styles.subtitulo}>
-            Enviamos um link para <strong className={styles.email}>{enviado.email}</strong>. Ele vale por 1 hora e só
-            pode ser usado uma vez.
+            Se <strong className={styles.email}>{enviado.email}</strong> tiver uma conta, enviamos um link para criar
+            uma nova senha. Ele vale por 1 hora e só pode ser usado uma vez.
           </p>
         </header>
 
         {erro && <Aviso tipo="erro">{erro}</Aviso>}
-        {reenviado && !erro && <Aviso tipo="sucesso">Enviamos um novo link.</Aviso>}
+        {reenviado && !erro && <Aviso tipo="sucesso">Enviamos um novo link. O anterior deixou de valer.</Aviso>}
 
-        {previewUrl && (
+        {linkTeste && (
           <div className={styles.teste}>
             <p>
-              <strong>Ambiente de teste:</strong> o e-mail não chega de verdade.
+              <strong>Modo de teste:</strong> o e-mail não é enviado de verdade.
             </p>
-            {previewUrl.startsWith('/') ? (
-              <Link to={previewUrl} className={styles.linkTeste}>
-                Abrir o link do e-mail
-                <Icone nome="seta-direita" tamanho={16} />
-              </Link>
-            ) : (
-              <a href={previewUrl} target="_blank" rel="noreferrer" className={styles.linkTeste}>
-                Ver o e-mail de teste
-                <Icone nome="link" tamanho={16} />
-              </a>
-            )}
+            <Link to={linkTeste} className={styles.linkTeste}>
+              Abrir o link do e-mail
+              <Icone nome="seta-direita" tamanho={16} />
+            </Link>
           </div>
         )}
 

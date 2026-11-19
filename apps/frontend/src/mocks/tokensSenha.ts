@@ -14,8 +14,11 @@ interface TokenMock {
 
 const tokens = new Map<string, TokenMock>();
 
-/** Cria um token para o e-mail e devolve o valor que iria no link do e-mail. */
+/** Cria um token para o e-mail e devolve o valor que iria no link do e-mail. Como na API, invalida os anteriores. */
 export function criarTokenSenha(email: string): string {
+  for (const registro of tokens.values()) {
+    if (registro.email === email) registro.usado = true;
+  }
   const token = Array.from({ length: 4 }, () => Math.random().toString(36).slice(2, 10)).join('');
   tokens.set(token, { email, expiraEm: Date.now() + VALIDADE_MS, usado: false });
   return token;
