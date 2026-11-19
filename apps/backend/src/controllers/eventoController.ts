@@ -1,16 +1,10 @@
 import type { Request, Response } from 'express';
+import type { RequisicaoAutenticada } from '../middlewares/authMiddleware';
 import { prisma } from '../prisma';
 
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 type PeriodoFiltro = 'hoje' | 'fim-de-semana' | 'este-mes';
-
-interface RequisicaoAutenticada extends Request {
-  usuario?: {
-    id?: string;
-    email?: string;
-  };
-}
 
 interface EventoBanco {
   id: string;
@@ -82,10 +76,11 @@ function formatarEventoParaResposta(ev: EventoBanco) {
 }
 
 export const eventoController = {
-  // READ - Lista próximos eventos com filtros opcionais (Card 20 / Issue #23)
+  // READ - Lista próximos eventos com filtros opcionais e paginação
   listar: async (req: Request, res: Response): Promise<void> => {
     try {
-      const { periodo, categoria_id, categoriaId, busca } = req.query;
+      const { periodo, categoria_id, categoriaId, busca, page, pagina, limit, limite } =
+        req.query;
       const agora = new Date();
 
       const where: Record<string, unknown> = {};
@@ -120,6 +115,7 @@ export const eventoController = {
         include: {
           categoria: true,
           local: true,
+          _count: { select: { presencas: true } },
         },
         orderBy: { dataInicio: 'asc' },
       })) as unknown as EventoBanco[];
@@ -132,6 +128,30 @@ export const eventoController = {
             ),
           )
         : eventos;
+
+      const temPaginacao =
+        page !== undefined ||
+        pagina !== undefined ||
+        limit !== undefined ||
+        limite !== undefined;
+
+      if (temPaginacao) {
+        const paginaAtual = Math.max(1, Number(page ?? pagina) || 1);
+        const limitePorPagina = Math.min(100, Math.max(1, Number(limit ?? limite) || 10));
+        const inicio = (paginaAtual - 1) * limitePorPagina;
+        const paginados = filtrados.slice(inicio, inicio + limitePorPagina);
+
+        res.json({
+          dados: paginados.map(formatarEventoParaResposta),
+          paginacao: {
+            total: filtrados.length,
+            pagina: paginaAtual,
+            limite: limitePorPagina,
+            totalPaginas: Math.ceil(filtrados.length / limitePorPagina),
+          },
+        });
+        return;
+      }
 
       res.json(filtrados.map(formatarEventoParaResposta));
     } catch (_error) {
@@ -154,6 +174,7 @@ export const eventoController = {
         include: {
           categoria: true,
           local: true,
+          _count: { select: { presencas: true } },
         },
       })) as unknown as EventoBanco | null;
 
@@ -223,6 +244,23 @@ export const eventoController = {
   atualizar: async (req: Request, res: Response): Promise<void> => {
     try {
       const id = String(req.params.id);
+      const reqAuth = req as RequisicaoAutenticada;
+
+      const eventoExistente = await prisma.evento.findUnique({ where: { id } });
+
+      if (!eventoExistente) {
+        res.status(404).json({ erro: 'Evento não encontrado' });
+        return;
+      }
+
+      if (
+        eventoExistente.criadorId !== reqAuth.usuario?.id &&
+        reqAuth.usuario?.perfil !== 'ADMIN'
+      ) {
+        res.status(403).json({ erro: 'Você não tem permissão para alterar este evento' });
+        return;
+      }
+
       const {
         titulo,
         descricao,
@@ -279,6 +317,23 @@ export const eventoController = {
   deletar: async (req: Request, res: Response): Promise<void> => {
     try {
       const id = String(req.params.id);
+      const reqAuth = req as RequisicaoAutenticada;
+
+      const eventoExistente = await prisma.evento.findUnique({ where: { id } });
+
+      if (!eventoExistente) {
+        res.status(404).json({ erro: 'Evento não encontrado' });
+        return;
+      }
+
+      if (
+        eventoExistente.criadorId !== reqAuth.usuario?.id &&
+        reqAuth.usuario?.perfil !== 'ADMIN'
+      ) {
+        res.status(403).json({ erro: 'Você não tem permissão para deletar este evento' });
+        return;
+      }
+
       await prisma.evento.delete({
         where: { id },
       });

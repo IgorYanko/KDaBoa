@@ -1,28 +1,53 @@
 import type { NextFunction, Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
+import jwt, { type JwtPayload } from 'jsonwebtoken';
+
+export interface UsuarioToken extends JwtPayload {
+  id: string;
+  email: string;
+  perfil: 'USUARIO' | 'ADMIN';
+}
+
+export interface RequisicaoAutenticada extends Request {
+  usuario?: UsuarioToken;
+}
 
 export const verificarToken = (req: Request, res: Response, next: NextFunction): void => {
-  // Pega o token do cabeçalho da requisição
   const authHeader = req.headers.authorization;
 
-  if (!authHeader) {
+  if (!authHeader?.startsWith('Bearer ')) {
     res.status(401).json({ erro: 'Acesso negado. Token não fornecido.' });
     return;
   }
 
-  // O padrão do mercado é enviar "Bearer <token>", então separamos a string
   const token = authHeader.split(' ')[1];
 
   try {
-    // Tenta decodificar usando a mesma chave secreta do seu .env
-    const decodificado = jwt.verify(token, process.env.JWT_SECRET as string);
-    
-    // Injeta os dados do usuário na requisição para o controller poder usar depois
-    (req as any).usuario = decodificado;
-    
-    // Libera a passagem para a rota final!
-    next(); 
-  } catch (error) {
+    const decodificado = jwt.verify(
+      token,
+      process.env.JWT_SECRET as string,
+    ) as UsuarioToken;
+
+    (req as RequisicaoAutenticada).usuario = decodificado;
+    next();
+  } catch (_error) {
     res.status(401).json({ erro: 'Token inválido ou expirado.' });
   }
+};
+
+export const exigirPerfil = (...perfisPermitidos: Array<'USUARIO' | 'ADMIN'>) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    const usuario = (req as RequisicaoAutenticada).usuario;
+
+    if (!usuario) {
+      res.status(401).json({ erro: 'Usuário não autenticado.' });
+      return;
+    }
+
+    if (!perfisPermitidos.includes(usuario.perfil)) {
+      res.status(403).json({ erro: 'Acesso proibido. Permissão insuficiente.' });
+      return;
+    }
+
+    next();
+  };
 };
