@@ -253,16 +253,19 @@ export interface ContadoresPerfilDTO {
 // Chat
 // ---------------------------------------------------------------------------
 
-/** PENDENTE (issue #33): mensagem do chat de um evento. */
+/**
+ * Mensagem do chat de um evento (issue #33), como o servidor de socket manda
+ * em `historico_mensagens` e `nova_mensagem`. O id vem do banco como número, convertido em texto.
+ */
 export interface MensagemChatDTO {
-  id: Uuid;
+  id: string;
   evento_id: Uuid;
   autor: UsuarioResumoDTO;
   texto: string;
   criado_em: DataIso;
 }
 
-/** PENDENTE (issue #33): corpo para enviar uma mensagem. */
+/** Corpo do evento `enviar_mensagem` do socket (vai junto com o `evento_id`). */
 export interface EnviarMensagemRequestDTO {
   texto: string;
 }
