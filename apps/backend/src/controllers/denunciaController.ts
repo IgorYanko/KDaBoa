@@ -12,11 +12,14 @@ interface RequisicaoAutenticada extends Request {
 }
 
 export const denunciaController = {
-  // POST /api/denuncias/:eventoId/:mensagemId - Registra denúncia de mensagem no chat do evento
+  // POST /api/denuncias ou POST /api/denuncias/:eventoId/:mensagemId
   denunciar: async (req: Request, res: Response): Promise<void> => {
     try {
-      const eventoId = String(req.params.eventoId);
-      const mensagemIdBruto = String(req.params.mensagemId);
+      const eventoIdBruto =
+        req.params.eventoId ?? req.body?.eventoId ?? req.body?.evento_id;
+      const mensagemIdBruto = String(
+        req.params.mensagemId ?? req.body?.mensagemId ?? req.body?.mensagem_id ?? '',
+      ).trim();
       const denuncianteId = (req as RequisicaoAutenticada).usuario?.id;
 
       if (!denuncianteId) {
@@ -24,35 +27,69 @@ export const denunciaController = {
         return;
       }
 
-      if (!uuidRegex.test(eventoId) || !bigIntRegex.test(mensagemIdBruto)) {
+      if (!bigIntRegex.test(mensagemIdBruto)) {
         res.status(404).json({ erro: 'Mensagem não encontrada neste evento' });
-        return;
-      }
-
-      const presenca = await prisma.presenca.findUnique({
-        where: {
-          usuarioId_eventoId: {
-            usuarioId: denuncianteId,
-            eventoId,
-          },
-        },
-      });
-
-      if (!presenca) {
-        res.status(403).json({
-          erro: 'Apenas usuários com presença confirmada neste evento podem denunciar mensagens',
-        });
         return;
       }
 
       const mensagemId = BigInt(mensagemIdBruto);
+      const temEventoInformado =
+        eventoIdBruto !== undefined &&
+        eventoIdBruto !== null &&
+        String(eventoIdBruto).trim() !== '';
+
+      let eventoId = temEventoInformado ? String(eventoIdBruto).trim() : '';
+
+      if (temEventoInformado) {
+        if (!uuidRegex.test(eventoId)) {
+          res.status(404).json({ erro: 'Mensagem não encontrada neste evento' });
+          return;
+        }
+
+        const presenca = await prisma.presenca.findUnique({
+          where: {
+            usuarioId_eventoId: {
+              usuarioId: denuncianteId,
+              eventoId,
+            },
+          },
+        });
+
+        if (!presenca) {
+          res.status(403).json({
+            erro: 'Apenas usuários com presença confirmada neste evento podem denunciar mensagens',
+          });
+          return;
+        }
+      }
+
       const mensagem = await prisma.mensagem.findUnique({
         where: { id: mensagemId },
       });
 
-      if (!mensagem || mensagem.eventoId !== eventoId) {
+      if (!mensagem || (temEventoInformado && mensagem.eventoId !== eventoId)) {
         res.status(404).json({ erro: 'Mensagem não encontrada neste evento' });
         return;
+      }
+
+      if (!temEventoInformado) {
+        eventoId = mensagem.eventoId;
+
+        const presenca = await prisma.presenca.findUnique({
+          where: {
+            usuarioId_eventoId: {
+              usuarioId: denuncianteId,
+              eventoId,
+            },
+          },
+        });
+
+        if (!presenca) {
+          res.status(403).json({
+            erro: 'Apenas usuários com presença confirmada neste evento podem denunciar mensagens',
+          });
+          return;
+        }
       }
 
       if (mensagem.usuarioId === denuncianteId) {
