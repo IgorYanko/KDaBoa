@@ -162,8 +162,10 @@ export async function listarEventosPaginados(
   const { dados, paginacao } = await requisicao<RespostaPaginada>(
     `/api/eventos${montarQuery(filtro, { pagina, limite })}`,
   );
+  // A API já filtrou e paginou: a página vai como veio. Filtrar de novo aqui deixaria
+  // `total` e `temMais` diferentes do que aparece na tela (o `filtrar` fica só no mock).
   const lembradas = presencasLembradas();
-  const itens = filtrar(await completar(dados.map((e) => doFormatoDaApi(e, lembradas))), filtro);
+  const itens = await completar(dados.map((e) => doFormatoDaApi(e, lembradas)));
   return { itens, total: paginacao.total, temMais: paginacao.pagina < paginacao.totalPaginas };
 }
 
