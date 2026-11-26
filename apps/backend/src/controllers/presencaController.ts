@@ -20,6 +20,64 @@ function calcularIdade(dataNascimento: Date, referencia = new Date()): number {
 }
 
 export const presencaController = {
+  // GET /api/presencas/agenda - Lista eventos confirmados do usuário separados em próximos e passados
+  minhaAgenda: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const usuarioId = (req as RequisicaoAutenticada).usuario?.id;
+
+      if (!usuarioId) {
+        res.status(401).json({ erro: 'Usuário não autenticado' });
+        return;
+      }
+
+      const presencas = await prisma.presenca.findMany({
+        where: { usuarioId },
+        include: {
+          evento: {
+            include: {
+              categoria: true,
+              local: true,
+            },
+          },
+        },
+        orderBy: {
+          evento: {
+            dataInicio: 'asc',
+          },
+        },
+      });
+
+      const agora = new Date();
+      const proximos: unknown[] = [];
+      const passados: unknown[] = [];
+
+      for (const presenca of presencas) {
+        const ev = presenca.evento;
+        const dataInicio = new Date(ev.dataInicio);
+        const item = {
+          ...ev,
+          data_inicio: dataInicio.toISOString(),
+          data_fim: ev.dataFim ? new Date(ev.dataFim).toISOString() : null,
+          capa_url: ev.imagemUrl ?? null,
+          imagem_url: ev.imagemUrl ?? null,
+          confirmadoEm: presenca.confirmadoEm,
+        };
+
+        if (dataInicio >= agora) {
+          proximos.push(item);
+        } else {
+          passados.push(item);
+        }
+      }
+
+      passados.reverse();
+
+      res.json({ proximos, passados });
+    } catch (_error) {
+      res.status(500).json({ erro: 'Erro ao buscar agenda do usuário' });
+    }
+  },
+
   // POST /api/presencas/:eventoId - Confirma presença respeitando classificação etária
   confirmar: async (req: Request, res: Response): Promise<void> => {
     try {
