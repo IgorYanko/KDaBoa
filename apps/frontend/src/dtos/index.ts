@@ -66,9 +66,14 @@ export interface LocalDTO {
 // ---------------------------------------------------------------------------
 
 /** Dados públicos de um usuário (o que outras pessoas podem ver). */
+/** Perfil de acesso (vem no login e no token). ADMIN pode editar e excluir qualquer evento. */
+export type PerfilAcesso = 'USUARIO' | 'ADMIN';
+
 export interface UsuarioResumoDTO {
   id: Uuid;
   nome: string;
+  /** Só vem no login (o usuário logado); nas listas de pessoas não vem. */
+  perfil?: PerfilAcesso;
   /** PENDENTE: @usuario exibido em Quem vai e no Perfil. */
   apelido?: string;
   /** PENDENTE: URL da foto; sem foto, o front mostra as iniciais. */
@@ -203,6 +208,9 @@ export interface FiltroEventosDTO {
   periodo?: 'hoje' | 'fim-de-semana' | 'este-mes';
   categoria_id?: number;
 }
+
+/** PUT /api/eventos/:id — os mesmos campos do criar; só o criador ou um ADMIN pode alterar. */
+export type AtualizarEventoRequestDTO = Partial<CriarEventoRequestDTO>;
 
 /** PENDENTE (issue #45): corpo enviado na tela Divulgar evento. */
 export interface CriarEventoRequestDTO {

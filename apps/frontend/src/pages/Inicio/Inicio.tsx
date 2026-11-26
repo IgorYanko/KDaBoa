@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router';
 import { ErroApi } from '../../api/client';
 import { Aviso } from '../../components/Aviso';
 import { BoasVindas } from '../../components/BoasVindas';
@@ -26,6 +27,8 @@ const PERIODOS: { valor: Periodo; rotulo: string }[] = [
 export function Inicio() {
   const { usuario } = useAuth();
   const primeiroNome = usuario?.nome.split(' ')[0];
+  // Vindo do detalhe depois de excluir um evento.
+  const excluido = (useLocation().state as { excluido?: string } | null)?.excluido;
 
   const [busca, setBusca] = useState('');
   const [buscaAplicada, setBuscaAplicada] = useState('');
@@ -86,6 +89,7 @@ export function Inicio() {
   return (
     <main className={styles.tela}>
       <BoasVindas />
+      {excluido && <Aviso tipo="sucesso">{`Evento "${excluido}" excluído.`}</Aviso>}
 
       <header className={styles.cabecalho}>
         <div className={styles.saudacao}>

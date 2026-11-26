@@ -50,6 +50,7 @@ export function App() {
               <Route path="/eventos/:id/chat" element={<Chat />} />
               <Route path="/eventos/:id/quem-vai" element={<TelaEmConstrucao titulo="Quem vai" issue={30} />} />
               <Route path="/divulgar" element={<Divulgar />} />
+              <Route path="/eventos/:id/editar" element={<Divulgar />} />
             </Route>
           </Route>
 

@@ -30,7 +30,13 @@ export async function login(dados: LoginRequestDTO): Promise<LoginResponseDTO> {
   return {
     mensagem: 'Login realizado com sucesso',
     token: 'token_mock_do_front',
-    usuario: { id: usuario.id, nome: usuario.nome, apelido: usuario.apelido, foto_url: usuario.foto_url },
+    usuario: {
+      id: usuario.id,
+      nome: usuario.nome,
+      apelido: usuario.apelido,
+      foto_url: usuario.foto_url,
+      perfil: usuario.perfil ?? 'USUARIO',
+    },
   };
 }
 

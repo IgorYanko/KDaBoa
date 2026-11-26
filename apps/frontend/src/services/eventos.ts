@@ -1,9 +1,18 @@
 import { ErroApi, requisicao } from '../api/client';
 import { lerSessao } from '../api/sessao';
 import { USAR_MOCK } from '../config';
-import type { AgendaDTO, CategoriaDTO, CriarEventoRequestDTO, EventoDTO, FiltroEventosDTO, LocalDTO } from '../dtos';
+import type {
+  AgendaDTO,
+  AtualizarEventoRequestDTO,
+  CategoriaDTO,
+  CriarEventoRequestDTO,
+  EventoDTO,
+  FiltroEventosDTO,
+  LocalDTO,
+} from '../dtos';
 import { atraso } from '../mocks/atraso';
 import { eventosMock } from '../mocks/eventos';
+import { comAlteracoes, marcarExcluido, salvarEdicao } from '../mocks/eventosAlterados';
 import { lerEventosCriados, salvarEventoCriado } from '../mocks/eventosCriados';
 import { comPresenca } from '../mocks/presencas';
 import { intervaloDoPeriodo } from '../utils/datas';
@@ -67,7 +76,17 @@ function montarQuery(filtro: FiltroEventosDTO): string {
 
 /** Eventos do mock: os do esboço + os criados na tela Divulgar neste navegador. */
 function todosEventosMock(): EventoDTO[] {
-  return [...eventosMock, ...lerEventosCriados()];
+  return comAlteracoes([...eventosMock, ...lerEventosCriados()]);
+}
+
+/** No mock, a mesma regra do backend: só quem criou ou um ADMIN altera o evento. */
+function garantirPermissaoNoMock(id: string): void {
+  const evento = todosEventosMock().find((e) => e.id === id);
+  if (!evento) throw new ErroApi('Evento não encontrado', 404);
+  const usuario = lerSessao()?.usuario;
+  if (!usuario || (evento.criador_id !== usuario.id && usuario.perfil !== 'ADMIN')) {
+    throw new ErroApi('Você não tem permissão para alterar este evento', 403);
+  }
 }
 
 /** Evento como a API manda hoje (release 3): o total vem em `confirmados`. */
@@ -191,4 +210,26 @@ export async function criarEvento(dados: CriarEventoRequestDTO, capa?: File | nu
     throw new ErroApi('Não foi possível guardar o evento neste navegador (imagem grande demais?).', 413);
   }
   return evento;
+}
+
+/** PUT /api/eventos/:id — só o criador ou um ADMIN (a API responde 403 para os outros). */
+export async function atualizarEvento(id: string, dados: AtualizarEventoRequestDTO, capa?: File | null): Promise<void> {
+  if (!USAR_MOCK) {
+    await requisicao<unknown>(`/api/eventos/${encodeURIComponent(id)}`, { metodo: 'PUT', corpo: dados });
+    return;
+  }
+  await atraso(500);
+  garantirPermissaoNoMock(id);
+  salvarEdicao(id, { ...dados, ...(capa ? { capa_url: await reduzirImagem(capa) } : {}) });
+}
+
+/** DELETE /api/eventos/:id — apaga também as presenças e o chat do evento. */
+export async function excluirEvento(id: string): Promise<void> {
+  if (!USAR_MOCK) {
+    await requisicao<unknown>(`/api/eventos/${encodeURIComponent(id)}`, { metodo: 'DELETE' });
+    return;
+  }
+  await atraso(400);
+  garantirPermissaoNoMock(id);
+  marcarExcluido(id);
 }

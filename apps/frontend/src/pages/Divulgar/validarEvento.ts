@@ -1,4 +1,4 @@
-import type { CriarEventoRequestDTO } from '../../dtos';
+import type { CriarEventoRequestDTO, EventoDTO } from '../../dtos';
 
 /** Valores do formulário Divulgar (como digitados; viram o DTO em `paraRequisicao`). */
 export interface FormularioEvento {
@@ -31,6 +31,22 @@ export const FORMULARIO_INICIAL: FormularioEvento = {
   preco: '',
   classificacao: '0',
 };
+
+/** Formulário preenchido com um evento existente (tela de edição). */
+export function formularioDoEvento(evento: EventoDTO): FormularioEvento {
+  const inicio = new Date(evento.data_inicio);
+  const dois = (n: number) => String(n).padStart(2, '0');
+  return {
+    titulo: evento.titulo,
+    descricao: evento.descricao ?? '',
+    categoriaId: evento.categoria_id,
+    data: `${inicio.getFullYear()}-${dois(inicio.getMonth() + 1)}-${dois(inicio.getDate())}`,
+    horario: `${dois(inicio.getHours())}:${dois(inicio.getMinutes())}`,
+    localId: String(evento.local_id),
+    preco: evento.preco > 0 ? String(evento.preco).replace('.', ',') : '',
+    classificacao: String(evento.classificacao_etaria ?? 0),
+  };
+}
 
 /** "25,50" → 25.5 · "" → 0 · texto inválido → null */
 export function lerPreco(texto: string): number | null {
