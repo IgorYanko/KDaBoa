@@ -1,4 +1,5 @@
 import type { CadastroRequestDTO } from '../../dtos';
+import { cnpjValido } from '../../utils/cnpj';
 
 export type ErrosCadastro = Partial<Record<keyof CadastroRequestDTO, string>>;
 
@@ -47,12 +48,16 @@ export function idadeEmAnos(nascimento: string, agora = new Date()): number | nu
 export function validarCadastro(dados: CadastroRequestDTO, agora = new Date()): ErrosCadastro {
   const erros: ErrosCadastro = {};
 
-  if (!dados.nome.trim()) erros.nome = 'Informe seu nome.';
+  const empresa = dados.tipo === 'cnpj';
+
+  if (!dados.nome.trim()) erros.nome = empresa ? 'Informe a razão social.' : 'Informe seu nome.';
 
   if (!dados.email.trim()) erros.email = 'Informe seu e-mail.';
   else if (!EMAIL_VALIDO.test(dados.email.trim())) erros.email = 'E-mail inválido.';
 
-  if (!dados.data_nascimento) {
+  if (empresa) {
+    if (!cnpjValido(dados.cnpj ?? '')) erros.cnpj = 'CNPJ inválido.';
+  } else if (!dados.data_nascimento) {
     erros.data_nascimento = 'Informe a data.';
   } else {
     const idade = idadeEmAnos(dados.data_nascimento, agora);
@@ -63,7 +68,7 @@ export function validarCadastro(dados: CadastroRequestDTO, agora = new Date()): 
   if (dados.senha.length < SENHA_MINIMA) erros.senha = `Mínimo de ${SENHA_MINIMA} caracteres.`;
   else if (dados.senha.length > SENHA_MAXIMA) erros.senha = `Máximo de ${SENHA_MAXIMA} caracteres.`;
 
-  if (dados.interesses.length === 0) erros.interesses = 'Escolha pelo menos um interesse.';
+  if (!empresa && dados.interesses.length === 0) erros.interesses = 'Escolha pelo menos um interesse.';
 
   return erros;
 }

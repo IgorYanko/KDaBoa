@@ -5,6 +5,8 @@ interface ImportMetaEnv {
   readonly VITE_USAR_MOCK?: string;
   /** Endereço da API. Padrão: http://localhost:3333 */
   readonly VITE_API_URL?: string;
+  /** Chave pública do Mercado Pago. Vazia = checkout ainda sem pagamento. */
+  readonly VITE_MERCADO_PAGO_PUBLIC_KEY?: string;
 }
 
 interface ImportMeta {

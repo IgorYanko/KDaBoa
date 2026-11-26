@@ -66,9 +66,13 @@ export interface LocalDTO {
 // ---------------------------------------------------------------------------
 
 /** Dados públicos de um usuário (o que outras pessoas podem ver). */
+export type PerfilUsuario = 'USUARIO' | 'ORGANIZADOR' | 'ADMIN';
+
 export interface UsuarioResumoDTO {
   id: Uuid;
   nome: string;
+  /** Conta comum, empresa (CNPJ) ou admin. */
+  perfil?: PerfilUsuario;
   /** PENDENTE: @usuario exibido em Quem vai e no Perfil. */
   apelido?: string;
   /** PENDENTE: URL da foto; sem foto, o front mostra as iniciais. */
@@ -78,7 +82,10 @@ export interface UsuarioResumoDTO {
 /** Dados completos do usuário logado (tela de Perfil). */
 export interface UsuarioDTO extends UsuarioResumoDTO {
   email: string;
-  data_nascimento: DataSimples;
+  /** Ausente na conta CNPJ. */
+  data_nascimento?: DataSimples | null;
+  cnpj?: string | null;
+  nome_fantasia?: string | null;
   /** PENDENTE: ids das categorias de interesse (issue #4). */
   interesses?: number[];
   /** PENDENTE: se outras pessoas veem quando ele confirma presença (issue #4). */
@@ -103,11 +110,15 @@ export interface LoginResponseDTO {
 
 /** POST /api/usuarios/cadastro: corpo enviado. */
 export interface CadastroRequestDTO {
+  /** `cnpj` cria a conta de empresa, que só publica evento verificado. */
+  tipo?: 'pessoa' | 'cnpj';
   nome: string;
   email: string;
   /** Mínimo de 8 caracteres (regra da tela de cadastro). */
   senha: string;
   data_nascimento: DataSimples;
+  cnpj?: string;
+  nome_fantasia?: string;
   /** PENDENTE na API: ids das categorias escolhidas em "O que você curte?". */
   interesses: number[];
   /** PENDENTE na API: switch "Mostrar minha presença". */
@@ -174,6 +185,12 @@ export interface EventoDTO {
   preco: number;
   /** Idade mínima; 0 = livre. */
   classificacao_etaria: number;
+  /** Evento publicado por conta CNPJ. */
+  verificado?: boolean;
+  /** Ingresso cobrado neste app. Falso: preço na portaria ou gratuito. */
+  venda_no_app?: boolean;
+  /** Ingressos ainda disponíveis quando a venda é no app. */
+  quantidade_ingressos?: number | null;
   categoria_id: number;
   local_id: number;
   criador_id: Uuid;
@@ -213,6 +230,8 @@ export interface CriarEventoRequestDTO {
   classificacao_etaria: number;
   categoria_id: number;
   local_id: number;
+  venda_no_app?: boolean;
+  quantidade_ingressos?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -227,6 +246,28 @@ export interface CriarEventoRequestDTO {
 export interface AgendaDTO {
   proximos: EventoDTO[];
   passados: EventoDTO[];
+}
+
+/** Ingresso emitido depois do pagamento aprovado. */
+export interface IngressoDTO {
+  id: Uuid;
+  codigo: string;
+  status: 'valido' | 'usado' | 'cancelado';
+  evento_id: Uuid;
+  evento_titulo: string;
+  data_inicio: DataIso;
+}
+
+/** POST /api/eventos/:id/pagamentos e GET /api/pedidos/:id */
+export interface PagamentoPedidoDTO {
+  id: Uuid;
+  evento_id: Uuid;
+  quantidade: number;
+  valor_total: number;
+  status: 'pendente' | 'pago' | 'recusado' | 'cancelado';
+  qr_code?: string | null;
+  qr_code_base64?: string | null;
+  ingressos: { id: Uuid; codigo: string; status: string }[];
 }
 
 /** PENDENTE (issue #29): resposta de confirmar/cancelar presença. */

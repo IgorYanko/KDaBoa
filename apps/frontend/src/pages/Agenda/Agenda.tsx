@@ -6,15 +6,18 @@ import { classesBotao } from '../../components/Botao';
 import { EventoLinha } from '../../components/EventoLinha';
 import { Icone } from '../../components/Icone';
 import { Segmentos } from '../../components/Segmentos';
+import type { IngressoDTO } from '../../dtos';
 import { type AgendaCompleta, type EventoCompleto, listarAgenda } from '../../services/eventos';
+import { listarMeusIngressos } from '../../services/pagamentos';
 import { grupoDaAgenda, mesPorExtenso } from '../../utils/datas';
 import styles from './Agenda.module.css';
 
-type Aba = 'proximos' | 'passados';
+type Aba = 'proximos' | 'passados' | 'ingressos';
 
 const ABAS: { valor: Aba; rotulo: string }[] = [
   { valor: 'proximos', rotulo: 'Próximos' },
   { valor: 'passados', rotulo: 'Passados' },
+  { valor: 'ingressos', rotulo: 'Ingressos' },
 ];
 
 interface Grupo {
@@ -23,7 +26,7 @@ interface Grupo {
 }
 
 /** Junta eventos vizinhos do mesmo período ("Este fim de semana", "Novembro"...). A lista já vem ordenada. */
-function agrupar(lista: EventoCompleto[], aba: Aba): Grupo[] {
+function agrupar(lista: EventoCompleto[], aba: 'proximos' | 'passados'): Grupo[] {
   const grupos: Grupo[] = [];
   for (const item of lista) {
     const titulo =
@@ -39,6 +42,7 @@ function agrupar(lista: EventoCompleto[], aba: Aba): Grupo[] {
 export function Agenda() {
   const [aba, setAba] = useState<Aba>('proximos');
   const [agenda, setAgenda] = useState<AgendaCompleta | null>(null);
+  const [ingressos, setIngressos] = useState<IngressoDTO[] | null>(null);
   const [erro, setErro] = useState<string | null>(null);
 
   // Busca de novo a cada visita: confirmar ou cancelar presença no detalhe muda a lista.
@@ -51,26 +55,58 @@ export function Agenda() {
       .catch((e) => {
         if (ativo) setErro(e instanceof ErroApi ? e.message : 'Não foi possível carregar sua agenda.');
       });
+    listarMeusIngressos()
+      .then((resultado) => {
+        if (ativo) setIngressos(resultado);
+      })
+      .catch((e) => {
+        if (ativo) setErro(e instanceof ErroApi ? e.message : 'Não foi possível carregar seus ingressos.');
+      });
     return () => {
       ativo = false;
     };
   }, []);
 
-  const lista = agenda?.[aba] ?? [];
-  const grupos = agrupar(lista, aba);
+  const lista = aba === 'ingressos' ? [] : (agenda?.[aba] ?? []);
+  const grupos = aba === 'ingressos' ? [] : agrupar(lista, aba);
 
   return (
     <main className={styles.tela}>
       <header className={styles.cabecalho}>
         <h1 className={styles.titulo}>Minha agenda</h1>
-        <p className={styles.subtitulo}>Eventos em que você confirmou presença</p>
+        <p className={styles.subtitulo}>
+          {aba === 'ingressos' ? 'Ingressos que você comprou' : 'Eventos em que você confirmou presença'}
+        </p>
       </header>
 
       <Segmentos rotulo="Mostrar" opcoes={ABAS} selecionado={aba} onMudar={(valor) => valor && setAba(valor)} />
 
       {erro && <Aviso tipo="erro">{erro}</Aviso>}
 
-      {!agenda && !erro && (
+      {aba === 'ingressos' && ingressos && ingressos.length === 0 && (
+        <div className={styles.vazio}>
+          <span className={styles.vazioIcone}>
+            <Icone nome="ingresso" tamanho={22} />
+          </span>
+          <p className={styles.vazioTitulo}>Nenhum ingresso ainda</p>
+          <p className={styles.vazioTexto}>Quando um pagamento for aprovado, o código aparece aqui.</p>
+        </div>
+      )}
+
+      {aba === 'ingressos' && ingressos && ingressos.length > 0 && (
+        <ul className={styles.lista}>
+          {ingressos.map((ingresso) => (
+            <li key={ingresso.id}>
+              <Link to={`/eventos/${ingresso.evento_id}`} className={styles.ingresso}>
+                <span className={styles.ingressoTitulo}>{ingresso.evento_titulo}</span>
+                <span className={styles.ingressoCodigo}>{ingresso.codigo}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {aba !== 'ingressos' && !agenda && !erro && (
         <ul className={styles.lista} aria-label="Carregando agenda">
           {[1, 2, 3].map((n) => (
             <li key={n} className={styles.esqueleto} aria-hidden="true" />
@@ -78,7 +114,7 @@ export function Agenda() {
         </ul>
       )}
 
-      {agenda && lista.length === 0 && (
+      {aba !== 'ingressos' && agenda && lista.length === 0 && (
         <div className={styles.vazio}>
           <span className={styles.vazioIcone}>
             <Icone nome="calendario" tamanho={22} />
@@ -100,7 +136,7 @@ export function Agenda() {
         </div>
       )}
 
-      {grupos.map((grupo) => {
+      {aba !== 'ingressos' && grupos.map((grupo) => {
         const idTitulo = `grupo-${aba}-${grupo.titulo.toLowerCase().replace(/\s+/g, '-')}`;
         return (
           <section key={grupo.titulo} className={styles.grupo} aria-labelledby={idTitulo}>
