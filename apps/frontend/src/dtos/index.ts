@@ -55,6 +55,10 @@ export interface LocalDTO {
   nome: string;
   endereco: string;
   capacidade: number;
+  /** CEP (o banco já tem a coluna). */
+  cep?: string | null;
+  /** Bairro (o banco já tem a coluna). */
+  bairro?: string | null;
   /** PENDENTE: coordenadas para o mapa (issue #25). */
   latitude?: number;
   /** PENDENTE: coordenadas para o mapa (issue #25). */
@@ -207,6 +211,25 @@ export interface FiltroEventosDTO {
   /** "hoje", "fim-de-semana" ou "este-mes", como nos chips da tela Início. */
   periodo?: 'hoje' | 'fim-de-semana' | 'este-mes';
   categoria_id?: number;
+}
+
+/**
+ * PENDENTE (rotas de admin): criar e editar um local. Rotas sugeridas, só para ADMIN:
+ * POST /api/locais, PUT /api/locais/:id e DELETE /api/locais/:id.
+ */
+export interface LocalRequestDTO {
+  nome: string;
+  endereco: string;
+  bairro?: string;
+  cep?: string;
+}
+
+/**
+ * PENDENTE (rotas de admin): criar e editar uma categoria. Rotas sugeridas, só para ADMIN:
+ * POST /api/categorias, PUT /api/categorias/:id e DELETE /api/categorias/:id.
+ */
+export interface CategoriaRequestDTO {
+  nome: string;
 }
 
 /** PUT /api/eventos/:id — os mesmos campos do criar; só o criador ou um ADMIN pode alterar. */

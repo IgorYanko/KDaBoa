@@ -6,6 +6,7 @@ import { LimiteErro } from './components/LimiteErro';
 import { RotaPrivada, RotaPublica } from './components/RotaPrivada';
 import { TelaEmConstrucao } from './components/TelaEmConstrucao';
 import { AuthProvider } from './contexts/AuthContext';
+import { Admin } from './pages/Admin/Admin';
 import { Agenda } from './pages/Agenda/Agenda';
 import { Cadastro } from './pages/Cadastro/Cadastro';
 import { Chat } from './pages/Chat/Chat';
@@ -47,6 +48,7 @@ export function App() {
               <Route path="/inicio" element={<Inicio />} />
               <Route path="/agenda" element={<Agenda />} />
               <Route path="/perfil" element={<Perfil />} />
+              <Route path="/admin" element={<Admin />} />
             </Route>
             <Route element={<LayoutApp navegacao="topo" />}>
               <Route path="/eventos/:id" element={<DetalheEvento />} />

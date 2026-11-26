@@ -19,7 +19,7 @@ export function BarraTopo() {
         </Link>
 
         <nav className={styles.navegacao} aria-label="Navegação principal">
-          {itensNavegacao.map((item) => (
+          {itensNavegacao(usuario).map((item) => (
             <NavLink
               key={item.para}
               to={item.para}
