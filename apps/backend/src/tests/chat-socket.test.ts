@@ -10,8 +10,10 @@ const estadoMock = {
   presencas: [
     { usuarioId: 'user-confirmado-1', eventoId: 'evento-1' },
     { usuarioId: 'user-confirmado-2', eventoId: 'evento-1' },
+    { usuarioId: 'user-confirmado-3', eventoId: 'evento-1' },
     { usuarioId: 'user-outro-evento', eventoId: 'evento-2' },
   ],
+  bloqueios: [] as Array<{ bloqueadorId: string; bloqueadoId: string }>,
   mensagens: [
     {
       id: BigInt(1),
@@ -35,9 +37,22 @@ vi.mock('../prisma', () => ({
         return Promise.resolve(achou || null);
       }),
     },
+    bloqueio: {
+      findMany: vi.fn().mockImplementation(({ where }) => {
+        const lista = estadoMock.bloqueios.filter((b) => {
+          if (where?.bloqueadorId && b.bloqueadorId !== where.bloqueadorId) return false;
+          if (where?.bloqueadoId && b.bloqueadoId !== where.bloqueadoId) return false;
+          return true;
+        });
+        return Promise.resolve(lista);
+      }),
+    },
     mensagem: {
       findMany: vi.fn().mockImplementation(({ where }) => {
-        const lista = estadoMock.mensagens.filter((m) => m.eventoId === where?.eventoId);
+        const ignorados: string[] = where?.usuarioId?.notIn ?? [];
+        const lista = estadoMock.mensagens.filter(
+          (m) => m.eventoId === where?.eventoId && !ignorados.includes(m.usuarioId),
+        );
         return Promise.resolve(lista);
       }),
       create: vi.fn().mockImplementation(({ data }) => {
@@ -60,7 +75,7 @@ vi.mock('../prisma', () => ({
   },
 }));
 
-describe('Chat por evento com Socket.IO (Card 30)', () => {
+describe('Chat por evento com Socket.IO (Cards 30 e 32)', () => {
   let httpServer: http.Server;
   let baseUrl: string;
   const clientesAtivos: ClientSocket[] = [];
@@ -210,5 +225,68 @@ describe('Chat por evento com Socket.IO (Card 30)', () => {
       });
     });
     expect(erroSemPresenca.erro).toContain('presença confirmada');
+  });
+
+  it('5. Oculta histórico e novas mensagens do autor bloqueado apenas para quem bloqueou', async () => {
+    estadoMock.bloqueios.push({
+      bloqueadorId: 'user-confirmado-2',
+      bloqueadoId: 'user-confirmado-1',
+    });
+
+    const autor = conectarCliente();
+    const quemBloqueou = conectarCliente();
+    const outroConfirmado = conectarCliente();
+
+    const [_, historicoQuemBloqueou, historicoOutro] = await Promise.all([
+      new Promise<Array<{ usuario_id: string }>>((resolve) => {
+        autor.once('historico_mensagens', resolve);
+        autor.emit('entrar_sala', {
+          eventoId: 'evento-1',
+          usuarioId: 'user-confirmado-1',
+        });
+      }),
+      new Promise<Array<{ usuario_id: string }>>((resolve) => {
+        quemBloqueou.once('historico_mensagens', resolve);
+        quemBloqueou.emit('entrar_sala', {
+          eventoId: 'evento-1',
+          usuarioId: 'user-confirmado-2',
+        });
+      }),
+      new Promise<Array<{ usuario_id: string }>>((resolve) => {
+        outroConfirmado.once('historico_mensagens', resolve);
+        outroConfirmado.emit('entrar_sala', {
+          eventoId: 'evento-1',
+          usuarioId: 'user-confirmado-3',
+        });
+      }),
+    ]);
+
+    // Histórico oculto para quem bloqueou e visível para o outro confirmado
+    expect(historicoQuemBloqueou.some((m) => m.usuario_id === 'user-confirmado-1')).toBe(false);
+    expect(historicoOutro.some((m) => m.usuario_id === 'user-confirmado-1')).toBe(true);
+
+    let vazouParaQuemBloqueou = false;
+    quemBloqueou.on('nova_mensagem', (msg: { usuario_id: string }) => {
+      if (msg.usuario_id === 'user-confirmado-1') {
+        vazouParaQuemBloqueou = true;
+      }
+    });
+
+    const promessaOutroRecebe = new Promise<{ texto: string; usuario_id: string }>((resolve) => {
+      outroConfirmado.once('nova_mensagem', resolve);
+    });
+
+    autor.emit('enviar_mensagem', {
+      eventoId: 'evento-1',
+      usuarioId: 'user-confirmado-1',
+      texto: 'Mensagem que não deve chegar para quem me bloqueou',
+    });
+
+    const recebidaPeloOutro = await promessaOutroRecebe;
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(recebidaPeloOutro.texto).toBe('Mensagem que não deve chegar para quem me bloqueou');
+    expect(recebidaPeloOutro.usuario_id).toBe('user-confirmado-1');
+    expect(vazouParaQuemBloqueou).toBe(false);
   });
 });
