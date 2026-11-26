@@ -32,6 +32,7 @@ const desenhos = {
     </>
   ),
   mais: <path d="M12 5v14M5 12h14" />,
+  editar: <path d="M4 20h4L18.6 9.4a2.8 2.8 0 0 0-4-4L4 16zM13.5 6.5l4 4" />,
   compartilhar: (
     <>
       <circle cx="18" cy="5.5" r="2.5" />
