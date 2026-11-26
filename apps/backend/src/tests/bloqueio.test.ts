@@ -73,6 +73,38 @@ describe('API de Bloqueio de Usuários (Card 32)', () => {
     });
   });
 
+  it('POST /api/bloqueios aceita o ID do usuário bloqueado pelo body (201)', async () => {
+    prismaMock.presenca.findUnique.mockResolvedValue({
+      usuarioId: USUARIO_LOGADO_ID,
+      eventoId: EVENTO_ID,
+    });
+    prismaMock.usuario.findUnique.mockResolvedValue({ id: OUTRO_USUARIO_ID });
+    prismaMock.bloqueio.upsert.mockResolvedValue({
+      bloqueadorId: USUARIO_LOGADO_ID,
+      bloqueadoId: OUTRO_USUARIO_ID,
+    });
+
+    const res = await request(app)
+      .post('/api/bloqueios')
+      .set('Authorization', authHeader())
+      .send({ bloqueadoId: OUTRO_USUARIO_ID, eventoId: EVENTO_ID });
+
+    expect(res.status).toBe(201);
+    expect(prismaMock.bloqueio.upsert).toHaveBeenCalledWith({
+      where: {
+        bloqueadorId_bloqueadoId: {
+          bloqueadorId: USUARIO_LOGADO_ID,
+          bloqueadoId: OUTRO_USUARIO_ID,
+        },
+      },
+      update: {},
+      create: {
+        bloqueadorId: USUARIO_LOGADO_ID,
+        bloqueadoId: OUTRO_USUARIO_ID,
+      },
+    });
+  });
+
   it('POST /api/bloqueios/:usuarioId recusa bloqueio vindo do chat se não tiver presença no evento (403)', async () => {
     prismaMock.presenca.findUnique.mockResolvedValue(null);
 
