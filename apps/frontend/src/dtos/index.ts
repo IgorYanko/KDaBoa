@@ -253,27 +253,37 @@ export interface ContadoresPerfilDTO {
 // Chat
 // ---------------------------------------------------------------------------
 
-/** PENDENTE (issue #33): mensagem do chat de um evento. */
+/**
+ * Mensagem do chat de um evento (issue #33), como o servidor de socket manda
+ * em `historico_mensagens` e `nova_mensagem`. O id vem do banco como número, convertido em texto.
+ */
 export interface MensagemChatDTO {
-  id: Uuid;
+  id: string;
   evento_id: Uuid;
   autor: UsuarioResumoDTO;
   texto: string;
   criado_em: DataIso;
 }
 
-/** PENDENTE (issue #33): corpo para enviar uma mensagem. */
+/** Corpo do evento `enviar_mensagem` do socket (vai junto com o `evento_id`). */
 export interface EnviarMensagemRequestDTO {
   texto: string;
 }
 
-/** PENDENTE (issue #35): bloquear um usuário. */
+/**
+ * PENDENTE (issue #35): bloquear um usuário a partir do chat (issue #34).
+ * Rota sugerida: POST /api/bloqueios. O histórico e as mensagens novas devem ocultar o bloqueado só para quem bloqueou.
+ */
 export interface BloquearUsuarioRequestDTO {
   usuario_id: Uuid;
 }
 
-/** PENDENTE (issue #37): denunciar uma mensagem. */
+/**
+ * PENDENTE (issue #37): denunciar uma mensagem do chat (issue #36).
+ * Rota sugerida: POST /api/denuncias. O banco guarda uma denúncia por pessoa e mensagem; motivo com até 255 caracteres.
+ */
 export interface DenunciarMensagemRequestDTO {
-  mensagem_id: Uuid;
+  /** id da mensagem (vem do banco como número, convertido em texto). */
+  mensagem_id: string;
   motivo: string;
 }

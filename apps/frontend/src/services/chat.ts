@@ -1,21 +1,19 @@
+import { io } from 'socket.io-client';
 import { ErroApi } from '../api/client';
 import { lerSessao } from '../api/sessao';
-import { USAR_MOCK } from '../config';
+import { API_URL, USAR_MOCK } from '../config';
 import type { MensagemChatDTO } from '../dtos';
 import { lerMensagens, pessoasDoChatMock, respostasMock, salvarMensagem } from '../mocks/mensagens';
 
 /**
- * Chat de um evento (issues #32, #33 e #34), em tempo real.
+ * Chat de um evento (issues #32 e #33), em tempo real.
  *
- * Contrato do servidor (socket.io, branch `chat-websocket` do backend):
+ * Contrato do servidor (socket.io, apps/backend/src/socket.ts):
  *   - conectar com `auth: { token }` (o mesmo token da sessão);
  *   - emitir `entrar_sala` { evento_id }  → recebe `historico_mensagens` MensagemChatDTO[];
  *   - emitir `enviar_mensagem` { evento_id, texto } → todos na sala recebem `nova_mensagem` MensagemChatDTO;
  *   - erros chegam em `erro_sala` e `erro_mensagem` como { erro }.
  *   Só entra quem confirmou presença no evento.
- *
- * O modo API depende do pacote `socket.io-client`, que entra junto com o servidor de chat.
- * Até lá, ele avisa que o chat em tempo real ainda não está ligado.
  */
 
 export const TEXTO_MAXIMO = 1000;
@@ -35,18 +33,40 @@ export interface ConexaoChat {
 
 /** Entra na sala do chat do evento. */
 export function conectarChat(eventoId: string, ouvintes: OuvintesChat): ConexaoChat {
-  if (!USAR_MOCK) return conectarApi(ouvintes);
+  if (!USAR_MOCK) return conectarApi(eventoId, ouvintes);
   return conectarMock(eventoId, ouvintes);
 }
 
-function conectarApi(ouvintes: OuvintesChat): ConexaoChat {
-  const aviso = 'O chat em tempo real ainda não está ligado nesta versão. Ele chega junto com o servidor de chat (issue #34).';
-  const espera = setTimeout(() => ouvintes.aoErrar(aviso), 0);
+/** Texto digitado, sem espaços nas pontas; lança ErroApi se estiver vazio ou grande demais. */
+function validarTexto(texto: string): string {
+  const limpo = texto.trim();
+  if (!limpo) throw new ErroApi('Escreva uma mensagem.', 400);
+  if (limpo.length > TEXTO_MAXIMO) throw new ErroApi(`A mensagem pode ter até ${TEXTO_MAXIMO} caracteres.`, 400);
+  return limpo;
+}
+
+/** Conexão de verdade com o servidor de chat (socket.io). */
+function conectarApi(eventoId: string, ouvintes: OuvintesChat): ConexaoChat {
+  const socket = io(API_URL, { auth: { token: lerSessao()?.token } });
+
+  // A cada conexão (inclusive depois de cair e voltar) entra de novo na sala e recebe o histórico.
+  socket.on('connect', () => socket.emit('entrar_sala', { evento_id: eventoId }));
+  socket.on('connect_error', () => ouvintes.aoErrar('Sem conexão com o chat. Tentando de novo…'));
+  socket.on('historico_mensagens', (mensagens: MensagemChatDTO[]) => ouvintes.aoReceberHistorico(mensagens));
+  socket.on('nova_mensagem', (mensagem: MensagemChatDTO) => ouvintes.aoReceberMensagem(mensagem));
+  socket.on('erro_sala', ({ erro }: { erro: string }) => ouvintes.aoErrar(erro));
+  socket.on('erro_mensagem', ({ erro }: { erro: string }) => ouvintes.aoErrar(erro));
+
   return {
-    enviar: async () => {
-      throw new ErroApi(aviso, 503);
+    enviar: async (texto: string) => {
+      const limpo = validarTexto(texto);
+      if (!socket.connected) throw new ErroApi('Sem conexão com o chat. Tente de novo em instantes.', 0);
+      socket.emit('enviar_mensagem', { evento_id: eventoId, texto: limpo });
     },
-    sair: () => clearTimeout(espera),
+    sair: () => {
+      socket.removeAllListeners();
+      socket.disconnect();
+    },
   };
 }
 
@@ -58,9 +78,7 @@ function conectarMock(eventoId: string, ouvintes: OuvintesChat): ConexaoChat {
 
   return {
     enviar: async (texto: string) => {
-      const limpo = texto.trim();
-      if (!limpo) throw new ErroApi('Escreva uma mensagem.', 400);
-      if (limpo.length > TEXTO_MAXIMO) throw new ErroApi(`A mensagem pode ter até ${TEXTO_MAXIMO} caracteres.`, 400);
+      const limpo = validarTexto(texto);
       const autor = lerSessao()?.usuario;
       if (!autor) throw new ErroApi('Entre na sua conta para conversar.', 401);
 
