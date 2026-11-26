@@ -208,6 +208,20 @@
   background: var(--cor-secundaria-tinta);
 }
 
+/* ---------- Paginação ---------- */
+.paginacao {
+  padding-top: var(--espaco-2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espaco-3);
+}
+
+.paginacaoTexto {
+  font-size: var(--texto-sm);
+  color: var(--cor-texto-suave);
+}
+
 /* ---------- Tablet ---------- */
 @media (min-width: 768px) {
   .tela {

@@ -1,5 +1,5 @@
 import { type FormEvent, useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router';
+import { useLocation, useNavigate, useParams } from 'react-router';
 import { ErroApi } from '../../api/client';
 import { AreaTexto } from '../../components/AreaTexto';
 import { Aviso } from '../../components/Aviso';
@@ -15,8 +15,9 @@ import { Interruptor } from '../../components/Interruptor';
 import { useAuth } from '../../contexts/useAuth';
 import type { CategoriaDTO, LocalDTO } from '../../dtos';
 import { listarCategorias } from '../../services/categorias';
-import { criarEvento, type EventoCompleto } from '../../services/eventos';
+import { atualizarEvento, buscarEvento, criarEvento, type EventoCompleto } from '../../services/eventos';
 import { listarLocais } from '../../services/locais';
+import { podeGerenciarEvento } from '../../utils/permissoes';
 import styles from './Divulgar.module.css';
 import {
   DESCRICAO_MAXIMA,
@@ -24,6 +25,7 @@ import {
   type ErrosEvento,
   FORMULARIO_INICIAL,
   type FormularioEvento,
+  formularioDoEvento,
   hojeIso,
   lerPreco,
   paraRequisicao,
@@ -40,12 +42,20 @@ const CLASSIFICACOES = [
   { valor: '18', rotulo: '18 anos' },
 ];
 
-/** Tela · Divulgar evento (issues #43 a #46). */
+/**
+ * Tela · Divulgar evento (issues #43 a #46). Em /eventos/:id/editar, a mesma tela edita
+ * um evento existente (só para quem criou ou um ADMIN).
+ */
 export function Divulgar() {
   const navegar = useNavigate();
   const local = useLocation();
+  const { id } = useParams();
   const { usuario } = useAuth();
+  const editando = Boolean(id);
   const organizador = usuario?.perfil === 'ORGANIZADOR';
+  /** Edição: o evento ainda está carregando, ou a pessoa não pode editar. */
+  const [prontoParaEditar, setProntoParaEditar] = useState(!editando);
+  const [capaAtual, setCapaAtual] = useState<string | null>(null);
 
   const [formulario, setFormulario] = useState<FormularioEvento>(FORMULARIO_INICIAL);
   const [capa, setCapa] = useState<File | null>(null);
@@ -64,6 +74,29 @@ export function Divulgar() {
       })
       .catch(() => setErroApi('Não foi possível carregar as categorias e os locais.'));
   }, []);
+
+  // Edição: preenche o formulário com o evento (se a pessoa puder editar).
+  useEffect(() => {
+    if (!id) return;
+    let ativo = true;
+    buscarEvento(id)
+      .then(({ evento }) => {
+        if (!ativo) return;
+        if (!podeGerenciarEvento(evento, usuario)) {
+          setErroApi('Só quem criou o evento ou um administrador pode editar.');
+          return;
+        }
+        setFormulario(formularioDoEvento(evento));
+        setCapaAtual(evento.capa_url ?? null);
+        setProntoParaEditar(true);
+      })
+      .catch((e) => {
+        if (ativo) setErroApi(e instanceof ErroApi ? e.message : 'Não foi possível carregar o evento.');
+      });
+    return () => {
+      ativo = false;
+    };
+  }, [id, usuario]);
 
   // Imagem da prévia do card (desktop).
   useEffect(() => {
@@ -89,7 +122,7 @@ export function Divulgar() {
   async function publicar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
     setErroApi(null);
-    const encontrados = validarEvento(formulario, new Date(), organizador);
+    const encontrados = validarEvento(formulario, new Date(), organizador && !editando);
     setErros(encontrados);
     if (Object.keys(encontrados).length > 0) {
       // Leva até o primeiro campo com problema.
@@ -99,14 +132,20 @@ export function Divulgar() {
     setEnviando(true);
     try {
       const corpo = paraRequisicao(formulario);
-      if (!organizador) {
+      // Venda no app: só conta CNPJ, e só ao publicar (a edição não muda a venda).
+      if (!organizador || id) {
         corpo.venda_no_app = undefined;
         corpo.quantidade_ingressos = undefined;
+      }
+      if (id) {
+        await atualizarEvento(id, corpo, capa);
+        navegar(`/eventos/${id}`, { replace: true, state: { editado: true } });
+        return;
       }
       const novo = await criarEvento(corpo, capa);
       navegar(`/eventos/${novo.id}`, { replace: true, state: { publicado: true } });
     } catch (e) {
-      setErroApi(e instanceof ErroApi ? e.message : 'Não foi possível publicar. Tente de novo.');
+      setErroApi(e instanceof ErroApi ? e.message : 'Não foi possível salvar. Tente de novo.');
       setEnviando(false);
     }
   }
@@ -124,7 +163,7 @@ export function Divulgar() {
       categoria_id: formulario.categoriaId ?? 0,
       local_id: Number(formulario.localId),
       criador_id: '',
-      capa_url: previaCapa,
+      capa_url: previaCapa ?? capaAtual,
       total_confirmados: 0,
       participantes_amostra: [],
     },
@@ -137,9 +176,13 @@ export function Divulgar() {
       <header className={styles.cabecalho}>
         <BotaoIcone icone="fechar" rotulo="Fechar" onClick={fechar} />
         <div className={styles.cabecalhoTextos}>
-          <h1 className={styles.titulo}>Divulgar evento</h1>
+          <h1 className={styles.titulo}>{editando ? 'Editar evento' : 'Divulgar evento'}</h1>
           <p className={styles.subtitulo}>
-            {organizador ? 'Evento verificado da sua empresa.' : 'Conte para a galera o que vai rolar.'}
+            {editando
+              ? 'Ajuste o que mudou; quem vai vê na hora.'
+              : organizador
+                ? 'Evento verificado da sua empresa.'
+                : 'Conte para a galera o que vai rolar.'}
           </p>
         </div>
       </header>
@@ -255,7 +298,7 @@ export function Divulgar() {
                 onChange={(e) => alterar('classificacao', e.target.value)}
               />
             </div>
-            {organizador && (
+            {organizador && !editando && (
               <>
                 <Interruptor
                   titulo="Vender ingresso no app"
@@ -278,8 +321,14 @@ export function Divulgar() {
             )}
           </section>
 
-          <Botao type="submit" carregando={enviando} icone="brilho" className={styles.publicar}>
-            Publicar evento
+          <Botao
+            type="submit"
+            carregando={enviando}
+            disabled={!prontoParaEditar}
+            icone={editando ? 'check' : 'brilho'}
+            className={styles.publicar}
+          >
+            {editando ? 'Salvar alterações' : 'Publicar evento'}
           </Botao>
         </form>
 
