@@ -205,7 +205,7 @@ model Pedido {
   criadoEm            DateTime     @default(now()) @map("criado_em") @db.Timestamp(6)
 
   usuario   Usuario    @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  evento    Evento     @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  evento    Evento     @relation(fields: [eventoId], references: [id], onDelete: Restrict)
   ingressos Ingresso[]
 
   @@index([usuarioId], map: "idx_pedidos_usuario")

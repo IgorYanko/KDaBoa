@@ -8,6 +8,7 @@ import { Segmentos } from '../../components/Segmentos';
 import type { PagamentoPedidoDTO } from '../../dtos';
 import { buscarEvento, type EventoCompleto } from '../../services/eventos';
 import {
+  buscarPedido,
   carregarSdkMercadoPago,
   chavePublicaMercadoPago,
   comprarIngresso,
@@ -153,6 +154,26 @@ export function Checkout() {
     };
   }, [metodo, disponivel, item, pedido, total, concluir]);
 
+  useEffect(() => {
+    if (pedido?.status !== 'pendente') return;
+    let ativo = true;
+    const timer = window.setInterval(() => {
+      buscarPedido(pedido.id)
+        .then((atual) => {
+          if (!ativo) return;
+          setPedido(atual);
+          if (atual.status === 'recusado' || atual.status === 'cancelado') {
+            setErro('O pagamento não foi aprovado.');
+          }
+        })
+        .catch(() => undefined);
+    }, 4000);
+    return () => {
+      ativo = false;
+      window.clearInterval(timer);
+    };
+  }, [pedido]);
+
   function pagarPix(evento: FormEvent) {
     evento.preventDefault();
     void concluir('pix');
@@ -197,9 +218,9 @@ export function Checkout() {
         <Aviso tipo="sucesso">{`Pagamento aprovado. Seus códigos: ${pedido.ingressos.map((ingresso) => ingresso.codigo).join(', ')}.`}</Aviso>
       )}
 
-      {pedido?.status === 'pendente' && pedido.qr_code && (
+      {pedido?.status === 'pendente' && (
         <section className={styles.pix}>
-          <p>Pague o PIX para liberar o ingresso. A confirmação chega pelo webhook.</p>
+          <p>Pague o PIX para liberar o ingresso. Esta tela atualiza sozinha quando o pagamento for confirmado.</p>
           {pedido.qr_code_base64 && (
             <img
               className={styles.qr}
@@ -207,13 +228,13 @@ export function Checkout() {
               src={`data:image/jpeg;base64,${pedido.qr_code_base64}`}
             />
           )}
-          <p className={styles.copia}>{pedido.qr_code}</p>
+          {pedido.qr_code && <p className={styles.copia}>{pedido.qr_code}</p>}
         </section>
       )}
 
       {pedido?.status === 'pago' ? (
         <Link to="/agenda">Ver meus ingressos</Link>
-      ) : (
+      ) : pedido?.status === 'pendente' ? null : (
         <>
           <Campo
             rotulo="Quantidade"

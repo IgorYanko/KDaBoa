@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import type { RequisicaoAutenticada } from '../middlewares/authMiddleware';
 import { prisma } from '../prisma';
-import { clienteMercadoPago, pagamentoConfigurado } from '../services/mercadoPago';
+import { clienteMercadoPago, pagamentoConfigurado, type PagamentoMp } from '../services/mercadoPago';
 import {
   aplicarPagamento,
   carregarPedido,
@@ -163,8 +163,9 @@ export const pagamentoController = {
         },
       });
 
+      let pagamento: PagamentoMp;
       try {
-        const pagamento = await cobrarNoMercadoPago({
+        pagamento = await cobrarNoMercadoPago({
           pedidoId: pedido.id,
           tituloEvento: evento.titulo,
           valorTotal,
@@ -176,16 +177,28 @@ export const pagamentoController = {
           issuerId: req.body?.issuer_id ? Number(req.body.issuer_id) : undefined,
           identificationType: req.body?.identification_type,
           identificationNumber: req.body?.identification_number,
+          expiraEm: pedido.expiraEm,
         });
-        await aplicarPagamento(pedido, pagamento);
       } catch (_erro) {
         await cancelarReserva(pedido.id, eventoId, quantidade);
         res.status(502).json({ erro: 'Não foi possível cobrar no Mercado Pago.' });
         return;
       }
 
+      try {
+        await aplicarPagamento(pedido, pagamento);
+      } catch (_erro) {
+        // A cobrança já existe. A reserva continua pendente para o webhook reconciliar.
+      }
+
       const completo = await carregarPedido(pedido.id);
-      res.status(201).json(formatarPedido(completo ?? pedido));
+      const resposta = formatarPedido(completo ?? pedido);
+      const qr = pagamento.point_of_interaction?.transaction_data;
+      if (!resposta.qr_code && qr?.qr_code) {
+        resposta.qr_code = qr.qr_code;
+        resposta.qr_code_base64 = qr.qr_code_base64 ?? null;
+      }
+      res.status(201).json(resposta);
     } catch (_error) {
       res.status(500).json({ erro: 'Erro ao iniciar o pagamento' });
     }
@@ -210,7 +223,6 @@ export const pagamentoController = {
     }
 
     try {
-      await expirarPedidosPendentes();
       const pagamento = await clienteMercadoPago().consultarPagamento(id);
       const pedido = await prisma.pedido.findFirst({
         where: {
@@ -221,15 +233,40 @@ export const pagamentoController = {
         },
       });
 
-      if (!pedido) {
-        res.status(200).json({ ok: true });
-        return;
+      if (pedido) {
+        await aplicarPagamento(pedido, pagamento);
       }
 
-      await aplicarPagamento(pedido, pagamento);
+      await expirarPedidosPendentes();
       res.status(200).json({ ok: true });
     } catch (_error) {
       res.status(500).json({ erro: 'Erro ao processar o webhook' });
+    }
+  },
+
+  buscar: async (req: Request, res: Response): Promise<void> => {
+    const usuarioId = (req as RequisicaoAutenticada).usuario?.id;
+    if (!usuarioId) {
+      res.status(401).json({ erro: 'Usuário não autenticado' });
+      return;
+    }
+
+    const id = String(req.params.id);
+    if (!uuidRegex.test(id)) {
+      res.status(404).json({ erro: 'Pedido não encontrado' });
+      return;
+    }
+
+    try {
+      await expirarPedidosPendentes();
+      const pedido = await carregarPedido(id);
+      if (!pedido || pedido.usuarioId !== usuarioId) {
+        res.status(404).json({ erro: 'Pedido não encontrado' });
+        return;
+      }
+      res.json(formatarPedido(pedido));
+    } catch (_error) {
+      res.status(500).json({ erro: 'Erro ao consultar o pedido' });
     }
   },
 

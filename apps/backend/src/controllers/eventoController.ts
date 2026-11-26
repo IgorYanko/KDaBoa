@@ -381,6 +381,14 @@ export const eventoController = {
         return;
       }
 
+      const pedidos = await prisma.pedido.count({ where: { eventoId: id } });
+      if (pedidos > 0) {
+        res.status(409).json({
+          erro: 'Este evento já tem pedidos de ingresso e não pode ser excluído.',
+        });
+        return;
+      }
+
       await prisma.evento.delete({
         where: { id },
       });

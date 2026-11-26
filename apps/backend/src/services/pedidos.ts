@@ -26,7 +26,12 @@ export function reais(valor: unknown): number {
 function mapearStatus(statusMp: string): StatusPedido {
   if (statusMp === 'approved') return 'pago';
   if (statusMp === 'rejected') return 'recusado';
-  if (statusMp === 'cancelled' || statusMp === 'refunded' || statusMp === 'charged_back') {
+  if (
+    statusMp === 'cancelled' ||
+    statusMp === 'expired' ||
+    statusMp === 'refunded' ||
+    statusMp === 'charged_back'
+  ) {
     return 'cancelado';
   }
   return 'pendente';
@@ -147,6 +152,8 @@ interface CobrarEntrada {
   issuerId?: number;
   identificationType?: string;
   identificationNumber?: string;
+  /** Validade do pedido. No PIX vira `date_of_expiration`, para o Mercado Pago não aceitar pagamento depois. */
+  expiraEm?: Date;
 }
 
 export async function cobrarNoMercadoPago(entrada: CobrarEntrada): Promise<PagamentoMp> {
@@ -176,6 +183,8 @@ export async function cobrarNoMercadoPago(entrada: CobrarEntrada): Promise<Pagam
     corpo.token = entrada.token;
     corpo.installments = entrada.installments || 1;
     if (entrada.issuerId) corpo.issuer_id = entrada.issuerId;
+  } else if (entrada.expiraEm) {
+    corpo.date_of_expiration = entrada.expiraEm.toISOString();
   }
 
   if (process.env.MERCADO_PAGO_NOTIFICATION_URL) {

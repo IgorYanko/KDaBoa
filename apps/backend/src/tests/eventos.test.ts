@@ -11,6 +11,9 @@ const prismaMock = vi.hoisted(() => ({
     update: vi.fn(),
     delete: vi.fn(),
   },
+  pedido: {
+    count: vi.fn(),
+  },
 }));
 
 vi.mock('../prisma', () => ({
@@ -84,6 +87,7 @@ describe('API de eventos e Listagem com filtros (#23)', () => {
       ...data,
     }));
     prismaMock.evento.delete.mockResolvedValue(eventoExistente);
+    prismaMock.pedido.count.mockResolvedValue(0);
   });
 
   it('GET /api/status responde que a API está rodando', async () => {
@@ -483,6 +487,17 @@ describe('API de eventos e Listagem com filtros (#23)', () => {
       .set('Authorization', authAdmin());
 
     expect(resposta.status).toBe(204);
+  });
+
+  it('DELETE /api/eventos/:id recusa exclusão quando já existe pedido de ingresso', async () => {
+    prismaMock.pedido.count.mockResolvedValueOnce(1);
+
+    const resposta = await request(app)
+      .delete(`/api/eventos/${eventoExistente.id}`)
+      .set('Authorization', authCriador());
+
+    expect(resposta.status).toBe(409);
+    expect(prismaMock.evento.delete).not.toHaveBeenCalled();
   });
 
   it('DELETE /api/eventos/:id devolve 404 quando o evento não existe ou a remoção falha', async () => {

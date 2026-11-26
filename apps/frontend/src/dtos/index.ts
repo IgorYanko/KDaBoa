@@ -258,7 +258,7 @@ export interface IngressoDTO {
   data_inicio: DataIso;
 }
 
-/** POST /api/eventos/:id/pagamentos */
+/** POST /api/eventos/:id/pagamentos e GET /api/pedidos/:id */
 export interface PagamentoPedidoDTO {
   id: Uuid;
   evento_id: Uuid;

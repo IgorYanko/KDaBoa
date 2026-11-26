@@ -41,6 +41,10 @@ export async function comprarIngresso(
   });
 }
 
+export async function buscarPedido(pedidoId: string): Promise<PagamentoPedidoDTO> {
+  return requisicao<PagamentoPedidoDTO>(`/api/pedidos/${encodeURIComponent(pedidoId)}`);
+}
+
 export async function listarMeusIngressos(): Promise<IngressoDTO[]> {
   if (USAR_MOCK) return [];
   return requisicao<IngressoDTO[]>('/api/ingressos');
