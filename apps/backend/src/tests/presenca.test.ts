@@ -61,6 +61,25 @@ describe('API de Presenças e Regras de Negócio', () => {
     expect(res.body.mensagem).toBe('Presença confirmada com sucesso');
   });
 
+  it('POST /api/presencas/:eventoId bloqueia confirmação quando o ingresso é vendido no app', async () => {
+    prismaMock.evento.findUnique.mockResolvedValue({
+      id: EVENTO_ID,
+      classificacaoEtaria: 0,
+      vendaNoApp: true,
+    });
+    prismaMock.usuario.findUnique.mockResolvedValue({
+      id: USUARIO_ID,
+      dataNascimento: new Date('2000-05-10'),
+    });
+
+    const res = await request(app)
+      .post(`/api/presencas/${EVENTO_ID}`)
+      .set('Authorization', authHeader());
+
+    expect(res.status).toBe(403);
+    expect(prismaMock.presenca.upsert).not.toHaveBeenCalled();
+  });
+
   it('POST /api/presencas/:eventoId bloqueia menor de idade (403)', async () => {
     const anoMenor = new Date().getFullYear() - 15;
     prismaMock.evento.findUnique.mockResolvedValue({

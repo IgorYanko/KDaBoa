@@ -4,7 +4,9 @@ import swaggerUi from 'swagger-ui-express';
 import authRoutes from './routes/authRoutes';
 import categoriaRoutes from './routes/categoriaRoutes';
 import eventoRoutes from './routes/eventoRoutes';
+import ingressoRoutes from './routes/ingressoRoutes';
 import localRoutes from './routes/localRoutes';
+import pagamentoRoutes from './routes/pagamentoRoutes';
 import presencaRoutes from './routes/presencaRoutes';
 import usuarioRoutes from './routes/usuarioRoutes';
 import { swaggerSpec } from './swagger';
@@ -24,6 +26,8 @@ app.use('/api/categorias', categoriaRoutes);
 app.use('/api/locais', localRoutes);
 app.use('/api/presencas', presencaRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/pagamentos', pagamentoRoutes);
+app.use('/api/ingressos', ingressoRoutes);
 
 app.get('/api/status', (_req, res) => {
   res.json({ status: 'API KdABoa rodando!', release: 3 });

@@ -35,7 +35,7 @@ const eventoExistente = {
   local: { id: 1, nome: 'Bar do Rock', endereco: 'Centro' },
 };
 
-function token(payload: { id?: string; email: string; perfil?: 'USUARIO' | 'ADMIN' }) {
+function token(payload: { id?: string; email: string; perfil?: 'USUARIO' | 'ORGANIZADOR' | 'ADMIN' }) {
   return jwt.sign(payload, 'segredo_de_teste');
 }
 
@@ -282,6 +282,75 @@ describe('API de eventos e Listagem com filtros (#23)', () => {
     expect(resposta.status).toBe(201);
     expect(resposta.body.criadorId).toBe('criador-snake');
     expect(resposta.body.dataFim).toBeNull();
+  });
+
+  it('POST /api/eventos recusa venda no app de usuário comum', async () => {
+    const resposta = await request(app)
+      .post('/api/eventos')
+      .set('Authorization', authHeader())
+      .send({
+        titulo: 'Festa',
+        data_inicio: '2026-12-01T20:00:00Z',
+        preco: 30,
+        venda_no_app: true,
+        verificado: true,
+        quantidade_ingressos: 10,
+      });
+
+    expect(resposta.status).toBe(403);
+    expect(prismaMock.evento.create).not.toHaveBeenCalled();
+  });
+
+  it('POST /api/eventos de organizador grava evento verificado com venda no app', async () => {
+    const resposta = await request(app)
+      .post('/api/eventos')
+      .set('Authorization', `Bearer ${token({ id: 'org-1', email: 'org@kdaboa.com', perfil: 'ORGANIZADOR' })}`)
+      .send({
+        titulo: 'Show da casa',
+        data_inicio: '2026-12-01T20:00:00Z',
+        preco: 40,
+        venda_no_app: true,
+        quantidade_ingressos: 10,
+        categoria_id: 1,
+        local_id: 1,
+      });
+
+    expect(resposta.status).toBe(201);
+    expect(resposta.body.verificado).toBe(true);
+    expect(resposta.body.vendaNoApp).toBe(true);
+    expect(resposta.body.quantidadeIngressos).toBe(10);
+    expect(resposta.body.criadorId).toBe('org-1');
+  });
+
+  it('POST /api/eventos recusa venda no app sem preço', async () => {
+    const resposta = await request(app)
+      .post('/api/eventos')
+      .set('Authorization', `Bearer ${token({ id: 'org-1', email: 'org@kdaboa.com', perfil: 'ORGANIZADOR' })}`)
+      .send({
+        titulo: 'Show grátis',
+        data_inicio: '2026-12-01T20:00:00Z',
+        preco: 0,
+        venda_no_app: true,
+        quantidade_ingressos: 10,
+      });
+
+    expect(resposta.status).toBe(400);
+    expect(prismaMock.evento.create).not.toHaveBeenCalled();
+  });
+
+  it('POST /api/eventos recusa venda no app sem quantidade', async () => {
+    const resposta = await request(app)
+      .post('/api/eventos')
+      .set('Authorization', `Bearer ${token({ id: 'org-1', email: 'org@kdaboa.com', perfil: 'ORGANIZADOR' })}`)
+      .send({
+        titulo: 'Show sem lote',
+        data_inicio: '2026-12-01T20:00:00Z',
+        preco: 25,
+        venda_no_app: true,
+      });
+
+    expect(resposta.status).toBe(400);
+    expect(prismaMock.evento.create).not.toHaveBeenCalled();
   });
 
   it('POST /api/eventos devolve 400 quando a gravação falha', async () => {

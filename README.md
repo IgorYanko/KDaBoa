@@ -45,6 +45,14 @@ Num banco vazio, o comando cria todas as tabelas. Rodar de novo num banco já mi
 
 Para alterar o schema, edite `apps/db/prisma/schema.prisma` e gere uma nova migration com `pnpm --filter kdaboa-backend db:dev -- --name descricao_da_mudanca`.
 
+## Pagamento de ingresso
+
+Conta com CNPJ (`perfil` `ORGANIZADOR`) cria evento verificado. Só esse evento pode ligar a venda de ingresso no app. O checkout é no próprio site (cartão tokenizado no navegador e PIX) e o valor cai na conta Mercado Pago da plataforma.
+
+No sandbox, preencha `MERCADO_PAGO_ACCESS_TOKEN` em `apps/backend/.env` e `VITE_MERCADO_PAGO_PUBLIC_KEY` no frontend. Enquanto um dos dois estiver vazio, a tela de checkout explica que o pagamento ainda não está ligado. Cartões e usuários de teste ficam no painel do Mercado Pago (credenciais de teste da aplicação). O e-mail de quem compra precisa ser o e-mail do usuário de teste, porque a cobrança usa o e-mail da conta no KdABoa.
+
+O webhook é `POST /api/pagamentos/webhook`. Em desenvolvimento ele só recebe aviso se `MERCADO_PAGO_NOTIFICATION_URL` for uma URL pública (por exemplo um túnel) apontando para essa rota. Cartão aprovado na hora já emite o ingresso sem esperar o webhook. O webhook repetido não gera outro ingresso.
+
 
 ## Equipe
 

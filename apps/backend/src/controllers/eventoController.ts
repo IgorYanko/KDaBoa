@@ -20,6 +20,9 @@ interface EventoBanco {
   categoriaId: number;
   localId: number;
   criadorId: string;
+  verificado?: boolean;
+  vendaNoApp?: boolean;
+  quantidadeIngressos?: number | null;
   categoria?: { id: number; nome: string; icone?: string | null } | null;
   local?: { id: number; nome: string; endereco?: string | null } | null;
   _count?: { presencas: number };
@@ -72,6 +75,10 @@ function formatarEventoParaResposta(ev: EventoBanco) {
     local_id: ev.localId,
     criador_id: ev.criadorId,
     confirmados: ev._count?.presencas ?? 0,
+    preco: Number(ev.preco ?? 0),
+    verificado: ev.verificado ?? false,
+    venda_no_app: ev.vendaNoApp ?? false,
+    quantidade_ingressos: ev.quantidadeIngressos ?? null,
   };
 }
 
@@ -212,10 +219,42 @@ export const eventoController = {
         localId,
         criador_id,
         criadorId,
+        venda_no_app,
+        vendaNoApp,
+        quantidade_ingressos,
+        quantidadeIngressos,
+        verificado,
       } = req.body;
 
       const reqAuth = req as RequisicaoAutenticada;
       const idCriador = reqAuth.usuario?.id || criadorId || criador_id;
+      const perfil = reqAuth.usuario?.perfil;
+      const querVenda = vendaNoApp === true || venda_no_app === true;
+      const querVerificado = verificado === true;
+      const precoNumero = Number(preco ?? 0);
+
+      if (perfil !== 'ORGANIZADOR' && (querVenda || querVerificado)) {
+        res.status(403).json({
+          erro: 'Só contas CNPJ podem criar eventos verificados ou vender ingresso no app.',
+        });
+        return;
+      }
+
+      let vendeNoApp = false;
+      let quantidade: number | null = null;
+      if (perfil === 'ORGANIZADOR' && querVenda) {
+        const informada = Number(quantidadeIngressos ?? quantidade_ingressos);
+        if (!(precoNumero > 0)) {
+          res.status(400).json({ erro: 'A venda no app exige um preço maior que zero.' });
+          return;
+        }
+        if (!Number.isInteger(informada) || informada < 1) {
+          res.status(400).json({ erro: 'Informe quantos ingressos estão à venda.' });
+          return;
+        }
+        vendeNoApp = true;
+        quantidade = informada;
+      }
 
       const novoEvento = await prisma.evento.create({
         data: {
@@ -231,6 +270,9 @@ export const eventoController = {
           categoriaId: Number(categoriaId || categoria_id),
           localId: Number(localId || local_id),
           criadorId: idCriador,
+          verificado: perfil === 'ORGANIZADOR',
+          vendaNoApp: vendeNoApp,
+          quantidadeIngressos: quantidade,
         },
       });
 
@@ -278,6 +320,11 @@ export const eventoController = {
         local_id,
         localId,
       } = req.body;
+
+      if (eventoExistente.vendaNoApp && preco !== undefined && !(Number(preco) > 0)) {
+        res.status(400).json({ erro: 'Evento com venda no app precisa de preço maior que zero.' });
+        return;
+      }
 
       const eventoAtualizado = await prisma.evento.update({
         where: { id },

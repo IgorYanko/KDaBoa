@@ -14,7 +14,7 @@
     "dev:frontend": "pnpm --filter kdaboa-frontend dev",
     "lint": "pnpm --filter \"./apps/*\" lint",
     "test": "pnpm --filter kdaboa-backend test",
-    "build": "pnpm --filter \"./apps/*\" build"
+    "build": "pnpm --filter \"./apps/*\" build",
+    "db:migrate": "pnpm --filter kdaboa-backend db:migrate"
   }
-
 }

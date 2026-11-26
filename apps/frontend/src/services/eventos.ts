@@ -160,6 +160,10 @@ export async function criarEvento(dados: CriarEventoRequestDTO, capa?: File | nu
     data_fim: null,
     criador_id: autor.id,
     organizador: autor,
+    verificado: autor.perfil === 'ORGANIZADOR',
+    venda_no_app: autor.perfil === 'ORGANIZADOR' && dados.venda_no_app === true,
+    quantidade_ingressos:
+      autor.perfil === 'ORGANIZADOR' && dados.venda_no_app ? (dados.quantidade_ingressos ?? null) : null,
     capa_url: capa ? await reduzirImagem(capa) : null,
     total_confirmados: 0,
     eu_vou: false,
