@@ -149,6 +149,36 @@ describe('API de Denúncias de Mensagem (Card 34)', () => {
     });
   });
 
+  it('aceita POST /api/denuncias recebendo os IDs pelo body (201)', async () => {
+    prismaMock.presenca.findUnique.mockResolvedValue({
+      usuarioId: DENUNCIANTE_ID,
+      eventoId: EVENTO_ID,
+    });
+    prismaMock.mensagem.findUnique.mockResolvedValue({
+      id: 10n,
+      eventoId: EVENTO_ID,
+      usuarioId: AUTOR_MENSAGEM_ID,
+      conteudo: 'Mensagem ofensiva',
+    });
+    prismaMock.denuncia.upsert.mockResolvedValue({
+      id: 'den-2',
+      mensagemId: 10n,
+      denuncianteId: DENUNCIANTE_ID,
+      motivo: 'Spam',
+      status: 'pendente',
+      criadoEm: new Date('2026-11-26T20:00:00Z'),
+    });
+
+    const res = await request(app)
+      .post('/api/denuncias')
+      .set('Authorization', authHeader())
+      .send({ eventoId: EVENTO_ID, mensagemId: '10', motivo: 'Spam' });
+
+    expect(res.status).toBe(201);
+    expect(res.body.denuncia.mensagemId).toBe('10');
+    expect(res.body.denuncia.autorMensagemId).toBe(AUTOR_MENSAGEM_ID);
+  });
+
   it('impede o usuário de denunciar a própria mensagem (400)', async () => {
     prismaMock.presenca.findUnique.mockResolvedValue({
       usuarioId: DENUNCIANTE_ID,

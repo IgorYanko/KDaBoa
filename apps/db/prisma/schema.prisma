@@ -105,7 +105,7 @@ model Evento {
   dataFim             DateTime? @map("data_fim") @db.Timestamp(6)
   preco               Decimal   @default(0) @db.Decimal(8, 2)
   classificacaoEtaria Int       @default(0) @map("classificacao_etaria") @db.SmallInt
-  imagemUrl           String?   @map("imagem_url") @db.VarChar(255)
+  imagemUrl           String?   @map("imagem_url") @db.Text
   latitude            Decimal?  @db.Decimal(9, 6)
   longitude           Decimal?  @db.Decimal(9, 6)
   categoriaId         Int       @map("categoria_id")

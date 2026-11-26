@@ -206,7 +206,7 @@ export interface EventoDTO {
   criador_id: Uuid;
   /** PENDENTE (issue #27): quem organiza, para "Organizado por ..." no detalhe. */
   organizador?: UsuarioResumoDTO;
-  /** PENDENTE (issue #46): caminho/URL da imagem de capa. */
+  /** Capa do evento: um link ou a foto enviada no Divulgar (data URL). */
   capa_url?: string | null;
   /** PENDENTE (issue #25): coordenadas do evento para o mapa. */
   latitude?: number;
@@ -251,6 +251,8 @@ export interface CriarEventoRequestDTO {
   titulo: string;
   descricao: string;
   data_inicio: DataIso;
+  /** Capa: a foto escolhida, já reduzida pelo front (data URL JPEG). Sem foto, não vai. */
+  imagem_url?: string;
   preco: number;
   classificacao_etaria: number;
   categoria_id: number;
