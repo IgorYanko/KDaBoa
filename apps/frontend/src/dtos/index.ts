@@ -270,13 +270,20 @@ export interface EnviarMensagemRequestDTO {
   texto: string;
 }
 
-/** PENDENTE (issue #35): bloquear um usuário. */
+/**
+ * PENDENTE (issue #35): bloquear um usuário a partir do chat (issue #34).
+ * Rota sugerida: POST /api/bloqueios. O histórico e as mensagens novas devem ocultar o bloqueado só para quem bloqueou.
+ */
 export interface BloquearUsuarioRequestDTO {
   usuario_id: Uuid;
 }
 
-/** PENDENTE (issue #37): denunciar uma mensagem. */
+/**
+ * PENDENTE (issue #37): denunciar uma mensagem do chat (issue #36).
+ * Rota sugerida: POST /api/denuncias. O banco guarda uma denúncia por pessoa e mensagem; motivo com até 255 caracteres.
+ */
 export interface DenunciarMensagemRequestDTO {
-  mensagem_id: Uuid;
+  /** id da mensagem (vem do banco como número, convertido em texto). */
+  mensagem_id: string;
   motivo: string;
 }

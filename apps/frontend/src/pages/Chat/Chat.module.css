@@ -272,6 +272,37 @@
   overflow-wrap: anywhere;
 }
 
+/* Bolha + botão de opções (denunciar/bloquear) nas mensagens dos outros. */
+.bolhaLinha {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.minha .bolhaLinha {
+  justify-content: flex-end;
+}
+
+.opcoes {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  color: var(--cor-texto-fraco);
+}
+
+/* No computador o botão só aparece ao passar o mouse ou com foco do teclado; no celular fica sempre. */
+@media (hover: hover) {
+  .opcoes {
+    opacity: 0;
+    transition: opacity var(--transicao-rapida);
+  }
+
+  .bolhaLinha:hover .opcoes,
+  .opcoes:focus-visible {
+    opacity: 1;
+  }
+}
+
 /* Minhas mensagens em ultravioleta. */
 .minha .bolha {
   background: linear-gradient(135deg, var(--cor-secundaria) 0%, var(--cor-secundaria-forte) 100%);
