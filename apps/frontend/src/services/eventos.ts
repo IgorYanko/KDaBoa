@@ -231,13 +231,22 @@ export async function buscarEvento(id: string): Promise<EventoCompleto> {
 }
 
 /**
+ * Põe a foto escolhida no corpo como `imagem_url`, reduzida (960 px, JPEG) para caber
+ * no limite da API. Sem foto nova, o corpo vai como está (a edição mantém a capa atual).
+ */
+async function comCapa<T extends object>(dados: T, capa?: File | null): Promise<T & { imagem_url?: string }> {
+  if (!capa) return dados;
+  return { ...dados, imagem_url: await reduzirImagem(capa, 960, 0.75) };
+}
+
+/**
  * POST /api/eventos — publica um evento (tela Divulgar, issues #43 e #45).
- * A capa ainda não vai para a API (upload pendente, issue #46); no mock ela fica guardada no navegador.
+ * A capa vai junto, reduzida no navegador (issue #46); no mock ela fica guardada no navegador.
  */
 export async function criarEvento(dados: CriarEventoRequestDTO, capa?: File | null): Promise<EventoDTO> {
   if (!USAR_MOCK) {
     try {
-      return await requisicao<EventoDTO>('/api/eventos', { metodo: 'POST', corpo: dados });
+      return await requisicao<EventoDTO>('/api/eventos', { metodo: 'POST', corpo: await comCapa(dados, capa) });
     } catch (e) {
       // A API ainda não cria o local junto com o evento (issue #44): explica em vez do erro genérico.
       // Outros erros de validação (título, preço...) aparecem como a API mandou.
@@ -279,7 +288,10 @@ export async function criarEvento(dados: CriarEventoRequestDTO, capa?: File | nu
 /** PUT /api/eventos/:id — só o criador ou um ADMIN (a API responde 403 para os outros). */
 export async function atualizarEvento(id: string, dados: AtualizarEventoRequestDTO, capa?: File | null): Promise<void> {
   if (!USAR_MOCK) {
-    await requisicao<unknown>(`/api/eventos/${encodeURIComponent(id)}`, { metodo: 'PUT', corpo: dados });
+    await requisicao<unknown>(`/api/eventos/${encodeURIComponent(id)}`, {
+      metodo: 'PUT',
+      corpo: await comCapa(dados, capa),
+    });
     return;
   }
   await atraso(500);

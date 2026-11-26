@@ -288,6 +288,27 @@ describe('API de eventos e Listagem com filtros (#23)', () => {
     expect(resposta.body.dataFim).toBeNull();
   });
 
+  it('POST /api/eventos grava a foto da capa enviada pelo front (data URL)', async () => {
+    const foto = `data:image/jpeg;base64,${'A'.repeat(200_000)}`;
+    const resposta = await request(app)
+      .post('/api/eventos')
+      .set('Authorization', `Bearer ${token({ id: 'criador-1', email: 'a@email.com' })}`)
+      .send({ titulo: 'Show com foto', descricao: 'Descrição', data_inicio: '2026-12-04T20:00:00Z', imagem_url: foto });
+
+    expect(resposta.status).toBe(201);
+    expect(resposta.body.imagemUrl).toBe(foto);
+  });
+
+  it('POST /api/eventos recusa capa que não é imagem', async () => {
+    const resposta = await request(app)
+      .post('/api/eventos')
+      .set('Authorization', `Bearer ${token({ id: 'criador-1', email: 'a@email.com' })}`)
+      .send({ titulo: 'Show', descricao: 'Descrição', data_inicio: '2026-12-04T20:00:00Z', imagem_url: 'javascript:alert(1)' });
+
+    expect(resposta.status).toBe(400);
+    expect(resposta.body.erro).toMatch(/Capa inválida/);
+  });
+
   it('POST /api/eventos recusa venda no app de usuário comum', async () => {
     const resposta = await request(app)
       .post('/api/eventos')

@@ -82,6 +82,18 @@ function formatarEventoParaResposta(ev: EventoBanco) {
   };
 }
 
+/** Capa do evento: um link http(s) ou a foto já reduzida pelo front (data URL de imagem). */
+const TAMANHO_MAXIMO_CAPA = 1_500_000;
+const capaRegex = /^(https?:\/\/\S+|data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+)$/;
+
+/** Mensagem de erro se a capa não servir; null se estiver ok ou se não veio capa. */
+function erroDaCapa(capa: unknown): string | null {
+  if (capa === undefined || capa === null || capa === '') return null;
+  if (typeof capa !== 'string' || !capaRegex.test(capa)) return 'Capa inválida. Envie uma imagem JPG, PNG ou WebP.';
+  if (capa.length > TAMANHO_MAXIMO_CAPA) return 'A imagem da capa é grande demais.';
+  return null;
+}
+
 export const eventoController = {
   // READ - Lista próximos eventos com filtros opcionais e paginação
   listar: async (req: Request, res: Response): Promise<void> => {
@@ -226,6 +238,12 @@ export const eventoController = {
         verificado,
       } = req.body;
 
+      const erroCapa = erroDaCapa(imagemUrl ?? imagem_url);
+      if (erroCapa) {
+        res.status(400).json({ erro: erroCapa });
+        return;
+      }
+
       const reqAuth = req as RequisicaoAutenticada;
       const idCriador = reqAuth.usuario?.id || criadorId || criador_id;
       const perfil = reqAuth.usuario?.perfil;
@@ -320,6 +338,12 @@ export const eventoController = {
         local_id,
         localId,
       } = req.body;
+
+      const erroCapa = erroDaCapa(imagemUrl ?? imagem_url);
+      if (erroCapa) {
+        res.status(400).json({ erro: erroCapa });
+        return;
+      }
 
       if (eventoExistente.vendaNoApp && preco !== undefined && !(Number(preco) > 0)) {
         res.status(400).json({ erro: 'Evento com venda no app precisa de preço maior que zero.' });
