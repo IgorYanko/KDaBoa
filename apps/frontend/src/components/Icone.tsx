@@ -78,6 +78,7 @@ const desenhos = {
     </>
   ),
   upload: <path d="M12 15.5V4M7.5 8.5 12 4l4.5 4.5M4 15v3.5A2.5 2.5 0 0 0 6.5 21h11a2.5 2.5 0 0 0 2.5-2.5V15" />,
+  lixeira: <path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13M10 11v5.5M14 11v5.5" />,
   filtro: <path d="M4 7h16M7 12h10M10 17h4" />,
   alerta: (
     <>

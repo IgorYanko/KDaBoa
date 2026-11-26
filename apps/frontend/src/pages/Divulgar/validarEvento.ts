@@ -1,4 +1,4 @@
-import type { CriarEventoRequestDTO } from '../../dtos';
+import type { CriarEventoRequestDTO, EventoDTO } from '../../dtos';
 import { digitosDoCep, formatarCep } from '../../services/cep';
 
 /** Valores do formulário Divulgar (como digitados; viram o DTO em `paraRequisicao`). */
@@ -54,6 +54,25 @@ export const FORMULARIO_INICIAL: FormularioEvento = {
   vendaNoApp: false,
   quantidade: '',
 };
+
+/** Formulário preenchido com um evento existente (tela de edição). */
+export function formularioDoEvento(evento: EventoDTO): FormularioEvento {
+  const inicio = new Date(evento.data_inicio);
+  const dois = (n: number) => String(n).padStart(2, '0');
+  return {
+    ...FORMULARIO_INICIAL,
+    titulo: evento.titulo,
+    descricao: evento.descricao ?? '',
+    categoriaId: evento.categoria_id,
+    data: `${inicio.getFullYear()}-${dois(inicio.getMonth() + 1)}-${dois(inicio.getDate())}`,
+    horario: `${dois(inicio.getHours())}:${dois(inicio.getMinutes())}`,
+    localId: String(evento.local_id),
+    preco: evento.preco > 0 ? String(evento.preco).replace('.', ',') : '',
+    classificacao: String(evento.classificacao_etaria ?? 0),
+    vendaNoApp: evento.venda_no_app === true,
+    quantidade: evento.quantidade_ingressos != null ? String(evento.quantidade_ingressos) : '',
+  };
+}
 
 /** "25,50" → 25.5 · "" → 0 · texto inválido → null */
 export function lerPreco(texto: string): number | null {

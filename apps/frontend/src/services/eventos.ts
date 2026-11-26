@@ -1,9 +1,18 @@
 import { ErroApi, requisicao } from '../api/client';
 import { lerSessao } from '../api/sessao';
 import { USAR_MOCK } from '../config';
-import type { AgendaDTO, CategoriaDTO, CriarEventoRequestDTO, EventoDTO, FiltroEventosDTO, LocalDTO } from '../dtos';
+import type {
+  AgendaDTO,
+  AtualizarEventoRequestDTO,
+  CategoriaDTO,
+  CriarEventoRequestDTO,
+  EventoDTO,
+  FiltroEventosDTO,
+  LocalDTO,
+} from '../dtos';
 import { atraso } from '../mocks/atraso';
 import { eventosMock } from '../mocks/eventos';
+import { comAlteracoes, marcarExcluido, salvarEdicao } from '../mocks/eventosAlterados';
 import { lerEventosCriados, salvarEventoCriado } from '../mocks/eventosCriados';
 import { salvarLocalCriado } from '../mocks/locaisCriados';
 import { comPresenca } from '../mocks/presencas';
@@ -57,8 +66,12 @@ function filtrar(lista: EventoCompleto[], filtro: FiltroEventosDTO): EventoCompl
   return resultado.sort((a, b) => a.evento.data_inicio.localeCompare(b.evento.data_inicio));
 }
 
-function montarQuery(filtro: FiltroEventosDTO): string {
+function montarQuery(filtro: FiltroEventosDTO, pagina?: { pagina: number; limite: number }): string {
   const params = new URLSearchParams();
+  if (pagina) {
+    params.set('page', String(pagina.pagina));
+    params.set('limit', String(pagina.limite));
+  }
   if (filtro.busca) params.set('busca', filtro.busca);
   if (filtro.periodo) params.set('periodo', filtro.periodo);
   if (filtro.categoria_id) params.set('categoria_id', String(filtro.categoria_id));
@@ -68,7 +81,17 @@ function montarQuery(filtro: FiltroEventosDTO): string {
 
 /** Eventos do mock: os do esboço + os criados na tela Divulgar neste navegador. */
 function todosEventosMock(): EventoDTO[] {
-  return [...eventosMock, ...lerEventosCriados()];
+  return comAlteracoes([...eventosMock, ...lerEventosCriados()]);
+}
+
+/** No mock, a mesma regra do backend: só quem criou ou um ADMIN altera o evento. */
+function garantirPermissaoNoMock(id: string): void {
+  const evento = todosEventosMock().find((e) => e.id === id);
+  if (!evento) throw new ErroApi('Evento não encontrado', 404);
+  const usuario = lerSessao()?.usuario;
+  if (!usuario || (evento.criador_id !== usuario.id && usuario.perfil !== 'ADMIN')) {
+    throw new ErroApi('Você não tem permissão para alterar este evento', 403);
+  }
 }
 
 /** Evento como a API manda hoje (release 3): o total vem em `confirmados`. */
@@ -110,6 +133,41 @@ async function completar(eventos: EventoDTO[]): Promise<EventoCompleto[]> {
 export async function listarEventos(filtro: FiltroEventosDTO = {}): Promise<EventoCompleto[]> {
   const eventos = await buscarListaEventos(filtro);
   return filtrar(await completar(eventos), filtro);
+}
+
+/** Uma página da lista de eventos. */
+export interface PaginaEventos {
+  itens: EventoCompleto[];
+  /** Total de eventos com esses filtros (em todas as páginas). */
+  total: number;
+  temMais: boolean;
+}
+
+/** Resposta do GET /api/eventos com page e limit. */
+interface RespostaPaginada {
+  dados: EventoDaApi[];
+  paginacao: { total: number; pagina: number; limite: number; totalPaginas: number };
+}
+
+/** GET /api/eventos?page=&limit= — uma página dos próximos eventos, já com categoria e local. */
+export async function listarEventosPaginados(
+  filtro: FiltroEventosDTO,
+  pagina: number,
+  limite: number,
+): Promise<PaginaEventos> {
+  if (USAR_MOCK) {
+    const todos = await listarEventos(filtro);
+    const inicio = (pagina - 1) * limite;
+    return { itens: todos.slice(inicio, inicio + limite), total: todos.length, temMais: inicio + limite < todos.length };
+  }
+  const { dados, paginacao } = await requisicao<RespostaPaginada>(
+    `/api/eventos${montarQuery(filtro, { pagina, limite })}`,
+  );
+  // A API já filtrou e paginou: a página vai como veio. Filtrar de novo aqui deixaria
+  // `total` e `temMais` diferentes do que aparece na tela (o `filtrar` fica só no mock).
+  const lembradas = presencasLembradas();
+  const itens = await completar(dados.map((e) => doFormatoDaApi(e, lembradas)));
+  return { itens, total: paginacao.total, temMais: paginacao.pagina < paginacao.totalPaginas };
 }
 
 /** Agenda já com categoria e local em cada evento. */
@@ -216,4 +274,26 @@ export async function criarEvento(dados: CriarEventoRequestDTO, capa?: File | nu
     throw new ErroApi('Não foi possível guardar o evento neste navegador (imagem grande demais?).', 413);
   }
   return evento;
+}
+
+/** PUT /api/eventos/:id — só o criador ou um ADMIN (a API responde 403 para os outros). */
+export async function atualizarEvento(id: string, dados: AtualizarEventoRequestDTO, capa?: File | null): Promise<void> {
+  if (!USAR_MOCK) {
+    await requisicao<unknown>(`/api/eventos/${encodeURIComponent(id)}`, { metodo: 'PUT', corpo: dados });
+    return;
+  }
+  await atraso(500);
+  garantirPermissaoNoMock(id);
+  salvarEdicao(id, { ...dados, ...(capa ? { capa_url: await reduzirImagem(capa) } : {}) });
+}
+
+/** DELETE /api/eventos/:id — apaga também as presenças e o chat do evento. */
+export async function excluirEvento(id: string): Promise<void> {
+  if (!USAR_MOCK) {
+    await requisicao<unknown>(`/api/eventos/${encodeURIComponent(id)}`, { metodo: 'DELETE' });
+    return;
+  }
+  await atraso(400);
+  garantirPermissaoNoMock(id);
+  marcarExcluido(id);
 }

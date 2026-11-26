@@ -1,6 +1,8 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
+import { AvisoServidor } from './components/AvisoServidor';
 import { LayoutApp } from './components/LayoutApp';
+import { LimiteErro } from './components/LimiteErro';
 import { RotaPrivada, RotaPublica } from './components/RotaPrivada';
 import { AuthProvider } from './contexts/AuthContext';
 import { Agenda } from './pages/Agenda/Agenda';
@@ -25,7 +27,9 @@ const GuiaEstilo = import.meta.env.DEV
 export function App() {
   return (
     <AuthProvider>
+      <AvisoServidor />
       <BrowserRouter>
+        <LimiteErro>
         <Routes>
           {/* Públicas */}
           <Route element={<RotaPublica />}>
@@ -53,6 +57,7 @@ export function App() {
               <Route path="/eventos/:id/chat" element={<Chat />} />
               <Route path="/eventos/:id/quem-vai" element={<QuemVai />} />
               <Route path="/divulgar" element={<Divulgar />} />
+              <Route path="/eventos/:id/editar" element={<Divulgar />} />
             </Route>
           </Route>
 
@@ -69,6 +74,7 @@ export function App() {
 
           <Route path="*" element={<Navigate to="/inicio" replace />} />
         </Routes>
+        </LimiteErro>
       </BrowserRouter>
     </AuthProvider>
   );

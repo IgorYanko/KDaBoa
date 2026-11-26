@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useLocation } from 'react-router';
 import { ErroApi } from '../../api/client';
 import { Aviso } from '../../components/Aviso';
 import { BoasVindas } from '../../components/BoasVindas';
@@ -11,10 +12,14 @@ import { Segmentos } from '../../components/Segmentos';
 import { useAuth } from '../../contexts/useAuth';
 import type { CategoriaDTO, FiltroEventosDTO } from '../../dtos';
 import { listarCategorias } from '../../services/categorias';
-import { type EventoCompleto, listarEventos } from '../../services/eventos';
+import { Botao } from '../../components/Botao';
+import { type EventoCompleto, listarEventosPaginados } from '../../services/eventos';
 import styles from './Inicio.module.css';
 
 type Periodo = NonNullable<FiltroEventosDTO['periodo']>;
+
+/** Eventos por página (múltiplo de 3, para fechar as linhas da grade no desktop). */
+const POR_PAGINA = 9;
 
 const PERIODOS: { valor: Periodo; rotulo: string }[] = [
   { valor: 'hoje', rotulo: 'Hoje' },
@@ -26,6 +31,8 @@ const PERIODOS: { valor: Periodo; rotulo: string }[] = [
 export function Inicio() {
   const { usuario } = useAuth();
   const primeiroNome = usuario?.nome.split(' ')[0];
+  // Vindo do detalhe depois de excluir um evento.
+  const excluido = (useLocation().state as { excluido?: string } | null)?.excluido;
 
   const [busca, setBusca] = useState('');
   const [buscaAplicada, setBuscaAplicada] = useState('');
@@ -33,6 +40,10 @@ export function Inicio() {
   const [categoriaId, setCategoriaId] = useState<number | null>(null);
   const [categorias, setCategorias] = useState<CategoriaDTO[]>([]);
   const [eventos, setEventos] = useState<EventoCompleto[] | null>(null);
+  const [totalEventos, setTotalEventos] = useState(0);
+  const [pagina, setPagina] = useState(1);
+  const [temMais, setTemMais] = useState(false);
+  const [carregandoMais, setCarregandoMais] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   /** Buscando de novo após mudar um filtro (a lista anterior fica apagada até chegar a nova). */
   const [atualizando, setAtualizando] = useState(false);
@@ -42,6 +53,15 @@ export function Inicio() {
     const espera = setTimeout(() => setBuscaAplicada(busca), 250);
     return () => clearTimeout(espera);
   }, [busca]);
+
+  const filtro = useMemo<FiltroEventosDTO>(
+    () => ({
+      busca: buscaAplicada || undefined,
+      periodo: periodo ?? undefined,
+      categoria_id: categoriaId ?? undefined,
+    }),
+    [buscaAplicada, periodo, categoriaId],
+  );
 
   // Categorias para o filtro (se falhar, a tela segue sem a fileira).
   useEffect(() => {
@@ -54,13 +74,14 @@ export function Inicio() {
     let ativo = true;
     setErro(null);
     setAtualizando(true);
-    listarEventos({
-      busca: buscaAplicada || undefined,
-      periodo: periodo ?? undefined,
-      categoria_id: categoriaId ?? undefined,
-    })
-      .then((lista) => {
-        if (ativo) setEventos(lista);
+    // Filtro novo: recomeça da primeira página.
+    listarEventosPaginados(filtro, 1, POR_PAGINA)
+      .then((resultado) => {
+        if (!ativo) return;
+        setEventos(resultado.itens);
+        setTotalEventos(resultado.total);
+        setTemMais(resultado.temMais);
+        setPagina(1);
       })
       .catch((e) => {
         if (ativo) setErro(e instanceof ErroApi ? e.message : 'Não foi possível carregar os eventos.');
@@ -71,9 +92,28 @@ export function Inicio() {
     return () => {
       ativo = false;
     };
-  }, [buscaAplicada, periodo, categoriaId]);
+  }, [filtro]);
 
-  const total = eventos?.length ?? 0;
+  async function carregarMais() {
+    setCarregandoMais(true);
+    try {
+      const resultado = await listarEventosPaginados(filtro, pagina + 1, POR_PAGINA);
+      setEventos((atual) => {
+        const ids = new Set(atual?.map((item) => item.evento.id));
+        return [...(atual ?? []), ...resultado.itens.filter((item) => !ids.has(item.evento.id))];
+      });
+      setTotalEventos(resultado.total);
+      setTemMais(resultado.temMais);
+      setPagina((atual) => atual + 1);
+    } catch (e) {
+      setErro(e instanceof ErroApi ? e.message : 'Não foi possível carregar mais eventos.');
+    } finally {
+      setCarregandoMais(false);
+    }
+  }
+
+  const total = totalEventos;
+  const mostrando = eventos?.length ?? 0;
   const temFiltro = Boolean(buscaAplicada || periodo || categoriaId);
 
   function limparFiltros() {
@@ -86,6 +126,7 @@ export function Inicio() {
   return (
     <main className={styles.tela}>
       <BoasVindas />
+      {excluido && <Aviso tipo="sucesso">{`Evento "${excluido}" excluído.`}</Aviso>}
 
       <header className={styles.cabecalho}>
         <div className={styles.saudacao}>
@@ -183,6 +224,19 @@ export function Inicio() {
               </li>
             ))}
           </ul>
+        )}
+
+        {eventos && total > 0 && (temMais || mostrando < total) && (
+          <div className={styles.paginacao}>
+            <p className={styles.paginacaoTexto} aria-live="polite">
+              Mostrando {mostrando} de {total} eventos
+            </p>
+            {temMais && (
+              <Botao variante="secundario" larguraTotal={false} carregando={carregandoMais} onClick={carregarMais}>
+                Carregar mais eventos
+              </Botao>
+            )}
+          </div>
         )}
       </section>
     </main>

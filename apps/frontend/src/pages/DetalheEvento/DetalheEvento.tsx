@@ -5,11 +5,14 @@ import { Aviso } from '../../components/Aviso';
 import { Botao, classesBotao } from '../../components/Botao';
 import { BotaoIcone } from '../../components/BotaoIcone';
 import { Icone } from '../../components/Icone';
+import { Modal } from '../../components/Modal';
 import { PilhaAvatares } from '../../components/PilhaAvatares';
-import { type EventoCompleto, buscarEvento } from '../../services/eventos';
+import { useAuth } from '../../contexts/useAuth';
+import { type EventoCompleto, buscarEvento, excluirEvento } from '../../services/eventos';
 import { cancelarPresenca, confirmarPresenca } from '../../services/presenca';
 import { corDaCategoria, iconeDaCategoria, iniciais } from '../../utils/cores';
 import { dataLonga, dia, diaSemanaCurto, intervaloHoras, mesCurto } from '../../utils/datas';
+import { podeGerenciarEvento } from '../../utils/permissoes';
 import styles from './DetalheEvento.module.css';
 
 const formatoPreco = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -29,10 +32,17 @@ export function DetalheEvento() {
   const [erro, setErro] = useState<string | null>(null);
   const [erroPresenca, setErroPresenca] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
-  // Vindo do Divulgar: avisa que o evento foi publicado.
-  const [aviso, setAviso] = useState<string | null>(() =>
-    (local.state as { publicado?: boolean } | null)?.publicado ? 'Evento publicado! Agora é só chamar a galera.' : null,
-  );
+  const { usuario } = useAuth();
+  const [confirmarExclusao, setConfirmarExclusao] = useState(false);
+  const [excluindo, setExcluindo] = useState(false);
+  const [erroExclusao, setErroExclusao] = useState<string | null>(null);
+  // Vindo do Divulgar (publicar ou editar): avisa que deu certo.
+  const [aviso, setAviso] = useState<string | null>(() => {
+    const estado = local.state as { publicado?: boolean; editado?: boolean } | null;
+    if (estado?.publicado) return 'Evento publicado! Agora é só chamar a galera.';
+    if (estado?.editado) return 'Alterações salvas.';
+    return null;
+  });
 
   useEffect(() => {
     let ativo = true;
@@ -54,6 +64,19 @@ export function DetalheEvento() {
     // Se a pessoa abriu o link direto, não há tela anterior no app: vai para o Início.
     if (local.key === 'default') navegar('/inicio');
     else navegar(-1);
+  }
+
+  async function excluir() {
+    if (!item) return;
+    setErroExclusao(null);
+    setExcluindo(true);
+    try {
+      await excluirEvento(item.evento.id);
+      navegar('/inicio', { replace: true, state: { excluido: item.evento.titulo } });
+    } catch (e) {
+      setErroExclusao(e instanceof ErroApi ? e.message : 'Não foi possível excluir. Tente de novo.');
+      setExcluindo(false);
+    }
   }
 
   async function compartilhar() {
@@ -118,6 +141,8 @@ export function DetalheEvento() {
   const preco = evento.preco > 0 ? formatoPreco.format(Number(evento.preco)) : 'Gratuito';
   const detalhePreco = vendaNoApp ? 'Compra no app' : evento.preco > 0 ? 'Na portaria' : 'Entrada franca';
   const estilo = { '--cor-evento': corDaCategoria(categoria) } as CSSProperties;
+  const podeGerenciar = podeGerenciarEvento(evento, usuario);
+  const comoAdmin = podeGerenciar && evento.criador_id !== usuario?.id;
 
   return (
     <main className={styles.tela} style={estilo}>
@@ -176,6 +201,34 @@ export function DetalheEvento() {
               </p>
             )}
           </div>
+
+          {podeGerenciar && (
+            <div className={styles.gerenciar}>
+              <p className={styles.gerenciarRotulo}>
+                <Icone nome={comoAdmin ? 'cadeado' : 'editar'} tamanho={15} />
+                {comoAdmin ? 'Ações de administrador' : 'Você divulgou este evento'}
+              </p>
+              <div className={styles.gerenciarBotoes}>
+                <Link
+                  to={`/eventos/${evento.id}/editar`}
+                  className={classesBotao({ variante: 'secundario', tamanho: 'sm', larguraTotal: false })}
+                >
+                  <Icone nome="editar" tamanho={16} />
+                  Editar
+                </Link>
+                <Botao
+                  variante="fantasma"
+                  tamanho="sm"
+                  larguraTotal={false}
+                  icone="lixeira"
+                  className={styles.excluir}
+                  onClick={() => setConfirmarExclusao(true)}
+                >
+                  Excluir
+                </Botao>
+              </div>
+            </div>
+          )}
 
           <ul className={styles.infos}>
             <li className={styles.info}>
@@ -318,6 +371,33 @@ export function DetalheEvento() {
           </div>
         </aside>
       </div>
+
+      <Modal
+        aberto={confirmarExclusao}
+        aoFechar={() => {
+          setConfirmarExclusao(false);
+          setErroExclusao(null);
+        }}
+        idTitulo="titulo-excluir-evento"
+      >
+        <div className={styles.confirmacao}>
+          <h2 id="titulo-excluir-evento" className={styles.confirmacaoTitulo}>
+            Excluir "{evento.titulo}"?
+          </h2>
+          <p className={styles.confirmacaoTexto}>
+            O evento some do app junto com as presenças confirmadas e o chat. Não dá para desfazer.
+          </p>
+          {erroExclusao && <Aviso tipo="erro">{erroExclusao}</Aviso>}
+          <div className={styles.confirmacaoBotoes}>
+            <Botao variante="secundario" onClick={() => setConfirmarExclusao(false)} disabled={excluindo}>
+              Cancelar
+            </Botao>
+            <Botao carregando={excluindo} onClick={excluir} className={styles.botaoExcluir}>
+              Excluir
+            </Botao>
+          </div>
+        </div>
+      </Modal>
     </main>
   );
 }

@@ -5,6 +5,20 @@ import { lerSessao, limparSessao } from './sessao';
 /** Disparado quando a API recusa o token (401). O AuthContext escuta e desloga. */
 export const EVENTO_SESSAO_ENCERRADA = 'kdaboa:sessao-encerrada';
 
+/**
+ * Disparado quando alguma requisição passa de alguns segundos (detail = true) e quando
+ * todas as lentas terminam (detail = false). O servidor gratuito do Render "dorme" e a
+ * primeira requisição pode levar até 1 minuto: a tela avisa em vez de parecer travada.
+ */
+export const EVENTO_API_LENTA = 'kdaboa:api-lenta';
+const TEMPO_LENTO_MS = 4000;
+let lentasEmAndamento = 0;
+
+function avisarLentidao(lenta: boolean): void {
+  lentasEmAndamento = Math.max(0, lentasEmAndamento + (lenta ? 1 : -1));
+  window.dispatchEvent(new CustomEvent(EVENTO_API_LENTA, { detail: lentasEmAndamento > 0 }));
+}
+
 /** Erro de uma requisição. `mensagem` já está pronta para mostrar na tela. */
 export class ErroApi extends Error {
   readonly status: number;
@@ -36,6 +50,11 @@ export async function requisicao<T>(caminho: string, { metodo = 'GET', corpo }: 
   if (sessao) cabecalhos.Authorization = `Bearer ${sessao.token}`;
 
   let resposta: Response;
+  let ficouLenta = false;
+  const relogio = setTimeout(() => {
+    ficouLenta = true;
+    avisarLentidao(true);
+  }, TEMPO_LENTO_MS);
   try {
     resposta = await fetch(`${API_URL}${caminho}`, {
       method: metodo,
@@ -43,7 +62,10 @@ export async function requisicao<T>(caminho: string, { metodo = 'GET', corpo }: 
       body: corpo === undefined ? undefined : JSON.stringify(corpo),
     });
   } catch {
-    throw new ErroApi('Não foi possível conectar ao servidor. Tente de novo.', 0);
+    throw new ErroApi('Não foi possível conectar ao servidor. Confira a internet e tente de novo.', 0);
+  } finally {
+    clearTimeout(relogio);
+    if (ficouLenta) avisarLentidao(false);
   }
 
   const dados: unknown = await resposta.json().catch(() => null);
@@ -55,7 +77,12 @@ export async function requisicao<T>(caminho: string, { metodo = 'GET', corpo }: 
       window.dispatchEvent(new Event(EVENTO_SESSAO_ENCERRADA));
     }
     const erro = (dados as Partial<ErroApiDTO> | null)?.erro;
-    throw new ErroApi(erro ?? 'Algo deu errado. Tente de novo.', resposta.status);
+    // Sem mensagem da API (ex.: erro 500 inesperado), uma frase clara em vez de detalhes técnicos.
+    const padrao =
+      resposta.status >= 500
+        ? 'O servidor teve um problema. Tente de novo em instantes.'
+        : 'Algo deu errado. Tente de novo.';
+    throw new ErroApi(erro ?? padrao, resposta.status);
   }
 
   return dados as T;

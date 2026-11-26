@@ -70,12 +70,18 @@ export interface LocalDTO {
 // ---------------------------------------------------------------------------
 
 /** Dados públicos de um usuário (o que outras pessoas podem ver). */
+/**
+ * Perfil de acesso (vem no login e no token): conta comum, empresa (CNPJ) ou admin.
+ * ADMIN pode editar e excluir qualquer evento.
+ */
 export type PerfilUsuario = 'USUARIO' | 'ORGANIZADOR' | 'ADMIN';
+/** Mesmo tipo, nome usado nas regras de permissão. */
+export type PerfilAcesso = PerfilUsuario;
 
 export interface UsuarioResumoDTO {
   id: Uuid;
   nome: string;
-  /** Conta comum, empresa (CNPJ) ou admin. */
+  /** Conta comum, empresa (CNPJ) ou admin. Só vem no login (o usuário logado). */
   perfil?: PerfilUsuario;
   /** PENDENTE: @usuario exibido em Quem vai e no Perfil. */
   apelido?: string;
@@ -236,6 +242,9 @@ export interface NovoLocalDTO {
   endereco: string;
   bairro: string;
 }
+
+/** PUT /api/eventos/:id — os mesmos campos do criar; só o criador ou um ADMIN pode alterar. */
+export type AtualizarEventoRequestDTO = Partial<CriarEventoRequestDTO>;
 
 /** PENDENTE (issue #45): corpo enviado na tela Divulgar evento. Vai `local_id` (da lista) ou `novo_local`. */
 export interface CriarEventoRequestDTO {
