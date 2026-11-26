@@ -65,8 +65,12 @@ function filtrar(lista: EventoCompleto[], filtro: FiltroEventosDTO): EventoCompl
   return resultado.sort((a, b) => a.evento.data_inicio.localeCompare(b.evento.data_inicio));
 }
 
-function montarQuery(filtro: FiltroEventosDTO): string {
+function montarQuery(filtro: FiltroEventosDTO, pagina?: { pagina: number; limite: number }): string {
   const params = new URLSearchParams();
+  if (pagina) {
+    params.set('page', String(pagina.pagina));
+    params.set('limit', String(pagina.limite));
+  }
   if (filtro.busca) params.set('busca', filtro.busca);
   if (filtro.periodo) params.set('periodo', filtro.periodo);
   if (filtro.categoria_id) params.set('categoria_id', String(filtro.categoria_id));
@@ -128,6 +132,39 @@ async function completar(eventos: EventoDTO[]): Promise<EventoCompleto[]> {
 export async function listarEventos(filtro: FiltroEventosDTO = {}): Promise<EventoCompleto[]> {
   const eventos = await buscarListaEventos(filtro);
   return filtrar(await completar(eventos), filtro);
+}
+
+/** Uma página da lista de eventos. */
+export interface PaginaEventos {
+  itens: EventoCompleto[];
+  /** Total de eventos com esses filtros (em todas as páginas). */
+  total: number;
+  temMais: boolean;
+}
+
+/** Resposta do GET /api/eventos com page e limit. */
+interface RespostaPaginada {
+  dados: EventoDaApi[];
+  paginacao: { total: number; pagina: number; limite: number; totalPaginas: number };
+}
+
+/** GET /api/eventos?page=&limit= — uma página dos próximos eventos, já com categoria e local. */
+export async function listarEventosPaginados(
+  filtro: FiltroEventosDTO,
+  pagina: number,
+  limite: number,
+): Promise<PaginaEventos> {
+  if (USAR_MOCK) {
+    const todos = await listarEventos(filtro);
+    const inicio = (pagina - 1) * limite;
+    return { itens: todos.slice(inicio, inicio + limite), total: todos.length, temMais: inicio + limite < todos.length };
+  }
+  const { dados, paginacao } = await requisicao<RespostaPaginada>(
+    `/api/eventos${montarQuery(filtro, { pagina, limite })}`,
+  );
+  const lembradas = presencasLembradas();
+  const itens = filtrar(await completar(dados.map((e) => doFormatoDaApi(e, lembradas))), filtro);
+  return { itens, total: paginacao.total, temMais: paginacao.pagina < paginacao.totalPaginas };
 }
 
 /** Agenda já com categoria e local em cada evento. */
