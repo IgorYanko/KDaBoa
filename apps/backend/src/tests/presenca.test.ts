@@ -27,7 +27,7 @@ const USUARIO_ID = '987fcdeb-51a2-43d7-9012-345678901234';
 
 function authHeader() {
   const token = jwt.sign(
-    { id: USUARIO_ID, email: 'joao@kdaboa.com', perfil: 'USUARIO' },
+    { id: USUARIO_ID, email: 'joao@kdaboa.com' },
     'segredo_de_teste',
   );
   return `Bearer ${token}`;
@@ -37,6 +37,12 @@ describe('API de Presenças e Regras de Negócio', () => {
   beforeEach(() => {
     process.env.JWT_SECRET = 'segredo_de_teste';
     vi.clearAllMocks();
+  });
+
+  it('GET /api/presencas/:eventoId exige autenticação (401 sem token)', async () => {
+    const res = await request(app).get(`/api/presencas/${EVENTO_ID}`);
+
+    expect(res.status).toBe(401);
   });
 
   it('POST /api/presencas/:eventoId confirma presença para usuário com idade compatível', async () => {
@@ -115,7 +121,9 @@ describe('API de Presenças e Regras de Negócio', () => {
       },
     ]);
 
-    const res = await request(app).get(`/api/presencas/${EVENTO_ID}`);
+    const res = await request(app)
+      .get(`/api/presencas/${EVENTO_ID}`)
+      .set('Authorization', authHeader());
 
     expect(res.status).toBe(200);
     expect(res.body.total).toBe(2);
