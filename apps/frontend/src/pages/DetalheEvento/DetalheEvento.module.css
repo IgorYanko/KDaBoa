@@ -144,6 +144,16 @@
   gap: var(--espaco-3);
 }
 
+.selo {
+  width: fit-content;
+  padding: 2px 8px;
+  border-radius: var(--raio-pilula);
+  font-size: var(--texto-xs);
+  font-weight: 600;
+  color: var(--cor-primaria);
+  background: color-mix(in oklch, var(--cor-primaria) 16%, transparent);
+}
+
 .titulo {
   font-size: var(--texto-2xl);
   font-weight: 600;

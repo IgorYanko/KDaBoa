@@ -11,7 +11,21 @@ datasource db {
 
 enum Perfil {
   USUARIO
+  ORGANIZADOR
   ADMIN
+}
+
+enum StatusPedido {
+  pendente
+  pago
+  recusado
+  cancelado
+}
+
+enum StatusIngresso {
+  valido
+  usado
+  cancelado
 }
 
 model Usuario {
@@ -19,15 +33,18 @@ model Usuario {
   nome            String   @db.VarChar(100)
   email           String   @unique @db.VarChar(150)
   senhaHash       String   @map("senha_hash") @db.VarChar(255)
-  perfil          Perfil   @default(USUARIO)
-  dataNascimento  DateTime @map("data_nascimento") @db.Date
-  fotoUrl         String?  @map("foto_url") @db.VarChar(255)
+  perfil          Perfil    @default(USUARIO)
+  dataNascimento  DateTime? @map("data_nascimento") @db.Date
+  cnpj            String?   @unique @db.VarChar(14)
+  nomeFantasia    String?   @map("nome_fantasia") @db.VarChar(150)
+  fotoUrl         String?   @map("foto_url") @db.VarChar(255)
   mostrarPresenca Boolean  @default(true) @map("mostrar_presenca")
   lembretesEmail  Boolean  @default(true) @map("lembretes_email")
   criadoEm        DateTime @default(now()) @map("criado_em") @db.Timestamp(6)
 
   tokens          TokenRedefinicaoSenha[]
   eventosCriados  Evento[]                @relation("EventoCriador")
+  pedidos         Pedido[]
   interesses      UsuarioInteresse[]
   presencas       Presenca[]
   seguindo        Seguidor[]              @relation("Seguidor")
@@ -92,6 +109,9 @@ model Evento {
   categoriaId         Int       @map("categoria_id")
   localId             Int       @map("local_id")
   criadorId           String    @map("criador_id") @db.Uuid
+  verificado          Boolean   @default(false)
+  vendaNoApp          Boolean   @default(false) @map("venda_no_app")
+  quantidadeIngressos Int?      @map("quantidade_ingressos")
   criadoEm            DateTime  @default(now()) @map("criado_em") @db.Timestamp(6)
 
   categoria Categoria  @relation(fields: [categoriaId], references: [id], onDelete: Restrict)
@@ -99,6 +119,7 @@ model Evento {
   criador   Usuario    @relation("EventoCriador", fields: [criadorId], references: [id], onDelete: NoAction)
   presencas Presenca[]
   mensagens Mensagem[]
+  pedidos   Pedido[]
 
   @@index([dataInicio], map: "idx_eventos_data_inicio")
   @@index([categoriaId], map: "idx_eventos_categoria")
@@ -168,6 +189,42 @@ model Mensagem {
 
   @@index([eventoId, criadoEm], map: "idx_mensagens_evento_data")
   @@map("mensagens")
+}
+
+model Pedido {
+  id                  String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  usuarioId           String       @map("usuario_id") @db.Uuid
+  eventoId            String       @map("evento_id") @db.Uuid
+  quantidade          Int
+  valorTotal          Decimal      @map("valor_total") @db.Decimal(10, 2)
+  status              StatusPedido @default(pendente)
+  pagamentoExternoId  String?      @unique @map("pagamento_externo_id") @db.VarChar(64)
+  expiraEm            DateTime     @map("expira_em") @db.Timestamp(6)
+  qrCode              String?      @map("qr_code") @db.Text
+  qrCodeBase64        String?      @map("qr_code_base64") @db.Text
+  criadoEm            DateTime     @default(now()) @map("criado_em") @db.Timestamp(6)
+
+  usuario   Usuario    @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  evento    Evento     @relation(fields: [eventoId], references: [id], onDelete: Restrict)
+  ingressos Ingresso[]
+
+  @@index([usuarioId], map: "idx_pedidos_usuario")
+  @@index([eventoId], map: "idx_pedidos_evento")
+  @@index([status, expiraEm], map: "idx_pedidos_status_expira")
+  @@map("pedidos")
+}
+
+model Ingresso {
+  id        String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pedidoId  String         @map("pedido_id") @db.Uuid
+  codigo    String         @unique @db.VarChar(16)
+  status    StatusIngresso @default(valido)
+  criadoEm  DateTime       @default(now()) @map("criado_em") @db.Timestamp(6)
+
+  pedido Pedido @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+
+  @@index([pedidoId], map: "idx_ingressos_pedido")
+  @@map("ingressos")
 }
 
 model Denuncia {

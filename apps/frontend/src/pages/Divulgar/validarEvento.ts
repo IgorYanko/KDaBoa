@@ -14,6 +14,9 @@ export interface FormularioEvento {
   preco: string;
   /** Idade mínima ("0" = livre). */
   classificacao: string;
+  /** Só conta CNPJ. Cobra o ingresso neste app. */
+  vendaNoApp: boolean;
+  quantidade: string;
 }
 
 export type ErrosEvento = Partial<Record<keyof FormularioEvento, string>>;
@@ -30,6 +33,8 @@ export const FORMULARIO_INICIAL: FormularioEvento = {
   localId: '',
   preco: '',
   classificacao: '0',
+  vendaNoApp: false,
+  quantidade: '',
 };
 
 /** Formulário preenchido com um evento existente (tela de edição). */
@@ -45,6 +50,8 @@ export function formularioDoEvento(evento: EventoDTO): FormularioEvento {
     localId: String(evento.local_id),
     preco: evento.preco > 0 ? String(evento.preco).replace('.', ',') : '',
     classificacao: String(evento.classificacao_etaria ?? 0),
+    vendaNoApp: evento.venda_no_app === true,
+    quantidade: evento.quantidade_ingressos != null ? String(evento.quantidade_ingressos) : '',
   };
 }
 
@@ -70,7 +77,11 @@ export function hojeIso(agora = new Date()): string {
   return `${agora.getFullYear()}-${mes}-${dia}`;
 }
 
-export function validarEvento(formulario: FormularioEvento, agora = new Date()): ErrosEvento {
+export function validarEvento(
+  formulario: FormularioEvento,
+  agora = new Date(),
+  organizador = false,
+): ErrosEvento {
   const erros: ErrosEvento = {};
   const titulo = formulario.titulo.trim();
 
@@ -86,7 +97,15 @@ export function validarEvento(formulario: FormularioEvento, agora = new Date()):
   if (inicio && new Date(inicio) <= agora) erros.data = 'A data e o horário precisam ser no futuro.';
 
   if (!formulario.localId) erros.localId = 'Escolha o local.';
-  if (lerPreco(formulario.preco) === null) erros.preco = 'Use só números, como 25 ou 25,50.';
+  const preco = lerPreco(formulario.preco);
+  if (preco === null) erros.preco = 'Use só números, como 25 ou 25,50.';
+
+  if (organizador && formulario.vendaNoApp) {
+    if (preco !== null && preco <= 0) erros.preco = 'A venda no app precisa de um preço.';
+    if (!/^[1-9]\d*$/.test(formulario.quantidade.trim())) {
+      erros.quantidade = 'Informe quantos ingressos estão à venda.';
+    }
+  }
 
   return erros;
 }
@@ -101,5 +120,8 @@ export function paraRequisicao(formulario: FormularioEvento): CriarEventoRequest
     classificacao_etaria: Number(formulario.classificacao),
     categoria_id: formulario.categoriaId ?? 0,
     local_id: Number(formulario.localId),
+    ...(formulario.vendaNoApp
+      ? { venda_no_app: true, quantidade_ingressos: Number(formulario.quantidade) }
+      : {}),
   };
 }

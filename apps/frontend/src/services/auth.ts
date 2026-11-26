@@ -2,6 +2,7 @@ import { ErroApi, requisicao } from '../api/client';
 import { USAR_MOCK } from '../config';
 import type {
   CadastroRequestDTO,
+  PerfilUsuario,
   CadastroResponseDTO,
   EsqueciSenhaRequestDTO,
   EsqueciSenhaResponseDTO,
@@ -59,6 +60,9 @@ export async function cadastrar(dados: CadastroRequestDTO): Promise<CadastroResp
     data_nascimento: dados.data_nascimento,
     interesses: dados.interesses,
     mostrar_presenca: dados.mostrar_presenca,
+    perfil: (dados.tipo === 'cnpj' ? 'ORGANIZADOR' : 'USUARIO') as PerfilUsuario,
+    cnpj: dados.tipo === 'cnpj' ? dados.cnpj : null,
+    nome_fantasia: dados.nome_fantasia,
   };
   usuariosMock.push(novo);
   senhasMock.set(email, dados.senha);
