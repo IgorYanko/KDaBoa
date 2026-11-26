@@ -1,6 +1,8 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
+import { AvisoServidor } from './components/AvisoServidor';
 import { LayoutApp } from './components/LayoutApp';
+import { LimiteErro } from './components/LimiteErro';
 import { RotaPrivada, RotaPublica } from './components/RotaPrivada';
 import { TelaEmConstrucao } from './components/TelaEmConstrucao';
 import { AuthProvider } from './contexts/AuthContext';
@@ -23,7 +25,9 @@ const GuiaEstilo = import.meta.env.DEV
 export function App() {
   return (
     <AuthProvider>
+      <AvisoServidor />
       <BrowserRouter>
+        <LimiteErro>
         <Routes>
           {/* Públicas */}
           <Route element={<RotaPublica />}>
@@ -67,6 +71,7 @@ export function App() {
 
           <Route path="*" element={<Navigate to="/inicio" replace />} />
         </Routes>
+        </LimiteErro>
       </BrowserRouter>
     </AuthProvider>
   );
