@@ -1,8 +1,14 @@
 import type { Request, Response } from 'express';
-import type { RequisicaoAutenticada } from '../middlewares/authMiddleware';
 import { prisma } from '../prisma';
 
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+interface RequisicaoAutenticada extends Request {
+  usuario?: {
+    id?: string;
+    email?: string;
+  };
+}
 
 function calcularIdade(dataNascimento: Date, referencia = new Date()): number {
   let idade = referencia.getFullYear() - dataNascimento.getFullYear();
