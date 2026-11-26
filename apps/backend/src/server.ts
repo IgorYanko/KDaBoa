@@ -1,6 +1,7 @@
 import http from 'node:http';
 import dotenv from 'dotenv';
 import app from './app';
+import { iniciarAgendadorLembretes } from './services/lembreteService';
 import { configurarSocket } from './socket';
 
 dotenv.config();
@@ -16,4 +17,5 @@ configurarSocket(server);
 
 server.listen(PORT, () => {
   console.log(`Servidor rodando em http://localhost:${PORT}`);
+  iniciarAgendadorLembretes();
 });
