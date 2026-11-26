@@ -46,6 +46,21 @@ const desenhos = {
   ),
   enviar: <path d="M20.5 3.5 10.6 13.4M20.5 3.5l-6.3 17-3.6-7.1-7.1-3.6z" />,
   check: <path d="m5 12.5 4.5 4.5L19 7.5" />,
+  // Moderação do chat
+  opcoes: (
+    <>
+      <circle cx="12" cy="5.5" r="1.4" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="18.5" r="1.4" fill="currentColor" stroke="none" />
+    </>
+  ),
+  bloquear: (
+    <>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="m6 6 12 12" />
+    </>
+  ),
+  bandeira: <path d="M5 21V4.5M5 4.5c4-2 6 2 10 0s4-1 4-1v9s-1-.5-4 1-6-3-10-1" />,
   olho: (
     <>
       <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" />

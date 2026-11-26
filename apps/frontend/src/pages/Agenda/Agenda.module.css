@@ -41,6 +41,29 @@
   color: var(--cor-texto-suave);
 }
 
+.ingresso {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  padding: var(--espaco-4);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-lg);
+  color: inherit;
+  text-decoration: none;
+}
+
+.ingressoTitulo {
+  font-weight: 600;
+}
+
+.ingressoCodigo {
+  font-family: ui-monospace, monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cor-texto-suave);
+}
+
 .lista {
   margin: 0;
   padding: 0;

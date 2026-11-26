@@ -6,6 +6,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { Agenda } from './pages/Agenda/Agenda';
 import { Cadastro } from './pages/Cadastro/Cadastro';
 import { Chat } from './pages/Chat/Chat';
+import { Checkout } from './pages/Checkout/Checkout';
 import { DetalheEvento } from './pages/DetalheEvento/DetalheEvento';
 import { Divulgar } from './pages/Divulgar/Divulgar';
 import { Inicio } from './pages/Inicio/Inicio';
@@ -47,6 +48,7 @@ export function App() {
             </Route>
             <Route element={<LayoutApp navegacao="topo" />}>
               <Route path="/eventos/:id" element={<DetalheEvento />} />
+              <Route path="/eventos/:id/checkout" element={<Checkout />} />
               <Route path="/eventos/:id/mapa" element={<Mapa />} />
               <Route path="/eventos/:id/chat" element={<Chat />} />
               <Route path="/eventos/:id/quem-vai" element={<QuemVai />} />

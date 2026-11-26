@@ -11,7 +11,9 @@ import { CampoSelecao } from '../../components/CampoSelecao';
 import { Chip } from '../../components/Chip';
 import { EventoCard } from '../../components/EventoCard';
 import { Icone } from '../../components/Icone';
+import { Interruptor } from '../../components/Interruptor';
 import { Segmentos } from '../../components/Segmentos';
+import { useAuth } from '../../contexts/useAuth';
 import type { CategoriaDTO, LocalDTO } from '../../dtos';
 import { listarCategorias } from '../../services/categorias';
 import { criarEvento, type EventoCompleto } from '../../services/eventos';
@@ -50,6 +52,8 @@ const CLASSIFICACOES = [
 export function Divulgar() {
   const navegar = useNavigate();
   const local = useLocation();
+  const { usuario } = useAuth();
+  const organizador = usuario?.perfil === 'ORGANIZADOR';
 
   const [formulario, setFormulario] = useState<FormularioEvento>(FORMULARIO_INICIAL);
   const [capa, setCapa] = useState<File | null>(null);
@@ -97,7 +101,7 @@ export function Divulgar() {
   async function publicar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
     setErroApi(null);
-    const encontrados = validarEvento(formulario);
+    const encontrados = validarEvento(formulario, new Date(), organizador);
     setErros(encontrados);
     if (Object.keys(encontrados).length > 0) {
       // Leva até o primeiro campo com problema.
@@ -106,7 +110,12 @@ export function Divulgar() {
     }
     setEnviando(true);
     try {
-      const novo = await criarEvento(paraRequisicao(formulario), capa);
+      const corpo = paraRequisicao(formulario);
+      if (!organizador) {
+        corpo.venda_no_app = undefined;
+        corpo.quantidade_ingressos = undefined;
+      }
+      const novo = await criarEvento(corpo, capa);
       navegar(`/eventos/${novo.id}`, { replace: true, state: { publicado: true } });
     } catch (e) {
       setErroApi(e instanceof ErroApi ? e.message : 'Não foi possível publicar. Tente de novo.');
@@ -149,7 +158,9 @@ export function Divulgar() {
         <BotaoIcone icone="fechar" rotulo="Fechar" onClick={fechar} />
         <div className={styles.cabecalhoTextos}>
           <h1 className={styles.titulo}>Divulgar evento</h1>
-          <p className={styles.subtitulo}>Conte para a galera o que vai rolar.</p>
+          <p className={styles.subtitulo}>
+            {organizador ? 'Evento verificado da sua empresa.' : 'Conte para a galera o que vai rolar.'}
+          </p>
         </div>
       </header>
 
@@ -274,6 +285,27 @@ export function Divulgar() {
                 onChange={(e) => alterar('classificacao', e.target.value)}
               />
             </div>
+            {organizador && (
+              <>
+                <Interruptor
+                  titulo="Vender ingresso no app"
+                  descricao="Desligado, o preço fica só na portaria."
+                  ligado={formulario.vendaNoApp}
+                  onAlternar={(ligado) => alterar('vendaNoApp', ligado)}
+                />
+                {formulario.vendaNoApp && (
+                  <Campo
+                    rotulo="Quantidade de ingressos"
+                    name="quantidade"
+                    inputMode="numeric"
+                    placeholder="Ex.: 100"
+                    value={formulario.quantidade}
+                    erro={erros.quantidade}
+                    onChange={(e) => alterar('quantidade', e.target.value.replace(/\D/g, ''))}
+                  />
+                )}
+              </>
+            )}
           </section>
 
           <Botao type="submit" carregando={enviando} icone="brilho" className={styles.publicar}>

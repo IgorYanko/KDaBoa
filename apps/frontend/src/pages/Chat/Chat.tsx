@@ -10,8 +10,10 @@ import { useAuth } from '../../contexts/useAuth';
 import type { MensagemChatDTO } from '../../dtos';
 import { type ConexaoChat, conectarChat, TEXTO_MAXIMO } from '../../services/chat';
 import { type EventoCompleto, buscarEvento } from '../../services/eventos';
+import { bloqueados } from '../../services/moderacao';
 import { corDaCategoria, corDoAvatar, iniciais } from '../../utils/cores';
 import { dia, horaMinuto, mesCurto, rotuloDoDia } from '../../utils/datas';
+import { AcoesMensagem } from './AcoesMensagem';
 import styles from './Chat.module.css';
 
 /** Mensagens da mesma pessoa com até 5 minutos de diferença ficam no mesmo grupo. */
@@ -43,6 +45,11 @@ export function Chat() {
   const [erroChat, setErroChat] = useState<string | null>(null);
   const [texto, setTexto] = useState('');
   const [enviando, setEnviando] = useState(false);
+  /** Pessoas bloqueadas: as mensagens delas somem só para quem bloqueou (issue #34). */
+  const [idsBloqueados, setIdsBloqueados] = useState<Set<string>>(() => bloqueados());
+  /** Mensagem com a janela de denunciar/bloquear aberta. */
+  const [acaoSobre, setAcaoSobre] = useState<MensagemChatDTO | null>(null);
+  const [avisoChat, setAvisoChat] = useState<string | null>(null);
 
   const conexao = useRef<ConexaoChat | null>(null);
   const fim = useRef<HTMLDivElement>(null);
@@ -97,6 +104,11 @@ export function Chat() {
     el.style.height = 'auto';
     if (texto) el.style.height = `${Math.min(el.scrollHeight, 140)}px`;
   }, [texto]);
+
+  function aoBloquear(mensagem: MensagemChatDTO) {
+    setIdsBloqueados((atual) => new Set([...atual, mensagem.autor.id]));
+    setAvisoChat(`Você bloqueou ${mensagem.autor.nome}. As mensagens dessa pessoa não aparecem mais para você.`);
+  }
 
   function voltar() {
     if (local.key === 'default') navegar(`/eventos/${id}`);
@@ -170,6 +182,7 @@ export function Chat() {
   }
 
   const total = evento.total_confirmados ?? 0;
+  const visiveis = mensagens?.filter((m) => !idsBloqueados.has(m.autor.id)) ?? null;
 
   return (
     <main className={styles.tela} style={estilo}>
@@ -194,18 +207,18 @@ export function Chat() {
           Só quem confirmou presença vê e participa desta conversa.
         </p>
 
-        {mensagens === null && !erroChat && <p className={styles.carregando}>Carregando conversa…</p>}
+        {visiveis === null && !erroChat && <p className={styles.carregando}>Carregando conversa…</p>}
 
-        {mensagens?.length === 0 && (
+        {visiveis?.length === 0 && (
           <div className={styles.vazio}>
             <p className={styles.vazioTitulo}>Ninguém falou nada ainda</p>
             <p>Puxe o assunto: quem chega cedo? Alguém quer dividir carona?</p>
           </div>
         )}
 
-        {mensagens?.map((mensagem, i) => {
-          const anterior = mensagens[i - 1];
-          const proxima = mensagens[i + 1];
+        {visiveis?.map((mensagem, i) => {
+          const anterior = visiveis[i - 1];
+          const proxima = visiveis[i + 1];
           const novoDia = !anterior || rotuloDoDia(anterior.criado_em) !== rotuloDoDia(mensagem.criado_em);
           const inicioGrupo = !mesmoGrupo(anterior, mensagem);
           const fimGrupo = !mesmoGrupo(mensagem, proxima);
@@ -235,10 +248,21 @@ export function Chat() {
                   ))}
                 <div className={styles.mensagem}>
                   {!minha && inicioGrupo && <p className={styles.nome}>{mensagem.autor.nome}</p>}
-                  <p className={styles.bolha}>
-                    <span className={styles.somenteLeitor}>{minha ? 'Você' : mensagem.autor.nome}: </span>
-                    {mensagem.texto}
-                  </p>
+                  <div className={styles.bolhaLinha}>
+                    <p className={styles.bolha}>
+                      <span className={styles.somenteLeitor}>{minha ? 'Você' : mensagem.autor.nome}: </span>
+                      {mensagem.texto}
+                    </p>
+                    {!minha && (
+                      <BotaoIcone
+                        icone="opcoes"
+                        rotulo={`Opções da mensagem de ${mensagem.autor.nome}`}
+                        variante="fantasma"
+                        className={styles.opcoes}
+                        onClick={() => setAcaoSobre(mensagem)}
+                      />
+                    )}
+                  </div>
                   {fimGrupo && (
                     <time className={styles.hora} dateTime={mensagem.criado_em}>
                       {horaMinuto(mensagem.criado_em)}
@@ -252,8 +276,11 @@ export function Chat() {
         <div ref={fim} />
       </div>
 
+      <AcoesMensagem mensagem={acaoSobre} aoFechar={() => setAcaoSobre(null)} aoBloquear={aoBloquear} />
+
       <form className={styles.envio} onSubmit={enviar}>
         {erroChat && <Aviso tipo="erro">{erroChat}</Aviso>}
+        {avisoChat && !erroChat && <Aviso tipo="sucesso">{avisoChat}</Aviso>}
         <div className={styles.envioLinha}>
           <label htmlFor="mensagem-chat" className={styles.somenteLeitor}>
             Mensagem para o grupo

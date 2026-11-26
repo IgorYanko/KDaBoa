@@ -1,0 +1,200 @@
+.corpo {
+  padding: var(--espaco-6) var(--espaco-5) var(--espaco-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+}
+
+.titulo {
+  padding-right: var(--espaco-10); /* espaço para o X */
+  font-size: var(--texto-lg);
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.texto {
+  font-size: var(--texto-sm);
+  line-height: 1.5;
+  color: var(--cor-texto-suave);
+}
+
+.citacao {
+  margin: 0;
+  padding: var(--espaco-3) var(--espaco-4);
+  max-height: 120px;
+  overflow: auto;
+  background: var(--cor-superficie-elevada);
+  border-left: 3px solid var(--cor-borda-forte);
+  border-radius: var(--raio-sm);
+  font-size: var(--texto-sm);
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--cor-texto-suave);
+}
+
+/* ---------- Menu ---------- */
+.lista {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-lg);
+}
+
+.acao {
+  min-height: 64px;
+  padding: var(--espaco-3) var(--espaco-4);
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  background: var(--cor-superficie);
+  border: none;
+  color: var(--cor-texto);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--transicao);
+}
+
+.acao + .acao {
+  border-top: 1px solid var(--cor-borda-suave);
+}
+
+.acao:hover {
+  background: var(--cor-superficie-elevada);
+}
+
+.acao:focus-visible {
+  outline: none;
+  box-shadow: inset var(--anel-foco);
+}
+
+.acao > svg {
+  flex-shrink: 0;
+  color: var(--cor-texto-suave);
+}
+
+.acaoTextos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.acaoTitulo {
+  font-size: var(--texto-base);
+  font-weight: 600;
+}
+
+.acaoDescricao {
+  font-size: var(--texto-xs);
+  color: var(--cor-texto-suave);
+}
+
+.perigo .acaoTitulo,
+.perigo > svg {
+  color: var(--cor-erro);
+}
+
+/* ---------- Denúncia ---------- */
+.motivos {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+}
+
+.legenda {
+  margin-bottom: var(--espaco-2);
+  padding: 0;
+  font-size: var(--texto-sm);
+  font-weight: 600;
+  color: var(--cor-rotulo);
+}
+
+.motivo {
+  min-height: 44px;
+  padding: 0 var(--espaco-3);
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  border-radius: var(--raio-md);
+  font-size: var(--texto-base);
+  cursor: pointer;
+}
+
+.motivo:hover {
+  background: var(--cor-superficie-elevada);
+}
+
+.motivo input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--cor-secundaria);
+}
+
+.detalhe {
+  display: flex;
+  flex-direction: column;
+}
+
+.caixa {
+  padding: var(--espaco-3);
+  background: var(--cor-campo);
+  border: 1px solid var(--cor-borda-campo);
+  border-radius: var(--raio-md);
+  color: var(--cor-texto);
+  font: inherit;
+  font-size: var(--texto-md);
+  resize: vertical;
+}
+
+.caixa:focus {
+  outline: none;
+  border-color: var(--cor-secundaria);
+  box-shadow: var(--anel-foco);
+}
+
+.botoes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--espaco-2);
+}
+
+/* Botão de bloquear: ação que afasta alguém, em vermelho. */
+.botaoPerigo {
+  background: var(--cor-erro);
+  border-color: var(--cor-erro);
+  box-shadow: none;
+  color: var(--cor-texto);
+}
+
+.botaoPerigo:hover:not(:disabled) {
+  background: color-mix(in oklch, var(--cor-erro) 85%, black);
+}
+
+/* ---------- Sucesso ---------- */
+.sucesso {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espaco-3);
+  text-align: center;
+}
+
+.sucesso .titulo {
+  padding-right: 0;
+}
+
+.selo {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cor-sucesso-fundo);
+  border-radius: var(--raio-pilula);
+  color: var(--cor-sucesso);
+}

@@ -70,9 +70,13 @@ export interface LocalDTO {
 // ---------------------------------------------------------------------------
 
 /** Dados públicos de um usuário (o que outras pessoas podem ver). */
+export type PerfilUsuario = 'USUARIO' | 'ORGANIZADOR' | 'ADMIN';
+
 export interface UsuarioResumoDTO {
   id: Uuid;
   nome: string;
+  /** Conta comum, empresa (CNPJ) ou admin. */
+  perfil?: PerfilUsuario;
   /** PENDENTE: @usuario exibido em Quem vai e no Perfil. */
   apelido?: string;
   /** PENDENTE: URL da foto; sem foto, o front mostra as iniciais. */
@@ -82,7 +86,10 @@ export interface UsuarioResumoDTO {
 /** Dados completos do usuário logado (tela de Perfil). */
 export interface UsuarioDTO extends UsuarioResumoDTO {
   email: string;
-  data_nascimento: DataSimples;
+  /** Ausente na conta CNPJ. */
+  data_nascimento?: DataSimples | null;
+  cnpj?: string | null;
+  nome_fantasia?: string | null;
   /** PENDENTE: ids das categorias de interesse (issue #4). */
   interesses?: number[];
   /** PENDENTE: se outras pessoas veem quando ele confirma presença (issue #4). */
@@ -107,11 +114,15 @@ export interface LoginResponseDTO {
 
 /** POST /api/usuarios/cadastro: corpo enviado. */
 export interface CadastroRequestDTO {
+  /** `cnpj` cria a conta de empresa, que só publica evento verificado. */
+  tipo?: 'pessoa' | 'cnpj';
   nome: string;
   email: string;
   /** Mínimo de 8 caracteres (regra da tela de cadastro). */
   senha: string;
   data_nascimento: DataSimples;
+  cnpj?: string;
+  nome_fantasia?: string;
   /** PENDENTE na API: ids das categorias escolhidas em "O que você curte?". */
   interesses: number[];
   /** PENDENTE na API: switch "Mostrar minha presença". */
@@ -178,6 +189,12 @@ export interface EventoDTO {
   preco: number;
   /** Idade mínima; 0 = livre. */
   classificacao_etaria: number;
+  /** Evento publicado por conta CNPJ. */
+  verificado?: boolean;
+  /** Ingresso cobrado neste app. Falso: preço na portaria ou gratuito. */
+  venda_no_app?: boolean;
+  /** Ingressos ainda disponíveis quando a venda é no app. */
+  quantidade_ingressos?: number | null;
   categoria_id: number;
   local_id: number;
   criador_id: Uuid;
@@ -230,6 +247,8 @@ export interface CriarEventoRequestDTO {
   categoria_id: number;
   local_id?: number;
   novo_local?: NovoLocalDTO;
+  venda_no_app?: boolean;
+  quantidade_ingressos?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -244,6 +263,28 @@ export interface CriarEventoRequestDTO {
 export interface AgendaDTO {
   proximos: EventoDTO[];
   passados: EventoDTO[];
+}
+
+/** Ingresso emitido depois do pagamento aprovado. */
+export interface IngressoDTO {
+  id: Uuid;
+  codigo: string;
+  status: 'valido' | 'usado' | 'cancelado';
+  evento_id: Uuid;
+  evento_titulo: string;
+  data_inicio: DataIso;
+}
+
+/** POST /api/eventos/:id/pagamentos e GET /api/pedidos/:id */
+export interface PagamentoPedidoDTO {
+  id: Uuid;
+  evento_id: Uuid;
+  quantidade: number;
+  valor_total: number;
+  status: 'pendente' | 'pago' | 'recusado' | 'cancelado';
+  qr_code?: string | null;
+  qr_code_base64?: string | null;
+  ingressos: { id: Uuid; codigo: string; status: string }[];
 }
 
 /** PENDENTE (issue #29): resposta de confirmar/cancelar presença. */
@@ -270,27 +311,37 @@ export interface ContadoresPerfilDTO {
 // Chat
 // ---------------------------------------------------------------------------
 
-/** PENDENTE (issue #33): mensagem do chat de um evento. */
+/**
+ * Mensagem do chat de um evento (issue #33), como o servidor de socket manda
+ * em `historico_mensagens` e `nova_mensagem`. O id vem do banco como número, convertido em texto.
+ */
 export interface MensagemChatDTO {
-  id: Uuid;
+  id: string;
   evento_id: Uuid;
   autor: UsuarioResumoDTO;
   texto: string;
   criado_em: DataIso;
 }
 
-/** PENDENTE (issue #33): corpo para enviar uma mensagem. */
+/** Corpo do evento `enviar_mensagem` do socket (vai junto com o `evento_id`). */
 export interface EnviarMensagemRequestDTO {
   texto: string;
 }
 
-/** PENDENTE (issue #35): bloquear um usuário. */
+/**
+ * PENDENTE (issue #35): bloquear um usuário a partir do chat (issue #34).
+ * Rota sugerida: POST /api/bloqueios. O histórico e as mensagens novas devem ocultar o bloqueado só para quem bloqueou.
+ */
 export interface BloquearUsuarioRequestDTO {
   usuario_id: Uuid;
 }
 
-/** PENDENTE (issue #37): denunciar uma mensagem. */
+/**
+ * PENDENTE (issue #37): denunciar uma mensagem do chat (issue #36).
+ * Rota sugerida: POST /api/denuncias. O banco guarda uma denúncia por pessoa e mensagem; motivo com até 255 caracteres.
+ */
 export interface DenunciarMensagemRequestDTO {
-  mensagem_id: Uuid;
+  /** id da mensagem (vem do banco como número, convertido em texto). */
+  mensagem_id: string;
   motivo: string;
 }

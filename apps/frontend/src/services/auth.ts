@@ -2,6 +2,7 @@ import { ErroApi, requisicao } from '../api/client';
 import { USAR_MOCK } from '../config';
 import type {
   CadastroRequestDTO,
+  PerfilUsuario,
   CadastroResponseDTO,
   EsqueciSenhaRequestDTO,
   EsqueciSenhaResponseDTO,
@@ -30,7 +31,13 @@ export async function login(dados: LoginRequestDTO): Promise<LoginResponseDTO> {
   return {
     mensagem: 'Login realizado com sucesso',
     token: 'token_mock_do_front',
-    usuario: { id: usuario.id, nome: usuario.nome, apelido: usuario.apelido, foto_url: usuario.foto_url },
+    usuario: {
+      id: usuario.id,
+      nome: usuario.nome,
+      apelido: usuario.apelido,
+      foto_url: usuario.foto_url,
+      perfil: usuario.perfil ?? 'USUARIO',
+    },
   };
 }
 
@@ -53,6 +60,9 @@ export async function cadastrar(dados: CadastroRequestDTO): Promise<CadastroResp
     data_nascimento: dados.data_nascimento,
     interesses: dados.interesses,
     mostrar_presenca: dados.mostrar_presenca,
+    perfil: (dados.tipo === 'cnpj' ? 'ORGANIZADOR' : 'USUARIO') as PerfilUsuario,
+    cnpj: dados.tipo === 'cnpj' ? dados.cnpj : null,
+    nome_fantasia: dados.nome_fantasia,
   };
   usuariosMock.push(novo);
   senhasMock.set(email, dados.senha);

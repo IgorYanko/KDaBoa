@@ -11,6 +11,7 @@ import { intervaloDoPeriodo } from '../utils/datas';
 import { reduzirImagem } from '../utils/imagem';
 import { listarCategorias } from './categorias';
 import { listarLocais } from './locais';
+import { presencasLembradas } from './presenca';
 
 /** Evento com a categoria e o local já resolvidos, pronto para as telas. */
 export interface EventoCompleto {
@@ -70,12 +71,30 @@ function todosEventosMock(): EventoDTO[] {
   return [...eventosMock, ...lerEventosCriados()];
 }
 
+/** Evento como a API manda hoje (release 3): o total vem em `confirmados`. */
+type EventoDaApi = EventoDTO & { confirmados?: number };
+
+/**
+ * Ajusta o evento da API ao formato do front: o total de confirmados vem como `confirmados`,
+ * o preço (Decimal no banco) pode chegar como texto e `eu_vou` ainda não vem (PENDENTE, issue #29).
+ */
+function doFormatoDaApi(evento: EventoDaApi, lembradas: Set<string>): EventoDTO {
+  return {
+    ...evento,
+    preco: Number(evento.preco) || 0,
+    total_confirmados: evento.total_confirmados ?? evento.confirmados ?? 0,
+    eu_vou: evento.eu_vou ?? lembradas.has(evento.id),
+  };
+}
+
 async function buscarListaEventos(filtro: FiltroEventosDTO): Promise<EventoDTO[]> {
   if (USAR_MOCK) {
     await atraso(300);
     return todosEventosMock().map(comPresenca);
   }
-  return requisicao<EventoDTO[]>(`/api/eventos${montarQuery(filtro)}`);
+  const lista = await requisicao<EventoDaApi[]>(`/api/eventos${montarQuery(filtro)}`);
+  const lembradas = presencasLembradas();
+  return lista.map((evento) => doFormatoDaApi(evento, lembradas));
 }
 
 async function completar(eventos: EventoDTO[]): Promise<EventoCompleto[]> {
@@ -120,7 +139,15 @@ export async function listarAgenda(): Promise<AgendaCompleta> {
     proximos = confirmados.filter((e) => aindaNaoAcabou(e, agora));
     passados = confirmados.filter((e) => !aindaNaoAcabou(e, agora));
   } else {
-    ({ proximos, passados } = await requisicao<AgendaDTO>('/api/usuarios/me/agenda'));
+    try {
+      ({ proximos, passados } = await requisicao<AgendaDTO>('/api/usuarios/me/agenda'));
+    } catch (e) {
+      if (!(e instanceof ErroApi && e.status === 404)) throw e;
+      // PENDENTE (issue #39): sem a rota, monta a agenda com os próximos eventos em que o
+      // usuário confirmou presença. Os passados só aparecem quando a rota existir.
+      proximos = (await buscarListaEventos({})).filter((evento) => evento.eu_vou);
+      passados = [];
+    }
   }
   const [proximosCompletos, passadosCompletos] = await Promise.all([completar(proximos), completar(passados)]);
   return {
@@ -138,7 +165,8 @@ export async function buscarEvento(id: string): Promise<EventoCompleto> {
     if (!encontrado) throw new ErroApi('Evento não encontrado', 404);
     evento = comPresenca(encontrado);
   } else {
-    evento = await requisicao<EventoDTO>(`/api/eventos/${encodeURIComponent(id)}`);
+    const bruto = await requisicao<EventoDaApi>(`/api/eventos/${encodeURIComponent(id)}`);
+    evento = doFormatoDaApi(bruto, presencasLembradas());
   }
   const [completo] = await completar([evento]);
   return completo;
@@ -154,7 +182,8 @@ export async function criarEvento(dados: CriarEventoRequestDTO, capa?: File | nu
       return await requisicao<EventoDTO>('/api/eventos', { metodo: 'POST', corpo: dados });
     } catch (e) {
       // A API ainda não cria o local junto com o evento (issue #44): explica em vez do erro genérico.
-      if (dados.novo_local && e instanceof ErroApi && e.status === 400) {
+      // Outros erros de validação (título, preço...) aparecem como a API mandou.
+      if (dados.novo_local && e instanceof ErroApi && e.status === 400 && /local|erro ao criar evento/i.test(e.message)) {
         throw new ErroApi('A API ainda não cadastra locais novos. Por enquanto, escolha um local da lista.', 400);
       }
       throw e;
@@ -172,6 +201,10 @@ export async function criarEvento(dados: CriarEventoRequestDTO, capa?: File | nu
     data_fim: null,
     criador_id: autor.id,
     organizador: autor,
+    verificado: autor.perfil === 'ORGANIZADOR',
+    venda_no_app: autor.perfil === 'ORGANIZADOR' && dados.venda_no_app === true,
+    quantidade_ingressos:
+      autor.perfil === 'ORGANIZADOR' && dados.venda_no_app ? (dados.quantidade_ingressos ?? null) : null,
     capa_url: capa ? await reduzirImagem(capa) : null,
     total_confirmados: 0,
     eu_vou: false,

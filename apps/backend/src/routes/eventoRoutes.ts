@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { eventoController } from '../controllers/eventoController';
+import { pagamentoController } from '../controllers/pagamentoController';
 import { verificarToken } from '../middlewares/authMiddleware';
 
 const router = Router();
@@ -17,6 +18,7 @@ const router = Router();
 router.get('/', verificarToken, eventoController.listar);
 router.get('/:id', eventoController.buscarPorId);
 router.post('/', verificarToken, eventoController.criar);
+router.post('/:id/pagamentos', verificarToken, pagamentoController.criar);
 router.put('/:id', verificarToken, eventoController.atualizar);
 router.delete('/:id', verificarToken, eventoController.deletar);
 

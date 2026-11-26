@@ -1,8 +1,14 @@
 import type { Request, Response } from 'express';
-import type { RequisicaoAutenticada } from '../middlewares/authMiddleware';
 import { prisma } from '../prisma';
 
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+interface RequisicaoAutenticada extends Request {
+  usuario?: {
+    id?: string;
+    email?: string;
+  };
+}
 
 function calcularIdade(dataNascimento: Date, referencia = new Date()): number {
   let idade = referencia.getFullYear() - dataNascimento.getFullYear();
@@ -45,7 +51,20 @@ export const presencaController = {
         return;
       }
 
+      if (evento.vendaNoApp) {
+        res.status(403).json({
+          erro: 'Este evento vende ingresso no app. A presença vem com o pagamento.',
+        });
+        return;
+      }
+
       if (evento.classificacaoEtaria > 0) {
+        if (!usuario.dataNascimento) {
+          res.status(403).json({
+            erro: `Evento restrito para maiores de ${evento.classificacaoEtaria} anos`,
+          });
+          return;
+        }
         const idade = calcularIdade(new Date(usuario.dataNascimento));
         if (idade < evento.classificacaoEtaria) {
           res.status(403).json({
