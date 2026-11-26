@@ -117,8 +117,18 @@ export function configurarSocket(httpServer: HttpServer): Server {
         socket.data.usuarioId = usuarioId;
         socket.data.eventoId = eventoId;
 
+        const bloqueios = await prisma.bloqueio.findMany({
+          where: { bloqueadorId: usuarioId },
+          select: { bloqueadoId: true },
+        });
+        const idsBloqueados = bloqueios.map((b) => b.bloqueadoId);
+        const conjuntoBloqueados = new Set(idsBloqueados);
+
         const historico = await prisma.mensagem.findMany({
-          where: { eventoId },
+          where: {
+            eventoId,
+            ...(idsBloqueados.length > 0 ? { usuarioId: { notIn: idsBloqueados } } : {}),
+          },
           include: {
             usuario: {
               select: {
@@ -131,9 +141,11 @@ export function configurarSocket(httpServer: HttpServer): Server {
           orderBy: { criadoEm: 'asc' },
         });
 
+        const historicoFiltrado = historico.filter((m) => !conjuntoBloqueados.has(m.usuarioId));
+
         socket.emit(
           'historico_mensagens',
-          historico.map((m) => formatarMensagem(m)),
+          historicoFiltrado.map((m) => formatarMensagem(m)),
         );
       } catch (_error) {
         socket.emit('erro_sala', {
@@ -180,6 +192,8 @@ export function configurarSocket(httpServer: HttpServer): Server {
           }
 
           await socket.join(nomeSala);
+          socket.data.usuarioId = usuarioId;
+          socket.data.eventoId = eventoId;
         }
 
         const novaMensagem = await prisma.mensagem.create({
@@ -199,7 +213,22 @@ export function configurarSocket(httpServer: HttpServer): Server {
           },
         });
 
-        io.to(nomeSala).emit('nova_mensagem', formatarMensagem(novaMensagem));
+        const bloqueiosDoAutor = await prisma.bloqueio.findMany({
+          where: { bloqueadoId: usuarioId },
+          select: { bloqueadorId: true },
+        });
+        const quemBloqueou = new Set(bloqueiosDoAutor.map((b) => b.bloqueadorId));
+
+        const mensagemFormatada = formatarMensagem(novaMensagem);
+        const socketsNaSala = await io.in(nomeSala).fetchSockets();
+
+        for (const destinatario of socketsNaSala) {
+          const destinatarioId = destinatario.data.usuarioId as string | undefined;
+          if (destinatarioId && quemBloqueou.has(destinatarioId)) {
+            continue;
+          }
+          destinatario.emit('nova_mensagem', mensagemFormatada);
+        }
       } catch (_error) {
         socket.emit('erro_mensagem', {
           erro: 'Erro ao salvar ou enviar a mensagem.',
