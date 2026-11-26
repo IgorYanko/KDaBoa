@@ -31,9 +31,25 @@ const locaisExtras = [
     nome: 'Área de Eventos da Festa de Peão',
     endereco: 'MG-290, sentido Borda da Mata, próximo ao Posto do Macaco',
     bairro: 'São João',
+    latitude: -22.239431,
+    longitude: -45.958675,
   },
-  { nome: 'Catedral Metropolitana Senhor Bom Jesus', endereco: 'Centro, Pouso Alegre - MG', bairro: 'Centro' },
-  { nome: 'Praça João Pinheiro', endereco: 'Praça João Pinheiro, Pouso Alegre - MG' },
+  {
+    nome: 'Catedral Metropolitana Senhor Bom Jesus',
+    endereco: 'Praça Senador José Bento, s/n',
+    bairro: 'Centro',
+    cep: '37550-035',
+    latitude: -22.23038,
+    longitude: -45.93658,
+  },
+  {
+    nome: 'Praça João Pinheiro',
+    endereco: 'Praça João Pinheiro, s/n',
+    bairro: 'Centro',
+    cep: '37550-191',
+    latitude: -22.233876,
+    longitude: -45.939586,
+  },
 ];
 
 const eventos = [
@@ -356,7 +372,9 @@ function dataDaquiA(dias: number, hora: number) {
 async function main() {
   for (const l of locaisExtras) {
     const existe = await prisma.local.findFirst({ where: { nome: l.nome } });
-    if (!existe) {
+    if (existe) {
+      await prisma.local.update({ where: { id: existe.id }, data: l });
+    } else {
       await prisma.local.create({ data: l });
     }
   }
