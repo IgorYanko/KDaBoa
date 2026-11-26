@@ -18,7 +18,8 @@ import { swaggerSpec } from './swagger';
 const app = express();
 
 app.use(cors());
-app.use(express.json());
+// 2 MB: o evento pode trazer a foto da capa já reduzida pelo front.
+app.use(express.json({ limit: '2mb' }));
 
 // Rota da documentação visual (Swagger)
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
