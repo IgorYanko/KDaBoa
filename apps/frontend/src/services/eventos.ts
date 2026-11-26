@@ -196,7 +196,15 @@ export async function listarAgenda(): Promise<AgendaCompleta> {
     proximos = confirmados.filter((e) => aindaNaoAcabou(e, agora));
     passados = confirmados.filter((e) => !aindaNaoAcabou(e, agora));
   } else {
-    ({ proximos, passados } = await requisicao<AgendaDTO>('/api/usuarios/me/agenda'));
+    try {
+      ({ proximos, passados } = await requisicao<AgendaDTO>('/api/usuarios/me/agenda'));
+    } catch (e) {
+      if (!(e instanceof ErroApi && e.status === 404)) throw e;
+      // PENDENTE (issue #39): sem a rota, monta a agenda com os próximos eventos em que o
+      // usuário confirmou presença. Os passados só aparecem quando a rota existir.
+      proximos = (await buscarListaEventos({})).filter((evento) => evento.eu_vou);
+      passados = [];
+    }
   }
   const [proximosCompletos, passadosCompletos] = await Promise.all([completar(proximos), completar(passados)]);
   return {
