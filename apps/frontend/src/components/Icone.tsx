@@ -120,6 +120,14 @@ const desenhos = {
     </>
   ),
   mapa: <path d="M9 4.5 3.5 6.8v12.7L9 17.2l6 2.3 5.5-2.3V4.5L15 6.8zM9 4.5v12.7M15 6.8v12.7" />,
+  mira: (
+    <>
+      <circle cx="12" cy="12" r="6.5" />
+      <circle cx="12" cy="12" r="2" />
+      <path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3" />
+    </>
+  ),
+  rota: <path d="M3.5 11.2 20.5 3.5l-7.7 17-2-7.3z" />,
   calendario: (
     <>
       <rect x="3.5" y="5" width="17" height="15.5" rx="3" />

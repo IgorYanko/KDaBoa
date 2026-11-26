@@ -4,7 +4,6 @@ import { AvisoServidor } from './components/AvisoServidor';
 import { LayoutApp } from './components/LayoutApp';
 import { LimiteErro } from './components/LimiteErro';
 import { RotaPrivada, RotaPublica } from './components/RotaPrivada';
-import { TelaEmConstrucao } from './components/TelaEmConstrucao';
 import { AuthProvider } from './contexts/AuthContext';
 import { Agenda } from './pages/Agenda/Agenda';
 import { Cadastro } from './pages/Cadastro/Cadastro';
@@ -14,6 +13,7 @@ import { DetalheEvento } from './pages/DetalheEvento/DetalheEvento';
 import { Divulgar } from './pages/Divulgar/Divulgar';
 import { Inicio } from './pages/Inicio/Inicio';
 import { Login } from './pages/Login/Login';
+import { Mapa } from './pages/Mapa/Mapa';
 import { Perfil } from './pages/Perfil/Perfil';
 import { QuemVai } from './pages/QuemVai/QuemVai';
 import { RedefinirSenha } from './pages/RedefinirSenha/RedefinirSenha';
@@ -53,7 +53,7 @@ export function App() {
             <Route element={<LayoutApp navegacao="topo" />}>
               <Route path="/eventos/:id" element={<DetalheEvento />} />
               <Route path="/eventos/:id/checkout" element={<Checkout />} />
-              <Route path="/eventos/:id/mapa" element={<TelaEmConstrucao titulo="Mapa do evento" issue={24} />} />
+              <Route path="/eventos/:id/mapa" element={<Mapa />} />
               <Route path="/eventos/:id/chat" element={<Chat />} />
               <Route path="/eventos/:id/quem-vai" element={<QuemVai />} />
               <Route path="/divulgar" element={<Divulgar />} />

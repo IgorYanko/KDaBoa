@@ -14,6 +14,7 @@ import { atraso } from '../mocks/atraso';
 import { eventosMock } from '../mocks/eventos';
 import { comAlteracoes, marcarExcluido, salvarEdicao } from '../mocks/eventosAlterados';
 import { lerEventosCriados, salvarEventoCriado } from '../mocks/eventosCriados';
+import { salvarLocalCriado } from '../mocks/locaisCriados';
 import { comPresenca } from '../mocks/presencas';
 import { intervaloDoPeriodo } from '../utils/datas';
 import { reduzirImagem } from '../utils/imagem';
@@ -235,13 +236,25 @@ export async function buscarEvento(id: string): Promise<EventoCompleto> {
  */
 export async function criarEvento(dados: CriarEventoRequestDTO, capa?: File | null): Promise<EventoDTO> {
   if (!USAR_MOCK) {
-    return requisicao<EventoDTO>('/api/eventos', { metodo: 'POST', corpo: dados });
+    try {
+      return await requisicao<EventoDTO>('/api/eventos', { metodo: 'POST', corpo: dados });
+    } catch (e) {
+      // A API ainda não cria o local junto com o evento (issue #44): explica em vez do erro genérico.
+      // Outros erros de validação (título, preço...) aparecem como a API mandou.
+      if (dados.novo_local && e instanceof ErroApi && e.status === 400 && /local|erro ao criar evento/i.test(e.message)) {
+        throw new ErroApi('A API ainda não cadastra locais novos. Por enquanto, escolha um local da lista.', 400);
+      }
+      throw e;
+    }
   }
   await atraso(600);
   const autor = lerSessao()?.usuario;
   if (!autor) throw new ErroApi('Entre na sua conta para divulgar um evento.', 401);
+  const { novo_local: novoLocal, ...resto } = dados;
+  const localId = novoLocal ? salvarLocalCriado(novoLocal).id : (dados.local_id ?? 0);
   const evento: EventoDTO = {
-    ...dados,
+    ...resto,
+    local_id: localId,
     id: crypto.randomUUID(),
     data_fim: null,
     criador_id: autor.id,
