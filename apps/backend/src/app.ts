@@ -6,6 +6,7 @@ import categoriaRoutes from './routes/categoriaRoutes';
 import eventoRoutes from './routes/eventoRoutes';
 import localRoutes from './routes/localRoutes';
 import presencaRoutes from './routes/presencaRoutes';
+import seguidorRoutes from './routes/seguidorRoutes';
 import usuarioRoutes from './routes/usuarioRoutes';
 import { swaggerSpec } from './swagger';
 
@@ -23,6 +24,7 @@ app.use('/api/usuarios', usuarioRoutes);
 app.use('/api/categorias', categoriaRoutes);
 app.use('/api/locais', localRoutes);
 app.use('/api/presencas', presencaRoutes);
+app.use('/api/seguidores', seguidorRoutes);
 app.use('/api/auth', authRoutes);
 
 app.get('/api/status', (_req, res) => {
