@@ -7,6 +7,7 @@ import { CampoBusca } from '../../components/CampoBusca';
 import { Icone } from '../../components/Icone';
 import { useAuth } from '../../contexts/useAuth';
 import type { ParticipanteDTO } from '../../dtos';
+import { idsQuePossoChamar } from '../../services/conversas';
 import { buscarEvento, type EventoCompleto } from '../../services/eventos';
 import { deixarDeSeguir, listarParticipantes, seguirUsuario } from '../../services/social';
 import { PessoaLinha } from './PessoaLinha';
@@ -29,6 +30,16 @@ export function QuemVai() {
   const [erroSeguir, setErroSeguir] = useState<string | null>(null);
   const [busca, setBusca] = useState('');
   const [ocupados, setOcupados] = useState<Set<string>>(new Set());
+  /** Quem se segue nos dois sentidos com o usuário logado (pode abrir conversa). */
+  const [possoChamar, setPossoChamar] = useState<Set<string>>(new Set());
+
+  function atualizarPossoChamar() {
+    idsQuePossoChamar()
+      .then(setPossoChamar)
+      .catch(() => setPossoChamar(new Set()));
+  }
+
+  useEffect(atualizarPossoChamar, []);
 
   useEffect(() => {
     let ativo = true;
@@ -67,6 +78,7 @@ export function QuemVai() {
     marcarOcupado(pessoa.id, true);
     try {
       await (seguir ? seguirUsuario(pessoa.id) : deixarDeSeguir(pessoa.id));
+      atualizarPossoChamar();
     } catch (e) {
       trocarSeguindo(pessoa.id, !seguir);
       setErroSeguir(e instanceof ErroApi ? e.message : 'Não foi possível atualizar. Tente de novo.');
@@ -154,6 +166,7 @@ export function QuemVai() {
                   posicao={lista.indexOf(pessoa)}
                   eu={pessoa.id === usuario?.id}
                   ocupado={ocupados.has(pessoa.id)}
+                  podeConversar={possoChamar.has(pessoa.id)}
                   onAlternarSeguir={() => alternarSeguir(pessoa)}
                 />
               ))}

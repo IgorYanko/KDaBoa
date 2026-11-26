@@ -354,3 +354,38 @@ export interface DenunciarMensagemRequestDTO {
   mensagem_id: string;
   motivo: string;
 }
+
+// ---------------------------------------------------------------------------
+// Chat mútuo: conversa entre duas pessoas que se seguem nos dois sentidos
+// ---------------------------------------------------------------------------
+
+/** Uma mensagem da conversa (GET/POST /api/conversas/:usuarioId e evento `nova_direta` do socket). */
+export interface MensagemDiretaDTO {
+  id: string;
+  remetente_id: Uuid;
+  destinatario_id: Uuid;
+  texto: string;
+  criado_em: DataIso;
+}
+
+/** Pessoa da conversa (o que a API manda; sem apelido por enquanto). */
+export interface PessoaConversaDTO {
+  id: Uuid;
+  nome: string;
+  foto_url?: string | null;
+}
+
+/** Item do GET /api/conversas: quem segue de volta e conversas que já existem. */
+export interface ConversaDTO {
+  usuario: PessoaConversaDTO;
+  /** Os dois se seguem: dá para mandar mensagem. Falso = conversa antiga, só leitura. */
+  pode_enviar: boolean;
+  ultima_mensagem: MensagemDiretaDTO | null;
+}
+
+/** GET /api/conversas/:usuarioId */
+export interface ConversaAbertaDTO {
+  usuario: PessoaConversaDTO;
+  pode_enviar: boolean;
+  mensagens: MensagemDiretaDTO[];
+}

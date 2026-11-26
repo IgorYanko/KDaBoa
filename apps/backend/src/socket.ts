@@ -2,6 +2,7 @@ import type { Server as HttpServer } from 'node:http';
 import jwt from 'jsonwebtoken';
 import { Server, type Socket } from 'socket.io';
 import { prisma } from './prisma';
+import { definirServidorTempoReal, salaDoUsuario } from './realtime';
 
 interface PayloadEntrarSala {
   eventoId?: string;
@@ -47,6 +48,22 @@ function formatarMensagem(msg: MensagemComUsuario) {
   };
 }
 
+/** Só o id que vem de um token válido (sem aceitar `usuarioId` solto no handshake). */
+function usuarioDoToken(socket: Socket): string | undefined {
+  const auth = socket.handshake.auth as { token?: string } | undefined;
+  const headerAuth = socket.handshake.headers.authorization;
+  const token =
+    auth?.token ||
+    (typeof headerAuth === 'string' && headerAuth.startsWith('Bearer ') ? headerAuth.split(' ')[1] : undefined);
+  if (!token) return undefined;
+  try {
+    const secret = process.env.JWT_SECRET || 'kdaboa_chave_secreta_teste';
+    return (jwt.verify(token, secret) as { id?: string }).id;
+  } catch (_error) {
+    return undefined;
+  }
+}
+
 function extrairUsuarioDoSocket(socket: Socket): string | undefined {
   const auth = socket.handshake.auth as { token?: string; usuarioId?: string } | undefined;
   if (auth?.usuarioId) {
@@ -81,8 +98,16 @@ export function configurarSocket(httpServer: HttpServer): Server {
     },
   });
 
+  definirServidorTempoReal(io);
+
   io.on('connection', (socket: Socket) => {
     const usuarioAutenticado = extrairUsuarioDoSocket(socket);
+
+    // Sala pessoal: mensagens do chat mútuo chegam aqui (ver realtime.ts).
+    const usuarioVerificado = usuarioDoToken(socket);
+    if (usuarioVerificado) {
+      void socket.join(salaDoUsuario(usuarioVerificado));
+    }
 
     socket.on('entrar_sala', async (payload: PayloadEntrarSala) => {
       try {
