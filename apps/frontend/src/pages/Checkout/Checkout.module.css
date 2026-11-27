@@ -12,37 +12,6 @@
   .tela {
     max-width: 860px;
   }
-
-  .telaAprovada {
-    max-width: 440px;
-  }
-}
-
-.selo {
-  align-self: flex-start;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: var(--cor-primaria-tinta);
-  color: var(--cor-primaria);
-  font-size: var(--texto-2xs);
-  font-weight: 700;
-  letter-spacing: var(--espacamento-sobrancelha);
-  text-transform: uppercase;
-}
-
-.ingressos {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: var(--espaco-4);
-}
-
-.acoes {
-  display: flex;
-  flex-direction: column;
-  gap: var(--espaco-2);
 }
 
 .cabecalho {

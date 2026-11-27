@@ -2,9 +2,8 @@ import { type FormEvent, useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { ErroApi } from '../../api/client';
 import { Aviso } from '../../components/Aviso';
-import { Botao, classesBotao } from '../../components/Botao';
+import { Botao } from '../../components/Botao';
 import { Campo } from '../../components/Campo';
-import { CartaoIngresso } from '../../components/CartaoIngresso';
 import { Segmentos } from '../../components/Segmentos';
 import type { PagamentoPedidoDTO } from '../../dtos';
 import { buscarEvento, type EventoCompleto } from '../../services/eventos';
@@ -248,42 +247,6 @@ export function Checkout() {
     );
   }
 
-  if (pedido?.status === 'pago') {
-    const totalIngressos = pedido.ingressos.length;
-    return (
-      <main className={`${styles.tela} ${styles.telaAprovada}`}>
-        <header className={styles.cabecalho}>
-          <p className={styles.selo}>Pagamento aprovado</p>
-          <h1 className={styles.titulo}>Seus ingressos estão prontos</h1>
-          <p className={styles.subtitulo}>Guarde o código. Ele também fica na sua agenda.</p>
-        </header>
-        <ul className={styles.ingressos}>
-          {pedido.ingressos.map((ingresso, indice) => (
-            <li key={ingresso.id}>
-              <CartaoIngresso
-                codigo={ingresso.codigo}
-                titulo={item.evento.titulo}
-                dataInicio={item.evento.data_inicio}
-                capaUrl={item.evento.capa_url}
-                localNome={item.local?.nome}
-                indice={indice + 1}
-                total={totalIngressos}
-              />
-            </li>
-          ))}
-        </ul>
-        <div className={styles.acoes}>
-          <Link to="/agenda?aba=ingressos" className={classesBotao()}>
-            Ver na agenda
-          </Link>
-          <Link to={`/eventos/${id}`} className={classesBotao({ variante: 'fantasma' })}>
-            Voltar ao evento
-          </Link>
-        </div>
-      </main>
-    );
-  }
-
   return (
     <main className={styles.tela}>
       <header className={styles.cabecalho}>
@@ -292,6 +255,10 @@ export function Checkout() {
       </header>
 
       {erro && <Aviso tipo="erro">{erro}</Aviso>}
+
+      {pedido?.status === 'pago' && (
+        <Aviso tipo="sucesso">{`Pagamento aprovado. Seus códigos: ${pedido.ingressos.map((ingresso) => ingresso.codigo).join(', ')}.`}</Aviso>
+      )}
 
       {pedido?.status === 'pendente' && (
         <section className={styles.pix}>
@@ -307,7 +274,9 @@ export function Checkout() {
         </section>
       )}
 
-      {pedido?.status === 'pendente' ? null : (
+      {pedido?.status === 'pago' ? (
+        <Link to="/agenda">Ver meus ingressos</Link>
+      ) : pedido?.status === 'pendente' ? null : (
         <>
           <Campo
             rotulo="Quantidade"
