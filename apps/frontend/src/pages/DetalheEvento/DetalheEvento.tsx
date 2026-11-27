@@ -38,9 +38,10 @@ export function DetalheEvento() {
   const [erroExclusao, setErroExclusao] = useState<string | null>(null);
   // Vindo do Divulgar (publicar ou editar): avisa que deu certo.
   const [aviso, setAviso] = useState<string | null>(() => {
-    const estado = local.state as { publicado?: boolean; editado?: boolean } | null;
-    if (estado?.publicado) return 'Evento publicado! Agora é só chamar a galera.';
-    if (estado?.editado) return 'Alterações salvas.';
+    const estado = local.state as { publicado?: boolean; editado?: boolean; semFoto?: boolean } | null;
+    const foto = estado?.semFoto ? ' A foto não pôde ser enviada agora, então o evento ficou sem capa.' : '';
+    if (estado?.publicado) return `Evento publicado! Agora é só chamar a galera.${foto}`;
+    if (estado?.editado) return `Alterações salvas.${foto}`;
     return null;
   });
 

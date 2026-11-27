@@ -272,10 +272,46 @@ async function comCapa<T extends object>(dados: T, capa?: File | null): Promise<
  * POST /api/eventos — publica um evento (tela Divulgar, issues #43 e #45).
  * A capa vai junto, reduzida no navegador (issue #46); no mock ela fica guardada no navegador.
  */
-export async function criarEvento(dados: CriarEventoRequestDTO, capa?: File | null): Promise<EventoDTO> {
+/**
+ * A API recusou só por causa da foto? Em produção a coluna da capa ainda tem o limite antigo
+ * (a migration da issue #108 não rodou), e o banco recusa a foto com um erro genérico.
+ */
+function recusouPelaCapa(e: unknown): boolean {
+  if (!(e instanceof ErroApi)) return false;
+  return (
+    (e.status === 400 && /erro ao criar evento/i.test(e.message)) ||
+    (e.status === 404 && /erro ao atualizar/i.test(e.message))
+  );
+}
+
+/**
+ * Manda com a foto; se a API recusar por causa dela, manda de novo sem a foto e avisa
+ * (`semFoto`). Quando a migration rodar, a foto passa a ir normalmente.
+ */
+async function enviarComCapa<T>(
+  dados: object,
+  capa: File | null | undefined,
+  enviar: (corpo: object) => Promise<T>,
+): Promise<{ resposta: T; semFoto: boolean }> {
+  if (!capa) return { resposta: await enviar(dados), semFoto: false };
+  try {
+    return { resposta: await enviar(await comCapa(dados, capa)), semFoto: false };
+  } catch (e) {
+    if (!recusouPelaCapa(e)) throw e;
+    return { resposta: await enviar(dados), semFoto: true };
+  }
+}
+
+/** Evento publicado; `semFoto` = a API não aceitou a foto agora e ele saiu sem capa. */
+export type EventoPublicado = EventoDTO & { semFoto?: boolean };
+
+export async function criarEvento(dados: CriarEventoRequestDTO, capa?: File | null): Promise<EventoPublicado> {
   if (!USAR_MOCK) {
     try {
-      return await requisicao<EventoDTO>('/api/eventos', { metodo: 'POST', corpo: await comCapa(dados, capa) });
+      const { resposta, semFoto } = await enviarComCapa(dados, capa, (corpo) =>
+        requisicao<EventoDTO>('/api/eventos', { metodo: 'POST', corpo }),
+      );
+      return { ...resposta, semFoto };
     } catch (e) {
       // A API ainda não cria o local junto com o evento (issue #44): explica em vez do erro genérico.
       // Outros erros de validação (título, preço...) aparecem como a API mandou.
@@ -315,17 +351,21 @@ export async function criarEvento(dados: CriarEventoRequestDTO, capa?: File | nu
 }
 
 /** PUT /api/eventos/:id — só o criador ou um ADMIN (a API responde 403 para os outros). */
-export async function atualizarEvento(id: string, dados: AtualizarEventoRequestDTO, capa?: File | null): Promise<void> {
+export async function atualizarEvento(
+  id: string,
+  dados: AtualizarEventoRequestDTO,
+  capa?: File | null,
+): Promise<{ semFoto: boolean }> {
   if (!USAR_MOCK) {
-    await requisicao<unknown>(`/api/eventos/${encodeURIComponent(id)}`, {
-      metodo: 'PUT',
-      corpo: await comCapa(dados, capa),
-    });
-    return;
+    const { semFoto } = await enviarComCapa(dados, capa, (corpo) =>
+      requisicao<unknown>(`/api/eventos/${encodeURIComponent(id)}`, { metodo: 'PUT', corpo }),
+    );
+    return { semFoto };
   }
   await atraso(500);
   garantirPermissaoNoMock(id);
   salvarEdicao(id, { ...dados, ...(capa ? { capa_url: await reduzirImagem(capa) } : {}) });
+  return { semFoto: false };
 }
 
 /** DELETE /api/eventos/:id — apaga também as presenças e o chat do evento. */
