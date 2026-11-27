@@ -48,10 +48,17 @@ export const bloqueioController = {
     }
   },
 
-  // POST /api/bloqueios/:usuarioId - Bloqueia um usuário sem duplicar (valida presença se vier eventoId do chat)
+  // POST /api/bloqueios ou POST /api/bloqueios/:usuarioId - Bloqueia um usuário sem duplicar
   bloquear: async (req: Request, res: Response): Promise<void> => {
     try {
-      const bloqueadoId = String(req.params.usuarioId);
+      const bloqueadoId = String(
+        req.params.usuarioId ??
+          req.body?.usuarioId ??
+          req.body?.usuario_id ??
+          req.body?.bloqueadoId ??
+          req.body?.bloqueado_id ??
+          '',
+      ).trim();
       const bloqueadorId = (req as RequisicaoAutenticada).usuario?.id;
 
       if (!bloqueadorId) {
