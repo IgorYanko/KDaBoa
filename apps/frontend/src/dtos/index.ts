@@ -303,6 +303,9 @@ export interface IngressoDTO {
   evento_id: Uuid;
   evento_titulo: string;
   data_inicio: DataIso;
+  /** Capa do evento, a mesma imagem do detalhe. */
+  capa_url?: string | null;
+  local_nome?: string | null;
 }
 
 /** POST /api/eventos/:id/pagamentos e GET /api/pedidos/:id */
