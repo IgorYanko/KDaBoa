@@ -4,18 +4,15 @@ import { Server, type Socket } from 'socket.io';
 import { prisma } from './prisma';
 import { definirServidorTempoReal, salaDoUsuario } from './realtime';
 
+/** O usuário não vem no payload: é sempre o do token da conexão. */
 interface PayloadEntrarSala {
   eventoId?: string;
   evento_id?: string;
-  usuarioId?: string;
-  usuario_id?: string;
 }
 
 interface PayloadEnviarMensagem {
   eventoId?: string;
   evento_id?: string;
-  usuarioId?: string;
-  usuario_id?: string;
   texto?: string;
   conteudo?: string;
 }
@@ -64,32 +61,6 @@ function usuarioDoToken(socket: Socket): string | undefined {
   }
 }
 
-function extrairUsuarioDoSocket(socket: Socket): string | undefined {
-  const auth = socket.handshake.auth as { token?: string; usuarioId?: string } | undefined;
-  if (auth?.usuarioId) {
-    return auth.usuarioId;
-  }
-
-  const headerAuth = socket.handshake.headers.authorization;
-  const token =
-    auth?.token ||
-    (typeof headerAuth === 'string' && headerAuth.startsWith('Bearer ')
-      ? headerAuth.split(' ')[1]
-      : undefined);
-
-  if (!token) {
-    return undefined;
-  }
-
-  try {
-    const secret = process.env.JWT_SECRET || 'kdaboa_chave_secreta_teste';
-    const decodificado = jwt.verify(token, secret) as { id?: string };
-    return decodificado.id;
-  } catch (_error) {
-    return undefined;
-  }
-}
-
 export function configurarSocket(httpServer: HttpServer): Server {
   const io = new Server(httpServer, {
     cors: {
@@ -101,18 +72,19 @@ export function configurarSocket(httpServer: HttpServer): Server {
   definirServidorTempoReal(io);
 
   io.on('connection', (socket: Socket) => {
-    const usuarioAutenticado = extrairUsuarioDoSocket(socket);
+    // Quem fala no chat é sempre o dono do token. Um `usuarioId` mandado pelo navegador
+    // (no handshake ou na mensagem) é ignorado: senão dava para falar em nome de outra pessoa.
+    const usuarioAutenticado = usuarioDoToken(socket);
 
     // Sala pessoal: mensagens do chat mútuo chegam aqui (ver realtime.ts).
-    const usuarioVerificado = usuarioDoToken(socket);
-    if (usuarioVerificado) {
-      void socket.join(salaDoUsuario(usuarioVerificado));
+    if (usuarioAutenticado) {
+      void socket.join(salaDoUsuario(usuarioAutenticado));
     }
 
     socket.on('entrar_sala', async (payload: PayloadEntrarSala) => {
       try {
         const eventoId = payload?.eventoId || payload?.evento_id;
-        const usuarioId = payload?.usuarioId || payload?.usuario_id || usuarioAutenticado;
+        const usuarioId = usuarioAutenticado;
 
         if (!eventoId || !usuarioId) {
           socket.emit('erro_sala', {
@@ -183,11 +155,7 @@ export function configurarSocket(httpServer: HttpServer): Server {
       try {
         const eventoId =
           payload?.eventoId || payload?.evento_id || (socket.data.eventoId as string | undefined);
-        const usuarioId =
-          payload?.usuarioId ||
-          payload?.usuario_id ||
-          (socket.data.usuarioId as string | undefined) ||
-          usuarioAutenticado;
+        const usuarioId = usuarioAutenticado;
         const conteudo = (payload?.texto || payload?.conteudo)?.trim();
 
         if (!eventoId || !usuarioId || !conteudo) {

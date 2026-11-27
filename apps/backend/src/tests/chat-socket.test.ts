@@ -80,6 +80,12 @@ describe('Chat por evento com Socket.IO (Cards 30 e 32)', () => {
   let baseUrl: string;
   const clientesAtivos: ClientSocket[] = [];
 
+  /** Conecta como um usuário: o id vai num token assinado, como no app. */
+  function conectarComo(usuarioId: string): ClientSocket {
+    const secret = process.env.JWT_SECRET || 'kdaboa_chave_secreta_teste';
+    return conectarCliente({ token: jwt.sign({ id: usuarioId }, secret) });
+  }
+
   function conectarCliente(opcoes?: { token?: string; usuarioId?: string }): ClientSocket {
     const cliente = Client(baseUrl, {
       transports: ['websocket'],
@@ -118,12 +124,10 @@ describe('Chat por evento com Socket.IO (Cards 30 e 32)', () => {
     });
     expect(erroSemDados.erro).toContain('obrigatórios');
 
+    const naoConfirmado = conectarComo('user-nao-confirmado');
     const erroSemPresenca = await new Promise<{ erro: string }>((resolve) => {
-      cliente.once('erro_sala', (dados) => resolve(dados));
-      cliente.emit('entrar_sala', {
-        evento_id: 'evento-1',
-        usuario_id: 'user-nao-confirmado',
-      });
+      naoConfirmado.once('erro_sala', (dados) => resolve(dados));
+      naoConfirmado.emit('entrar_sala', { evento_id: 'evento-1' });
     });
     expect(erroSemPresenca.erro).toContain('presença confirmada');
   });
@@ -149,30 +153,27 @@ describe('Chat por evento com Socket.IO (Cards 30 e 32)', () => {
   });
 
   it('3. Grava mensagem no PostgreSQL, entrega na mesma sala e não entrega em outra sala', async () => {
-    const clienteSala1A = conectarCliente();
-    const clienteSala1B = conectarCliente();
-    const clienteSala2 = conectarCliente();
+    const clienteSala1A = conectarComo('user-confirmado-1');
+    const clienteSala1B = conectarComo('user-confirmado-2');
+    const clienteSala2 = conectarComo('user-outro-evento');
 
     await Promise.all([
       new Promise((resolve) => {
         clienteSala1A.once('historico_mensagens', resolve);
         clienteSala1A.emit('entrar_sala', {
           eventoId: 'evento-1',
-          usuarioId: 'user-confirmado-1',
         });
       }),
       new Promise((resolve) => {
         clienteSala1B.once('historico_mensagens', resolve);
         clienteSala1B.emit('entrar_sala', {
           eventoId: 'evento-1',
-          usuarioId: 'user-confirmado-2',
         });
       }),
       new Promise((resolve) => {
         clienteSala2.once('historico_mensagens', resolve);
         clienteSala2.emit('entrar_sala', {
           eventoId: 'evento-2',
-          usuarioId: 'user-outro-evento',
         });
       }),
     ]);
@@ -193,7 +194,6 @@ describe('Chat por evento com Socket.IO (Cards 30 e 32)', () => {
 
     clienteSala1A.emit('enviar_mensagem', {
       evento_id: 'evento-1',
-      usuario_id: 'user-confirmado-1',
       texto: 'Bora encontrar na frente do palco!',
     });
 
@@ -208,7 +208,7 @@ describe('Chat por evento com Socket.IO (Cards 30 e 32)', () => {
   });
 
   it('4. Valida envio de mensagem vazia ou por usuário não confirmado fora da sala', async () => {
-    const cliente = conectarCliente({ usuarioId: 'user-nao-confirmado' });
+    const cliente = conectarComo('user-nao-confirmado');
 
     const erroVazia = await new Promise<{ erro: string }>((resolve) => {
       cliente.once('erro_mensagem', (dados) => resolve(dados));
@@ -220,7 +220,6 @@ describe('Chat por evento com Socket.IO (Cards 30 e 32)', () => {
       cliente.once('erro_mensagem', (dados) => resolve(dados));
       cliente.emit('enviar_mensagem', {
         eventoId: 'evento-1',
-        usuarioId: 'user-nao-confirmado',
         texto: 'Tentando invadir o chat',
       });
     });
@@ -233,30 +232,27 @@ describe('Chat por evento com Socket.IO (Cards 30 e 32)', () => {
       bloqueadoId: 'user-confirmado-1',
     });
 
-    const autor = conectarCliente();
-    const quemBloqueou = conectarCliente();
-    const outroConfirmado = conectarCliente();
+    const autor = conectarComo('user-confirmado-1');
+    const quemBloqueou = conectarComo('user-confirmado-2');
+    const outroConfirmado = conectarComo('user-confirmado-3');
 
     const [_, historicoQuemBloqueou, historicoOutro] = await Promise.all([
       new Promise<Array<{ usuario_id: string }>>((resolve) => {
         autor.once('historico_mensagens', resolve);
         autor.emit('entrar_sala', {
           eventoId: 'evento-1',
-          usuarioId: 'user-confirmado-1',
         });
       }),
       new Promise<Array<{ usuario_id: string }>>((resolve) => {
         quemBloqueou.once('historico_mensagens', resolve);
         quemBloqueou.emit('entrar_sala', {
           eventoId: 'evento-1',
-          usuarioId: 'user-confirmado-2',
         });
       }),
       new Promise<Array<{ usuario_id: string }>>((resolve) => {
         outroConfirmado.once('historico_mensagens', resolve);
         outroConfirmado.emit('entrar_sala', {
           eventoId: 'evento-1',
-          usuarioId: 'user-confirmado-3',
         });
       }),
     ]);
@@ -278,7 +274,6 @@ describe('Chat por evento com Socket.IO (Cards 30 e 32)', () => {
 
     autor.emit('enviar_mensagem', {
       eventoId: 'evento-1',
-      usuarioId: 'user-confirmado-1',
       texto: 'Mensagem que não deve chegar para quem me bloqueou',
     });
 
@@ -288,5 +283,29 @@ describe('Chat por evento com Socket.IO (Cards 30 e 32)', () => {
     expect(recebidaPeloOutro.texto).toBe('Mensagem que não deve chegar para quem me bloqueou');
     expect(recebidaPeloOutro.usuario_id).toBe('user-confirmado-1');
     expect(vazouParaQuemBloqueou).toBe(false);
+  });
+
+  it('6. Não deixa falar em nome de outra pessoa: o usuário vem só do token', async () => {
+    // Sem token, mandando só um usuarioId no handshake: não entra.
+    const semToken = conectarCliente({ usuarioId: 'user-confirmado-1' });
+    const erroSemToken = await new Promise<{ erro: string }>((resolve) => {
+      semToken.once('erro_sala', resolve);
+      semToken.emit('entrar_sala', { evento_id: 'evento-1' });
+    });
+    expect(erroSemToken.erro).toContain('obrigatórios');
+
+    // Logado como quem não confirmou, fingindo ser um confirmado no payload: recusado.
+    const intruso = conectarComo('user-nao-confirmado');
+    const totalAntes = estadoMock.mensagens.length;
+    const erroIntruso = await new Promise<{ erro: string }>((resolve) => {
+      intruso.once('erro_mensagem', resolve);
+      intruso.emit('enviar_mensagem', {
+        evento_id: 'evento-1',
+        usuario_id: 'user-confirmado-1',
+        texto: 'Mensagem em nome de outra pessoa',
+      });
+    });
+    expect(erroIntruso.erro).toContain('presença confirmada');
+    expect(estadoMock.mensagens).toHaveLength(totalAntes);
   });
 });
