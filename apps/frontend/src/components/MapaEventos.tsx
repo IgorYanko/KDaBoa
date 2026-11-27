@@ -33,6 +33,8 @@ interface Props {
   controle?: Ref<ControleMapa>;
   /** Espaço coberto por cima do mapa (botões no topo, cartão embaixo), para enquadrar sem esconder pinos. */
   folga?: { topo: number; base: number };
+  /** Onde o mapa abre quando ainda não há pinos (ex.: nenhum evento hoje). */
+  centro?: Coordenadas;
 }
 
 const ZOOM_INICIAL = 16;
@@ -63,7 +65,15 @@ function iconeDoPino(pino: PinoMapa, destaque: boolean): L.DivIcon {
  * Mapa do Leaflet com OpenStreetMap (issue #24): eventos como pinos, um deles em destaque,
  * e a posição da pessoa como um ponto azul. Os pinos são focáveis pelo teclado (Enter seleciona).
  */
-export function MapaEventos({ pinos, selecionadoId, usuario, onSelecionar, controle, folga = { topo: 80, base: 80 } }: Props) {
+export function MapaEventos({
+  pinos,
+  selecionadoId,
+  usuario,
+  onSelecionar,
+  controle,
+  folga = { topo: 80, base: 80 },
+  centro,
+}: Props) {
   const elemento = useRef<HTMLDivElement>(null);
   const mapa = useRef<L.Map | null>(null);
   const camadaPinos = useRef<L.LayerGroup | null>(null);
@@ -72,7 +82,7 @@ export function MapaEventos({ pinos, selecionadoId, usuario, onSelecionar, contr
   const aoSelecionar = useRef(onSelecionar);
   aoSelecionar.current = onSelecionar;
 
-  const inicial = pinos.find((p) => p.id === selecionadoId)?.coordenadas ?? pinos[0]?.coordenadas;
+  const inicial = pinos.find((p) => p.id === selecionadoId)?.coordenadas ?? pinos[0]?.coordenadas ?? centro;
 
   // Cria o mapa uma vez.
   // biome-ignore lint/correctness/useExhaustiveDependencies: o centro inicial só importa na criação.

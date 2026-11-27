@@ -123,7 +123,7 @@ export function Agenda() {
             <>
               <p className={styles.vazioTitulo}>Nada na agenda por enquanto</p>
               <p className={styles.vazioTexto}>Toque em "Eu vou!" num evento e ele aparece aqui.</p>
-              <Link to="/inicio" className={`${classesBotao({ tamanho: 'sm', larguraTotal: false })} ${styles.vazioBotao}`}>
+              <Link to="/explorar" className={`${classesBotao({ tamanho: 'sm', larguraTotal: false })} ${styles.vazioBotao}`}>
                 Ver eventos
               </Link>
             </>
@@ -155,7 +155,7 @@ export function Agenda() {
       })}
 
       {aba === 'proximos' && lista.length > 0 && (
-        <Link to="/inicio" className={styles.procurar}>
+        <Link to="/explorar" className={styles.procurar}>
           <Icone nome="busca" tamanho={18} />
           Procurar mais eventos
         </Link>

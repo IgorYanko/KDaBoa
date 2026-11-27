@@ -11,7 +11,8 @@ interface ItemNavegacao {
 
 /** Destinos da navegação principal (barra inferior no celular e barra do topo no desktop). */
 const itens: ItemNavegacao[] = [
-  { para: '/inicio', rotulo: 'Início', icone: 'inicio' },
+  { para: '/inicio', rotulo: 'Hoje', icone: 'local' },
+  { para: '/explorar', rotulo: 'Explorar', icone: 'busca' },
   { para: '/agenda', rotulo: 'Agenda', icone: 'agenda' },
   { para: '/conversas', rotulo: 'Conversas', icone: 'chat' },
   { para: '/perfil', rotulo: 'Perfil', icone: 'perfil' },

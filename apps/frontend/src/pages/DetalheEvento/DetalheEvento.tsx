@@ -72,7 +72,7 @@ export function DetalheEvento() {
     setExcluindo(true);
     try {
       await excluirEvento(item.evento.id);
-      navegar('/inicio', { replace: true, state: { excluido: item.evento.titulo } });
+      navegar('/explorar', { replace: true, state: { excluido: item.evento.titulo } });
     } catch (e) {
       setErroExclusao(e instanceof ErroApi ? e.message : 'Não foi possível excluir. Tente de novo.');
       setExcluindo(false);
