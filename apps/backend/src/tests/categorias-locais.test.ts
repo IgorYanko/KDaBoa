@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const prismaMock = vi.hoisted(() => ({
   categoria: {
     findMany: vi.fn(),
+    findFirst: vi.fn(),
     create: vi.fn(),
   },
   local: {
