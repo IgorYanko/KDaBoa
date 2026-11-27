@@ -4,5 +4,6 @@ import type { NomeIcone } from './Icone';
 export const itensNavegacao: { para: string; rotulo: string; icone: NomeIcone }[] = [
   { para: '/inicio', rotulo: 'Início', icone: 'inicio' },
   { para: '/agenda', rotulo: 'Agenda', icone: 'agenda' },
+  { para: '/conversas', rotulo: 'Conversas', icone: 'chat' },
   { para: '/perfil', rotulo: 'Perfil', icone: 'perfil' },
 ];

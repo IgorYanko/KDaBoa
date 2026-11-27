@@ -1,0 +1,191 @@
+.tela {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+  padding: var(--espaco-6) var(--margem-tela) var(--espaco-8);
+}
+
+.cabecalho {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.titulo {
+  font-size: var(--texto-xl);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--cor-texto);
+}
+
+.subtitulo {
+  font-size: var(--texto-sm);
+  color: var(--cor-texto-suave);
+}
+
+.nota {
+  padding: var(--espaco-3) var(--espaco-4);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espaco-3);
+  background: var(--cor-superficie);
+  border: 1px dashed var(--cor-borda-forte);
+  border-radius: var(--raio-md);
+  font-size: var(--texto-sm);
+  line-height: 1.45;
+  color: var(--cor-texto-suave);
+}
+
+.nota > svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--cor-primaria);
+}
+
+.lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.item {
+  border-bottom: 1px solid var(--cor-borda-suave);
+}
+
+.item:last-child {
+  border-bottom: none;
+}
+
+.link {
+  min-height: 72px;
+  padding: var(--espaco-3) var(--espaco-2);
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  border-radius: var(--raio-md);
+  color: inherit;
+  text-decoration: none;
+}
+
+.link:hover {
+  background: var(--cor-superficie);
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--cor-primaria);
+  outline-offset: 2px;
+}
+
+/* Fundo tingido e iniciais na cor cheia, como em Quem vai. */
+.avatar {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--raio-pilula);
+  background: color-mix(in oklch, var(--cor-avatar) 26%, var(--cor-superficie-elevada));
+  color: var(--cor-avatar);
+  font-size: var(--texto-sm);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.textos {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.linhaTopo {
+  display: flex;
+  align-items: baseline;
+  gap: var(--espaco-2);
+}
+
+.nome {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--texto-base);
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+
+.hora {
+  flex-shrink: 0;
+  font-size: var(--texto-xs);
+  color: var(--cor-texto-suave);
+}
+
+.previa {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--texto-sm);
+  color: var(--cor-texto-suave);
+}
+
+.previaNova {
+  color: var(--cor-secundaria-texto);
+  font-weight: 600;
+}
+
+.selo {
+  flex-shrink: 0;
+  padding: 2px var(--espaco-2);
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-pilula);
+  font-size: var(--texto-xs);
+  color: var(--cor-texto-suave);
+}
+
+.vazio {
+  padding: var(--espaco-8) var(--espaco-4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espaco-2);
+  text-align: center;
+}
+
+.vazioIcone {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--raio-pilula);
+  background: var(--cor-superficie);
+  color: var(--cor-primaria);
+}
+
+.vazioTitulo {
+  font-size: var(--texto-base);
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+
+.vazioTexto {
+  max-width: 34ch;
+  font-size: var(--texto-sm);
+  line-height: 1.45;
+  color: var(--cor-texto-suave);
+}
+
+.esqueleto {
+  height: 72px;
+  margin: var(--espaco-1) 0;
+  border-radius: var(--raio-md);
+  background: var(--cor-superficie);
+}
