@@ -287,7 +287,7 @@ export interface CriarEventoRequestDTO {
 
 /**
  * PENDENTE (issue #39): eventos em que o usuário logado confirmou presença,
- * separados pela data do evento. Rota sugerida: GET /api/usuarios/me/agenda (exige login).
+ * separados pela data do evento (no front). A API usa GET /api/presencas/agenda (services/presenca.ts).
  * Próximos em ordem de data; passados do mais recente para o mais antigo.
  */
 export interface AgendaDTO {
