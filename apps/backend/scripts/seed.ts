@@ -50,9 +50,143 @@ const locaisExtras = [
     latitude: -22.233876,
     longitude: -45.939586,
   },
+  {
+    nome: 'Mercado Municipal',
+    endereco: 'Rua Comendador José Garcia, s/n',
+    bairro: 'Centro',
+    latitude: -22.231700,
+    longitude: -45.934700,
+  },
+  {
+    nome: 'Univás - Unidade Fátima',
+    endereco: 'Av. Prefeito Tuany Toledo, 470',
+    bairro: 'Fátima',
+    latitude: -22.244600,
+    longitude: -45.924500,
+  },
+  {
+    nome: 'Estádio Manduzão',
+    endereco: 'Av. Prefeito Olavo Gomes de Oliveira, s/n',
+    bairro: 'São Geraldo',
+    latitude: -22.239800,
+    longitude: -45.918300,
+  },
+  {
+    nome: 'Teatro Municipal',
+    endereco: 'Rua Adalberto Ferraz, s/n',
+    bairro: 'Centro',
+    latitude: -22.229000,
+    longitude: -45.937500,
+  },
+  {
+    nome: 'Shopping Serra Sul',
+    endereco: 'Av. Vereador Antônio da Costa Rios, 1950',
+    bairro: 'São Geraldo',
+    latitude: -22.252500,
+    longitude: -45.942000,
+  },
 ];
 
 const eventos = [
+  {
+    titulo: 'Feira do Produtor no Mercado',
+    descricao: 'Queijo, café, doce de leite e verdura fresca direto de quem produz.',
+    diasAFrente: 0,
+    hora: 8,
+    duracaoHoras: 5,
+    preco: 0,
+    classificacaoEtaria: 0,
+    categoria: 'Gastronomia',
+    local: 'Mercado Municipal',
+    criador: 'usuario@kdaboa.com',
+    presencas: ['ana@kdaboa.com'],
+    mensagens: [],
+  },
+  {
+    titulo: 'Pelada solidária no Manduzão',
+    descricao: 'Futebol aberto pra quem chegar. A inscrição vira cesta básica.',
+    diasAFrente: 0,
+    hora: 0,
+    agora: true,
+    duracaoHoras: 4,
+    preco: 5,
+    classificacaoEtaria: 0,
+    categoria: 'Esporte',
+    local: 'Estádio Manduzão',
+    criador: 'admin@kdaboa.com',
+    presencas: ['bruno@kdaboa.com', 'usuario@kdaboa.com'],
+    mensagens: [{ autor: 'bruno@kdaboa.com', conteudo: 'Já tem dois times, chega mais!' }],
+  },
+  {
+    titulo: 'Happy hour da Univás',
+    descricao: 'Fim de aula com música, petisco e o pessoal da faculdade.',
+    diasAFrente: 0,
+    hora: 17,
+    duracaoHoras: 4,
+    preco: 10,
+    classificacaoEtaria: 18,
+    categoria: 'Festas',
+    local: 'Univás - Unidade Fátima',
+    criador: 'organizador@kdaboa.com',
+    presencas: ['usuario@kdaboa.com', 'bruno@kdaboa.com'],
+    mensagens: [],
+  },
+  {
+    titulo: 'Esquenta sertanejo no Bar do Centro',
+    descricao: 'Voz e violão com os sucessos que vão tocar na Festa do Peão.',
+    diasAFrente: 0,
+    hora: 18,
+    duracaoHoras: 4,
+    preco: 15,
+    classificacaoEtaria: 18,
+    categoria: 'Shows',
+    local: 'Bar do Centro',
+    criador: 'organizador@kdaboa.com',
+    presencas: ['ana@kdaboa.com'],
+    mensagens: [],
+  },
+  {
+    titulo: 'Food trucks no Serra Sul',
+    descricao: 'Hambúrguer, pastel e churros no estacionamento do shopping.',
+    diasAFrente: 0,
+    hora: 18,
+    duracaoHoras: 4,
+    preco: 0,
+    classificacaoEtaria: 0,
+    categoria: 'Gastronomia',
+    local: 'Shopping Serra Sul',
+    criador: 'usuario@kdaboa.com',
+    presencas: [],
+    mensagens: [],
+  },
+  {
+    titulo: 'Cinema na Praça João Pinheiro',
+    descricao: 'Telão com filme nacional. Leve sua cadeira de praia.',
+    diasAFrente: 0,
+    hora: 19,
+    duracaoHoras: 2,
+    preco: 0,
+    classificacaoEtaria: 0,
+    categoria: 'Cultura',
+    local: 'Praça João Pinheiro',
+    criador: 'admin@kdaboa.com',
+    presencas: ['ana@kdaboa.com', 'usuario@kdaboa.com'],
+    mensagens: [],
+  },
+  {
+    titulo: 'Stand-up no Teatro Municipal',
+    descricao: 'Noite de comédia com humoristas do Sul de Minas.',
+    diasAFrente: 0,
+    hora: 20,
+    duracaoHoras: 2,
+    preco: 30,
+    classificacaoEtaria: 14,
+    categoria: 'Teatro',
+    local: 'Teatro Municipal',
+    criador: 'organizador@kdaboa.com',
+    presencas: ['bruno@kdaboa.com'],
+    mensagens: [],
+  },
   {
     titulo: 'Evento dos Lisos',
     descricao: 'O rolê mais barato da cidade: ingresso a R$ 2 para quem está liso.',
@@ -362,8 +496,12 @@ const seguidores = [
   ['bruno@kdaboa.com', 'ana@kdaboa.com'],
 ];
 
-function dataDaquiA(dias: number, hora: number) {
+function dataDaquiA(dias: number, hora: number, agora = false) {
   const data = new Date();
+  if (agora) {
+    data.setHours(data.getHours() - 1, 0, 0, 0);
+    return data;
+  }
   data.setDate(data.getDate() + dias);
   data.setHours(hora, 0, 0, 0);
   return data;
@@ -420,7 +558,7 @@ async function main() {
       throw new Error(`Categoria "${e.categoria}" ou local "${e.local}" não existe no banco.`);
     }
 
-    const dataInicio = dataDaquiA(e.diasAFrente, e.hora);
+    const dataInicio = dataDaquiA(e.diasAFrente, e.hora, e.agora);
     const dataFim = new Date(dataInicio.getTime() + e.duracaoHoras * 60 * 60 * 1000);
     const dados = {
       descricao: e.descricao,

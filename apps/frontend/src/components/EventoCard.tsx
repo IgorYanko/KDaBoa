@@ -4,27 +4,34 @@ import type { EventoCompleto } from '../services/eventos';
 import { corDaCategoria, iconeDaCategoria } from '../utils/cores';
 import { dia, diaEHora, mesCurto } from '../utils/datas';
 import styles from './EventoCard.module.css';
-import { Icone } from './Icone';
+import { Icone, type NomeIcone } from './Icone';
 import { PilhaAvatares } from './PilhaAvatares';
 
 interface Props {
   item: EventoCompleto;
   /** Para onde o card leva. Padrão: detalhe do evento. */
   para?: string;
+  compacto?: boolean;
+  ativo?: boolean;
+  quando?: string;
+  extras?: { icone: NomeIcone; texto: string; destaque?: boolean }[];
 }
 
 /**
  * Card de evento (Início; depois Agenda e Mapa).
  * O card inteiro é clicável pelo link do título, que se estende sobre ele.
  */
-export function EventoCard({ item, para }: Props) {
+export function EventoCard({ item, para, compacto = false, ativo = false, quando, extras = [] }: Props) {
   const { evento, categoria, local } = item;
   const confirmados = evento.total_confirmados ?? 0;
   const icone = iconeDaCategoria(categoria);
   const estilo = { '--cor-evento': corDaCategoria(categoria) } as CSSProperties;
 
   return (
-    <article className={styles.card} style={estilo}>
+    <article
+      className={[styles.card, compacto && styles.compacto, ativo && styles.ativo].filter(Boolean).join(' ')}
+      style={estilo}
+    >
       <div className={styles.capa}>
         {evento.capa_url ? (
           <img className={styles.imagem} src={evento.capa_url} alt="" loading="lazy" />
@@ -56,7 +63,7 @@ export function EventoCard({ item, para }: Props) {
         <ul className={styles.meta}>
           <li>
             <Icone nome="relogio" tamanho={15} />
-            {diaEHora(evento.data_inicio)}
+            {quando ?? diaEHora(evento.data_inicio)}
           </li>
           {local && (
             <li>
@@ -64,6 +71,12 @@ export function EventoCard({ item, para }: Props) {
               <span className={styles.metaTexto}>{local.nome}</span>
             </li>
           )}
+          {extras.map((extra) => (
+            <li key={extra.texto} className={extra.destaque ? styles.metaDestaque : undefined}>
+              <Icone nome={extra.icone} tamanho={15} />
+              <span className={styles.metaTexto}>{extra.texto}</span>
+            </li>
+          ))}
         </ul>
         <div className={styles.rodape}>
           <span className={styles.quemVai}>

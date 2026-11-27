@@ -15,6 +15,7 @@ export function useLocalizacao() {
   const [estado, setEstado] = useState<EstadoLocalizacao>('parada');
   const [posicao, setPosicao] = useState<Coordenadas | null>(null);
   const vigia = useRef<number | null>(null);
+  const achou = useRef(false);
 
   const parar = useCallback(() => {
     if (vigia.current !== null) navigator.geolocation.clearWatch(vigia.current);
@@ -28,15 +29,26 @@ export function useLocalizacao() {
       return;
     }
     if (vigia.current !== null) return;
-    setEstado('procurando');
+    if (!achou.current) setEstado('procurando');
+    const aoAchar = (p: GeolocationPosition) => {
+      achou.current = true;
+      setPosicao([p.coords.latitude, p.coords.longitude]);
+      setEstado('ativa');
+    };
     vigia.current = navigator.geolocation.watchPosition(
-      (p) => {
-        setPosicao([p.coords.latitude, p.coords.longitude]);
-        setEstado('ativa');
-      },
+      aoAchar,
       (erro) => {
-        setEstado(erro.code === erro.PERMISSION_DENIED ? 'negada' : 'indisponivel');
-        parar();
+        if (erro.code === erro.PERMISSION_DENIED) {
+          setEstado('negada');
+          parar();
+          return;
+        }
+        if (achou.current) return;
+        navigator.geolocation.getCurrentPosition(aoAchar, () => setEstado('indisponivel'), {
+          enableHighAccuracy: false,
+          maximumAge: 300_000,
+          timeout: 15_000,
+        });
       },
       { enableHighAccuracy: true, maximumAge: 10_000, timeout: 20_000 },
     );

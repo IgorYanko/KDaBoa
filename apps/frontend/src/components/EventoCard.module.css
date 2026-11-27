@@ -236,3 +236,48 @@
     color: var(--cor-primaria);
   }
 }
+
+.compacto .capa {
+  height: 84px;
+}
+
+.compacto .marcaDagua svg {
+  width: 104px;
+  height: 104px;
+}
+
+.compacto {
+  height: 100%;
+}
+
+.compacto .corpo {
+  flex: 1;
+  padding: var(--espaco-3) var(--espaco-4) var(--espaco-3);
+}
+
+.compacto .titulo {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.compacto .rodape {
+  margin-top: auto;
+  padding-top: var(--espaco-2);
+}
+
+.metaDestaque {
+  font-weight: 700;
+  color: var(--cor-evento);
+}
+
+.meta .metaDestaque svg {
+  color: var(--cor-evento);
+}
+
+.ativo {
+  border-color: var(--cor-evento);
+  box-shadow:
+    0 0 0 1px var(--cor-evento),
+    0 12px 32px -8px color-mix(in oklch, var(--cor-evento) 55%, transparent);
+}

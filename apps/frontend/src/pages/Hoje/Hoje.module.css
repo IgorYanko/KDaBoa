@@ -1,0 +1,398 @@
+.tela {
+  position: relative;
+  flex: 1;
+  height: calc(100dvh - var(--altura-barra) - env(safe-area-inset-bottom));
+  min-height: 560px;
+  overflow: hidden;
+  background: #0b0a10;
+}
+
+.somenteLeitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.areaMapa {
+  position: absolute;
+  inset: 0;
+}
+
+.areaMapa::before,
+.areaMapa::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.areaMapa::before {
+  top: 0;
+  height: 120px;
+  background: linear-gradient(180deg, rgba(11, 10, 16, 0.55) 0%, transparent 100%);
+}
+
+.areaMapa::after {
+  bottom: 0;
+  height: 260px;
+  background: linear-gradient(0deg, rgba(11, 10, 16, 0.85) 0%, rgba(11, 10, 16, 0.35) 55%, transparent 100%);
+}
+
+.centro {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  padding: var(--margem-tela);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cor-texto-suave);
+}
+
+.cabecalho {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + var(--espaco-3));
+  left: var(--espaco-3);
+  right: var(--espaco-3);
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+.linhaBusca {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+}
+
+.busca {
+  flex: 1;
+  min-width: 0;
+  height: 50px;
+  padding: 0 var(--espaco-4);
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-pilula);
+  box-shadow: var(--sombra-2);
+  color: var(--cor-primaria);
+  transition: border-color var(--transicao-rapida), box-shadow var(--transicao-rapida);
+}
+
+.busca:focus-within {
+  border-color: var(--cor-primaria-borda);
+  box-shadow: var(--sombra-2), 0 0 0 4px color-mix(in oklch, var(--cor-primaria) 18%, transparent);
+}
+
+.busca input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--fonte-texto);
+  font-size: var(--texto-base);
+  color: var(--cor-texto);
+}
+
+.busca input::placeholder {
+  color: var(--cor-texto-fraco);
+}
+
+.filtros {
+  display: flex;
+  gap: var(--espaco-2);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.filtros::-webkit-scrollbar {
+  display: none;
+}
+
+.filtro {
+  flex-shrink: 0;
+  height: 34px;
+  padding: 0 var(--espaco-3);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-pilula);
+  box-shadow: var(--sombra-1);
+  font-family: var(--fonte-texto);
+  font-size: var(--texto-sm);
+  font-weight: 600;
+  color: var(--cor-texto-suave);
+  cursor: pointer;
+  transition: color var(--transicao-rapida), border-color var(--transicao-rapida), background var(--transicao-rapida);
+}
+
+.filtro:hover {
+  border-color: var(--cor-borda-forte);
+  color: var(--cor-texto);
+}
+
+.filtroAtivo,
+.filtroAtivo:hover {
+  background: var(--cor-primaria);
+  border-color: var(--cor-primaria);
+  color: var(--cor-sobre-primaria);
+  font-weight: 700;
+}
+
+.avisoLocal {
+  align-self: flex-start;
+  max-width: 100%;
+  padding: 6px var(--espaco-3);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-md);
+  box-shadow: var(--sombra-1);
+  font-size: var(--texto-xs);
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--cor-texto-suave);
+}
+
+.avisoLocalAtencao {
+  border-color: var(--cor-secundaria-borda);
+  color: var(--cor-secundaria-texto);
+}
+
+.botaoIcone {
+  flex-shrink: 0;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-pilula);
+  box-shadow: var(--sombra-2);
+  color: var(--cor-texto);
+  cursor: pointer;
+}
+
+.botaoIcone:hover {
+  border-color: var(--cor-borda-forte);
+  color: var(--cor-primaria);
+}
+
+.barra {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: var(--espaco-3);
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  pointer-events: none;
+  animation: subirBarra 420ms cubic-bezier(0.2, 0.9, 0.3, 1.05);
+}
+
+.barra > * {
+  pointer-events: auto;
+}
+
+.barraTopo {
+  padding: 0 var(--margem-tela);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+}
+
+.contador {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px var(--espaco-3);
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-lg);
+  font-weight: 700;
+  color: var(--cor-texto);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8);
+}
+
+.agora {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--fonte-texto);
+  font-size: var(--texto-xs);
+  font-weight: 700;
+  color: var(--cor-categoria-5);
+}
+
+.pontoAgora {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--raio-pilula);
+  background: var(--cor-categoria-5);
+}
+
+.pontoAgora::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--cor-categoria-5);
+  animation: pulsar 1.6s ease-out infinite;
+}
+
+.verTodos {
+  flex-shrink: 0;
+  height: 32px;
+  padding: 0 var(--espaco-3);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-pilula);
+  font-size: var(--texto-xs);
+  font-weight: 700;
+  text-decoration: none;
+  color: var(--cor-texto);
+}
+
+.verTodos:hover {
+  border-color: var(--cor-primaria-borda);
+  color: var(--cor-primaria);
+}
+
+.trilho {
+  margin: 0;
+  padding: var(--espaco-2) var(--margem-tela) var(--espaco-1);
+  list-style: none;
+  display: flex;
+  align-items: stretch;
+  gap: var(--espaco-3);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: var(--margem-tela);
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+
+.trilho::-webkit-scrollbar {
+  display: none;
+}
+
+.item {
+  flex: 0 0 min(300px, calc(100vw - 72px));
+  scroll-snap-align: center;
+}
+
+.semResultado {
+  margin: 0 var(--margem-tela);
+  padding: var(--espaco-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-lg);
+  font-size: var(--texto-sm);
+  color: var(--cor-texto-suave);
+}
+
+.limpar {
+  flex-shrink: 0;
+  height: 36px;
+  padding: 0 var(--espaco-4);
+  background: var(--cor-primaria);
+  border: none;
+  border-radius: var(--raio-pilula);
+  font-family: var(--fonte-texto);
+  font-size: var(--texto-sm);
+  font-weight: 700;
+  color: var(--cor-sobre-primaria);
+  cursor: pointer;
+}
+
+.filtro:focus-visible,
+.botaoIcone:focus-visible,
+.verTodos:focus-visible,
+.limpar:focus-visible {
+  outline: none;
+  box-shadow: var(--anel-foco);
+}
+
+@keyframes subirBarra {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulsar {
+  from {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(3);
+  }
+}
+
+@media (min-width: 1024px) {
+  .tela {
+    width: 100vw;
+    height: calc(100dvh - var(--altura-topo-desktop));
+    margin-left: calc(50% - 50vw);
+  }
+
+  .cabecalho {
+    top: var(--espaco-5);
+    left: var(--espaco-6);
+    right: auto;
+    width: 460px;
+  }
+
+  .barra {
+    bottom: var(--espaco-5);
+  }
+
+  .barraTopo {
+    padding: 0 var(--espaco-6);
+  }
+
+  .trilho {
+    padding-inline: var(--espaco-6);
+    scroll-padding-inline: var(--espaco-6);
+    scroll-snap-type: x proximity;
+  }
+
+  .item {
+    flex-basis: 320px;
+    scroll-snap-align: start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .barra,
+  .pontoAgora::after {
+    animation: none;
+  }
+}

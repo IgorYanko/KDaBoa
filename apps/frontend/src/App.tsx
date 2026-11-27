@@ -14,6 +14,7 @@ import { Conversa } from './pages/Conversas/Conversa';
 import { Conversas } from './pages/Conversas/Conversas';
 import { DetalheEvento } from './pages/DetalheEvento/DetalheEvento';
 import { Divulgar } from './pages/Divulgar/Divulgar';
+import { Hoje } from './pages/Hoje/Hoje';
 import { Inicio } from './pages/Inicio/Inicio';
 import { Login } from './pages/Login/Login';
 import { Mapa } from './pages/Mapa/Mapa';
@@ -49,7 +50,8 @@ export function App() {
           {/* Privadas (#21) */}
           <Route element={<RotaPrivada />}>
             <Route element={<LayoutApp navegacao="completa" />}>
-              <Route path="/inicio" element={<Inicio />} />
+              <Route path="/inicio" element={<Hoje />} />
+              <Route path="/explorar" element={<Inicio />} />
               <Route path="/agenda" element={<Agenda />} />
               <Route path="/conversas" element={<Conversas />} />
               <Route path="/perfil" element={<Perfil />} />
