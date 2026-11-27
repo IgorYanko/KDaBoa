@@ -52,9 +52,7 @@
   margin: 0;
   padding: 4px 0 0;
   border: none;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  /* Sem flex direto no fieldset: em alguns navegadores (Safari antigo) ele esconde as opções. */
   min-width: 0;
 }
 
@@ -101,4 +99,9 @@
   margin: -14px calc(-1 * var(--espaco-2));
   font-weight: 600;
   color: var(--cor-destaque);
+}
+
+/* Espaço entre o título, as opções e o erro (o gap do flex, sem flex no fieldset). */
+.interesses > * + * {
+  margin-top: 10px;
 }
