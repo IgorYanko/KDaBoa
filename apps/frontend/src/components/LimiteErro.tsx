@@ -1,4 +1,5 @@
 import { Component, type ReactNode } from 'react';
+import { useLocation } from 'react-router';
 import { classesBotao } from './Botao';
 import { Icone } from './Icone';
 import styles from './LimiteErro.module.css';
@@ -16,7 +17,7 @@ interface Estado {
  * Exceção à regra de componentes em função: o React só captura erros de renderização
  * com componente de classe (getDerivedStateFromError).
  */
-export class LimiteErro extends Component<Props, Estado> {
+class LimiteErroDaTela extends Component<Props, Estado> {
   state: Estado = { erro: false };
 
   static getDerivedStateFromError(): Estado {
@@ -50,4 +51,13 @@ export class LimiteErro extends Component<Props, Estado> {
       </main>
     );
   }
+}
+
+/**
+ * O limite recomeça a cada tela (pela rota): se uma tela quebrar, voltar ou abrir outra
+ * mostra a nova normalmente, sem precisar recarregar a página.
+ */
+export function LimiteErro({ children }: Props) {
+  const { pathname } = useLocation();
+  return <LimiteErroDaTela key={pathname}>{children}</LimiteErroDaTela>;
 }

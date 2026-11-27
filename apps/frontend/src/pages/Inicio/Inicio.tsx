@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useLocation } from 'react-router';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router';
 import { ErroApi } from '../../api/client';
 import { Aviso } from '../../components/Aviso';
 import { BoasVindas } from '../../components/BoasVindas';
@@ -31,8 +31,16 @@ const PERIODOS: { valor: Periodo; rotulo: string }[] = [
 export function Inicio() {
   const { usuario } = useAuth();
   const primeiroNome = usuario?.nome.split(' ')[0];
-  // Vindo do detalhe depois de excluir um evento.
-  const excluido = (useLocation().state as { excluido?: string } | null)?.excluido;
+  // Vindo do detalhe depois de excluir um evento. O aviso fica na tela, mas sai do histórico
+  // do navegador, para não voltar a aparecer ao recarregar ou ao voltar para o Início.
+  const local = useLocation();
+  const navegar = useNavigate();
+  const [excluido] = useState(() => (local.state as { excluido?: string } | null)?.excluido);
+  useEffect(() => {
+    if ((local.state as { excluido?: string } | null)?.excluido) {
+      navegar(local.pathname, { replace: true, state: null });
+    }
+  }, [local.state, local.pathname, navegar]);
 
   const [busca, setBusca] = useState('');
   const [buscaAplicada, setBuscaAplicada] = useState('');
@@ -70,8 +78,12 @@ export function Inicio() {
       .catch(() => setCategorias([]));
   }, []);
 
+  /** Muda a cada filtro novo: um "Carregar mais" que volte depois disso é descartado. */
+  const versaoFiltro = useRef(0);
+
   useEffect(() => {
     let ativo = true;
+    versaoFiltro.current += 1;
     setErro(null);
     setAtualizando(true);
     // Filtro novo: recomeça da primeira página.
@@ -95,9 +107,12 @@ export function Inicio() {
   }, [filtro]);
 
   async function carregarMais() {
+    const versao = versaoFiltro.current;
     setCarregandoMais(true);
     try {
       const resultado = await listarEventosPaginados(filtro, pagina + 1, POR_PAGINA);
+      // O filtro mudou enquanto esta página chegava: ela é de outra lista.
+      if (versao !== versaoFiltro.current) return;
       setEventos((atual) => {
         const ids = new Set(atual?.map((item) => item.evento.id));
         return [...(atual ?? []), ...resultado.itens.filter((item) => !ids.has(item.evento.id))];
