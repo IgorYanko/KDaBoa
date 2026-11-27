@@ -4,17 +4,21 @@ import { AvisoServidor } from './components/AvisoServidor';
 import { LayoutApp } from './components/LayoutApp';
 import { LimiteErro } from './components/LimiteErro';
 import { RotaPrivada, RotaPublica } from './components/RotaPrivada';
-import { TelaEmConstrucao } from './components/TelaEmConstrucao';
 import { AuthProvider } from './contexts/AuthContext';
 import { Admin } from './pages/Admin/Admin';
 import { Agenda } from './pages/Agenda/Agenda';
 import { Cadastro } from './pages/Cadastro/Cadastro';
 import { Chat } from './pages/Chat/Chat';
+import { Checkout } from './pages/Checkout/Checkout';
+import { Conversa } from './pages/Conversas/Conversa';
+import { Conversas } from './pages/Conversas/Conversas';
 import { DetalheEvento } from './pages/DetalheEvento/DetalheEvento';
 import { Divulgar } from './pages/Divulgar/Divulgar';
 import { Inicio } from './pages/Inicio/Inicio';
 import { Login } from './pages/Login/Login';
+import { Mapa } from './pages/Mapa/Mapa';
 import { Perfil } from './pages/Perfil/Perfil';
+import { QuemVai } from './pages/QuemVai/QuemVai';
 import { RedefinirSenha } from './pages/RedefinirSenha/RedefinirSenha';
 
 /** Guia de estilo: só no `pnpm dev` (não entra no build de produção). */
@@ -47,14 +51,17 @@ export function App() {
             <Route element={<LayoutApp navegacao="completa" />}>
               <Route path="/inicio" element={<Inicio />} />
               <Route path="/agenda" element={<Agenda />} />
+              <Route path="/conversas" element={<Conversas />} />
               <Route path="/perfil" element={<Perfil />} />
               <Route path="/admin" element={<Admin />} />
             </Route>
             <Route element={<LayoutApp navegacao="topo" />}>
               <Route path="/eventos/:id" element={<DetalheEvento />} />
-              <Route path="/eventos/:id/mapa" element={<TelaEmConstrucao titulo="Mapa do evento" issue={24} />} />
+              <Route path="/eventos/:id/checkout" element={<Checkout />} />
+              <Route path="/eventos/:id/mapa" element={<Mapa />} />
               <Route path="/eventos/:id/chat" element={<Chat />} />
-              <Route path="/eventos/:id/quem-vai" element={<TelaEmConstrucao titulo="Quem vai" issue={30} />} />
+              <Route path="/eventos/:id/quem-vai" element={<QuemVai />} />
+              <Route path="/conversas/:usuarioId" element={<Conversa />} />
               <Route path="/divulgar" element={<Divulgar />} />
               <Route path="/eventos/:id/editar" element={<Divulgar />} />
             </Route>

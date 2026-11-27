@@ -1,0 +1,278 @@
+.tela {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+  padding: var(--espaco-6) var(--margem-tela) var(--espaco-8);
+}
+
+/* ---------- Cabeçalho ---------- */
+.cabecalho {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+}
+
+.titulos {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.titulo {
+  font-size: var(--texto-xl);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--cor-texto);
+}
+
+.subtitulo {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--texto-sm);
+  color: var(--cor-texto-suave);
+}
+
+/* ---------- Notas ---------- */
+.nota {
+  padding: var(--espaco-3) var(--espaco-4);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espaco-3);
+  background: var(--cor-superficie);
+  border: 1px dashed var(--cor-borda-forte);
+  border-radius: var(--raio-md);
+  font-size: var(--texto-sm);
+  line-height: 1.45;
+  color: var(--cor-texto-suave);
+}
+
+.nota > svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--cor-primaria);
+}
+
+.notaLink {
+  font-weight: 600;
+  color: var(--cor-secundaria-texto);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ---------- Lista ---------- */
+.lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.pessoa {
+  min-height: 68px;
+  padding: var(--espaco-3) 0;
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  border-bottom: 1px solid var(--cor-borda-suave);
+}
+
+.pessoa:last-child {
+  border-bottom: none;
+}
+
+/* Fundo tingido e iniciais na cor cheia, como nas bolinhas dos cards. */
+.avatar {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--raio-pilula);
+  background: color-mix(in oklch, var(--cor-avatar) 26%, var(--cor-superficie-elevada));
+  color: var(--cor-avatar);
+  font-size: var(--texto-sm);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.identidade {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.nome,
+.apelido {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.nome {
+  font-size: var(--texto-base);
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+
+.apelido {
+  font-size: var(--texto-sm);
+  color: var(--cor-texto-suave);
+}
+
+/* Seguir: pílula clara; Seguindo: só o contorno. */
+.seguir {
+  position: relative;
+  flex-shrink: 0;
+  min-width: 96px;
+  height: 36px;
+  padding: 0 var(--espaco-4);
+  background: var(--cor-texto);
+  border: 1px solid var(--cor-texto);
+  border-radius: var(--raio-pilula);
+  color: var(--cor-fundo);
+  font-size: var(--texto-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color var(--transicao),
+    border-color var(--transicao),
+    color var(--transicao);
+}
+
+/* Área de toque de 44px sem aumentar o botão. */
+.seguir::after {
+  content: "";
+  position: absolute;
+  inset: -4px 0;
+}
+
+.seguir:hover {
+  background: var(--cor-texto-suave);
+  border-color: var(--cor-texto-suave);
+}
+
+.seguindo {
+  background: transparent;
+  border-color: var(--cor-borda-forte);
+  color: var(--cor-texto);
+}
+
+.seguindo:hover {
+  background: var(--cor-superficie);
+  border-color: var(--cor-texto-suave);
+}
+
+.seguir:focus-visible {
+  outline: none;
+  box-shadow: var(--anel-foco);
+}
+
+.seguir:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+.voce {
+  flex-shrink: 0;
+  height: 28px;
+  padding: 0 var(--espaco-3);
+  display: inline-flex;
+  align-items: center;
+  background: var(--cor-primaria-tinta);
+  border: 1px solid var(--cor-primaria-borda);
+  border-radius: var(--raio-pilula);
+  font-size: var(--texto-xs);
+  font-weight: 600;
+  color: var(--cor-primaria);
+}
+
+.ocultas,
+.semResultado {
+  text-align: center;
+  font-size: var(--texto-sm);
+  color: var(--cor-texto-fraco);
+}
+
+.semResultado {
+  padding: var(--espaco-8) 0;
+}
+
+/* ---------- Carregando / vazio ---------- */
+.esqueleto {
+  height: 68px;
+  margin-bottom: var(--espaco-2);
+  background:
+    linear-gradient(100deg, transparent 30%, var(--cor-superficie-elevada) 50%, transparent 70%) 0 0 / 200% 100%,
+    var(--cor-superficie);
+  border-radius: var(--raio-md);
+  animation: brilhar 1.4s ease-in-out infinite;
+}
+
+@keyframes brilhar {
+  from {
+    background-position: 150% 0, 0 0;
+  }
+  to {
+    background-position: -50% 0, 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .esqueleto {
+    animation: none;
+  }
+}
+
+.vazio {
+  padding: var(--espaco-10) var(--espaco-6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espaco-2);
+  text-align: center;
+  background: var(--cor-superficie);
+  border: 1px dashed var(--cor-borda-forte);
+  border-radius: var(--raio-lg);
+}
+
+.vazioIcone {
+  width: 48px;
+  height: 48px;
+  margin-bottom: var(--espaco-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cor-secundaria-tinta);
+  border-radius: var(--raio-pilula);
+  color: var(--cor-secundaria-texto);
+}
+
+.vazioTitulo {
+  font-size: var(--texto-md);
+  font-weight: 600;
+}
+
+.vazioTexto {
+  max-width: 32ch;
+  font-size: var(--texto-sm);
+  color: var(--cor-texto-suave);
+}
+
+@media (min-width: 768px) {
+  .tela {
+    padding: var(--espaco-10) var(--espaco-8) var(--espaco-12);
+  }
+
+  .titulo {
+    font-size: var(--texto-2xl);
+  }
+}

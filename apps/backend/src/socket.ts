@@ -2,6 +2,7 @@ import type { Server as HttpServer } from 'node:http';
 import jwt from 'jsonwebtoken';
 import { Server, type Socket } from 'socket.io';
 import { prisma } from './prisma';
+import { definirServidorTempoReal, salaDoUsuario } from './realtime';
 
 interface PayloadEntrarSala {
   eventoId?: string;
@@ -47,6 +48,22 @@ function formatarMensagem(msg: MensagemComUsuario) {
   };
 }
 
+/** Só o id que vem de um token válido (sem aceitar `usuarioId` solto no handshake). */
+function usuarioDoToken(socket: Socket): string | undefined {
+  const auth = socket.handshake.auth as { token?: string } | undefined;
+  const headerAuth = socket.handshake.headers.authorization;
+  const token =
+    auth?.token ||
+    (typeof headerAuth === 'string' && headerAuth.startsWith('Bearer ') ? headerAuth.split(' ')[1] : undefined);
+  if (!token) return undefined;
+  try {
+    const secret = process.env.JWT_SECRET || 'kdaboa_chave_secreta_teste';
+    return (jwt.verify(token, secret) as { id?: string }).id;
+  } catch (_error) {
+    return undefined;
+  }
+}
+
 function extrairUsuarioDoSocket(socket: Socket): string | undefined {
   const auth = socket.handshake.auth as { token?: string; usuarioId?: string } | undefined;
   if (auth?.usuarioId) {
@@ -81,8 +98,16 @@ export function configurarSocket(httpServer: HttpServer): Server {
     },
   });
 
+  definirServidorTempoReal(io);
+
   io.on('connection', (socket: Socket) => {
     const usuarioAutenticado = extrairUsuarioDoSocket(socket);
+
+    // Sala pessoal: mensagens do chat mútuo chegam aqui (ver realtime.ts).
+    const usuarioVerificado = usuarioDoToken(socket);
+    if (usuarioVerificado) {
+      void socket.join(salaDoUsuario(usuarioVerificado));
+    }
 
     socket.on('entrar_sala', async (payload: PayloadEntrarSala) => {
       try {
@@ -117,8 +142,18 @@ export function configurarSocket(httpServer: HttpServer): Server {
         socket.data.usuarioId = usuarioId;
         socket.data.eventoId = eventoId;
 
+        const bloqueios = await prisma.bloqueio.findMany({
+          where: { bloqueadorId: usuarioId },
+          select: { bloqueadoId: true },
+        });
+        const idsBloqueados = bloqueios.map((b) => b.bloqueadoId);
+        const conjuntoBloqueados = new Set(idsBloqueados);
+
         const historico = await prisma.mensagem.findMany({
-          where: { eventoId },
+          where: {
+            eventoId,
+            ...(idsBloqueados.length > 0 ? { usuarioId: { notIn: idsBloqueados } } : {}),
+          },
           include: {
             usuario: {
               select: {
@@ -131,9 +166,11 @@ export function configurarSocket(httpServer: HttpServer): Server {
           orderBy: { criadoEm: 'asc' },
         });
 
+        const historicoFiltrado = historico.filter((m) => !conjuntoBloqueados.has(m.usuarioId));
+
         socket.emit(
           'historico_mensagens',
-          historico.map((m) => formatarMensagem(m)),
+          historicoFiltrado.map((m) => formatarMensagem(m)),
         );
       } catch (_error) {
         socket.emit('erro_sala', {
@@ -180,6 +217,8 @@ export function configurarSocket(httpServer: HttpServer): Server {
           }
 
           await socket.join(nomeSala);
+          socket.data.usuarioId = usuarioId;
+          socket.data.eventoId = eventoId;
         }
 
         const novaMensagem = await prisma.mensagem.create({
@@ -199,7 +238,22 @@ export function configurarSocket(httpServer: HttpServer): Server {
           },
         });
 
-        io.to(nomeSala).emit('nova_mensagem', formatarMensagem(novaMensagem));
+        const bloqueiosDoAutor = await prisma.bloqueio.findMany({
+          where: { bloqueadoId: usuarioId },
+          select: { bloqueadorId: true },
+        });
+        const quemBloqueou = new Set(bloqueiosDoAutor.map((b) => b.bloqueadorId));
+
+        const mensagemFormatada = formatarMensagem(novaMensagem);
+        const socketsNaSala = await io.in(nomeSala).fetchSockets();
+
+        for (const destinatario of socketsNaSala) {
+          const destinatarioId = destinatario.data.usuarioId as string | undefined;
+          if (destinatarioId && quemBloqueou.has(destinatarioId)) {
+            continue;
+          }
+          destinatario.emit('nova_mensagem', mensagemFormatada);
+        }
       } catch (_error) {
         socket.emit('erro_mensagem', {
           erro: 'Erro ao salvar ou enviar a mensagem.',

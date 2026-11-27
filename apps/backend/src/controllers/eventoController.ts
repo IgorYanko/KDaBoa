@@ -20,6 +20,9 @@ interface EventoBanco {
   categoriaId: number;
   localId: number;
   criadorId: string;
+  verificado?: boolean;
+  vendaNoApp?: boolean;
+  quantidadeIngressos?: number | null;
   categoria?: { id: number; nome: string; icone?: string | null } | null;
   local?: { id: number; nome: string; endereco?: string | null } | null;
   _count?: { presencas: number };
@@ -72,7 +75,23 @@ function formatarEventoParaResposta(ev: EventoBanco) {
     local_id: ev.localId,
     criador_id: ev.criadorId,
     confirmados: ev._count?.presencas ?? 0,
+    preco: Number(ev.preco ?? 0),
+    verificado: ev.verificado ?? false,
+    venda_no_app: ev.vendaNoApp ?? false,
+    quantidade_ingressos: ev.quantidadeIngressos ?? null,
   };
+}
+
+/** Capa do evento: um link http(s) ou a foto já reduzida pelo front (data URL de imagem). */
+const TAMANHO_MAXIMO_CAPA = 1_500_000;
+const capaRegex = /^(https?:\/\/\S+|data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+)$/;
+
+/** Mensagem de erro se a capa não servir; null se estiver ok ou se não veio capa. */
+function erroDaCapa(capa: unknown): string | null {
+  if (capa === undefined || capa === null || capa === '') return null;
+  if (typeof capa !== 'string' || !capaRegex.test(capa)) return 'Capa inválida. Envie uma imagem JPG, PNG ou WebP.';
+  if (capa.length > TAMANHO_MAXIMO_CAPA) return 'A imagem da capa é grande demais.';
+  return null;
 }
 
 export const eventoController = {
@@ -212,10 +231,48 @@ export const eventoController = {
         localId,
         criador_id,
         criadorId,
+        venda_no_app,
+        vendaNoApp,
+        quantidade_ingressos,
+        quantidadeIngressos,
+        verificado,
       } = req.body;
+
+      const erroCapa = erroDaCapa(imagemUrl ?? imagem_url);
+      if (erroCapa) {
+        res.status(400).json({ erro: erroCapa });
+        return;
+      }
 
       const reqAuth = req as RequisicaoAutenticada;
       const idCriador = reqAuth.usuario?.id || criadorId || criador_id;
+      const perfil = reqAuth.usuario?.perfil;
+      const querVenda = vendaNoApp === true || venda_no_app === true;
+      const querVerificado = verificado === true;
+      const precoNumero = Number(preco ?? 0);
+
+      if (perfil !== 'ORGANIZADOR' && (querVenda || querVerificado)) {
+        res.status(403).json({
+          erro: 'Só contas CNPJ podem criar eventos verificados ou vender ingresso no app.',
+        });
+        return;
+      }
+
+      let vendeNoApp = false;
+      let quantidade: number | null = null;
+      if (perfil === 'ORGANIZADOR' && querVenda) {
+        const informada = Number(quantidadeIngressos ?? quantidade_ingressos);
+        if (!(precoNumero > 0)) {
+          res.status(400).json({ erro: 'A venda no app exige um preço maior que zero.' });
+          return;
+        }
+        if (!Number.isInteger(informada) || informada < 1) {
+          res.status(400).json({ erro: 'Informe quantos ingressos estão à venda.' });
+          return;
+        }
+        vendeNoApp = true;
+        quantidade = informada;
+      }
 
       const novoEvento = await prisma.evento.create({
         data: {
@@ -231,6 +288,9 @@ export const eventoController = {
           categoriaId: Number(categoriaId || categoria_id),
           localId: Number(localId || local_id),
           criadorId: idCriador,
+          verificado: perfil === 'ORGANIZADOR',
+          vendaNoApp: vendeNoApp,
+          quantidadeIngressos: quantidade,
         },
       });
 
@@ -278,6 +338,17 @@ export const eventoController = {
         local_id,
         localId,
       } = req.body;
+
+      const erroCapa = erroDaCapa(imagemUrl ?? imagem_url);
+      if (erroCapa) {
+        res.status(400).json({ erro: erroCapa });
+        return;
+      }
+
+      if (eventoExistente.vendaNoApp && preco !== undefined && !(Number(preco) > 0)) {
+        res.status(400).json({ erro: 'Evento com venda no app precisa de preço maior que zero.' });
+        return;
+      }
 
       const eventoAtualizado = await prisma.evento.update({
         where: { id },
@@ -331,6 +402,14 @@ export const eventoController = {
         reqAuth.usuario?.perfil !== 'ADMIN'
       ) {
         res.status(403).json({ erro: 'Você não tem permissão para deletar este evento' });
+        return;
+      }
+
+      const pedidos = await prisma.pedido.count({ where: { eventoId: id } });
+      if (pedidos > 0) {
+        res.status(409).json({
+          erro: 'Este evento já tem pedidos de ingresso e não pode ser excluído.',
+        });
         return;
       }
 

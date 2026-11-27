@@ -11,6 +11,9 @@ const prismaMock = vi.hoisted(() => ({
     update: vi.fn(),
     delete: vi.fn(),
   },
+  pedido: {
+    count: vi.fn(),
+  },
 }));
 
 vi.mock('../prisma', () => ({
@@ -35,7 +38,7 @@ const eventoExistente = {
   local: { id: 1, nome: 'Bar do Rock', endereco: 'Centro' },
 };
 
-function token(payload: { id?: string; email: string; perfil?: 'USUARIO' | 'ADMIN' }) {
+function token(payload: { id?: string; email: string; perfil?: 'USUARIO' | 'ORGANIZADOR' | 'ADMIN' }) {
   return jwt.sign(payload, 'segredo_de_teste');
 }
 
@@ -84,6 +87,7 @@ describe('API de eventos e Listagem com filtros (#23)', () => {
       ...data,
     }));
     prismaMock.evento.delete.mockResolvedValue(eventoExistente);
+    prismaMock.pedido.count.mockResolvedValue(0);
   });
 
   it('GET /api/status responde que a API está rodando', async () => {
@@ -284,6 +288,96 @@ describe('API de eventos e Listagem com filtros (#23)', () => {
     expect(resposta.body.dataFim).toBeNull();
   });
 
+  it('POST /api/eventos grava a foto da capa enviada pelo front (data URL)', async () => {
+    const foto = `data:image/jpeg;base64,${'A'.repeat(200_000)}`;
+    const resposta = await request(app)
+      .post('/api/eventos')
+      .set('Authorization', `Bearer ${token({ id: 'criador-1', email: 'a@email.com' })}`)
+      .send({ titulo: 'Show com foto', descricao: 'Descrição', data_inicio: '2026-12-04T20:00:00Z', imagem_url: foto });
+
+    expect(resposta.status).toBe(201);
+    expect(resposta.body.imagemUrl).toBe(foto);
+  });
+
+  it('POST /api/eventos recusa capa que não é imagem', async () => {
+    const resposta = await request(app)
+      .post('/api/eventos')
+      .set('Authorization', `Bearer ${token({ id: 'criador-1', email: 'a@email.com' })}`)
+      .send({ titulo: 'Show', descricao: 'Descrição', data_inicio: '2026-12-04T20:00:00Z', imagem_url: 'javascript:alert(1)' });
+
+    expect(resposta.status).toBe(400);
+    expect(resposta.body.erro).toMatch(/Capa inválida/);
+  });
+
+  it('POST /api/eventos recusa venda no app de usuário comum', async () => {
+    const resposta = await request(app)
+      .post('/api/eventos')
+      .set('Authorization', authHeader())
+      .send({
+        titulo: 'Festa',
+        data_inicio: '2026-12-01T20:00:00Z',
+        preco: 30,
+        venda_no_app: true,
+        verificado: true,
+        quantidade_ingressos: 10,
+      });
+
+    expect(resposta.status).toBe(403);
+    expect(prismaMock.evento.create).not.toHaveBeenCalled();
+  });
+
+  it('POST /api/eventos de organizador grava evento verificado com venda no app', async () => {
+    const resposta = await request(app)
+      .post('/api/eventos')
+      .set('Authorization', `Bearer ${token({ id: 'org-1', email: 'org@kdaboa.com', perfil: 'ORGANIZADOR' })}`)
+      .send({
+        titulo: 'Show da casa',
+        data_inicio: '2026-12-01T20:00:00Z',
+        preco: 40,
+        venda_no_app: true,
+        quantidade_ingressos: 10,
+        categoria_id: 1,
+        local_id: 1,
+      });
+
+    expect(resposta.status).toBe(201);
+    expect(resposta.body.verificado).toBe(true);
+    expect(resposta.body.vendaNoApp).toBe(true);
+    expect(resposta.body.quantidadeIngressos).toBe(10);
+    expect(resposta.body.criadorId).toBe('org-1');
+  });
+
+  it('POST /api/eventos recusa venda no app sem preço', async () => {
+    const resposta = await request(app)
+      .post('/api/eventos')
+      .set('Authorization', `Bearer ${token({ id: 'org-1', email: 'org@kdaboa.com', perfil: 'ORGANIZADOR' })}`)
+      .send({
+        titulo: 'Show grátis',
+        data_inicio: '2026-12-01T20:00:00Z',
+        preco: 0,
+        venda_no_app: true,
+        quantidade_ingressos: 10,
+      });
+
+    expect(resposta.status).toBe(400);
+    expect(prismaMock.evento.create).not.toHaveBeenCalled();
+  });
+
+  it('POST /api/eventos recusa venda no app sem quantidade', async () => {
+    const resposta = await request(app)
+      .post('/api/eventos')
+      .set('Authorization', `Bearer ${token({ id: 'org-1', email: 'org@kdaboa.com', perfil: 'ORGANIZADOR' })}`)
+      .send({
+        titulo: 'Show sem lote',
+        data_inicio: '2026-12-01T20:00:00Z',
+        preco: 25,
+        venda_no_app: true,
+      });
+
+    expect(resposta.status).toBe(400);
+    expect(prismaMock.evento.create).not.toHaveBeenCalled();
+  });
+
   it('POST /api/eventos devolve 400 quando a gravação falha', async () => {
     prismaMock.evento.create.mockRejectedValueOnce(new Error('falha'));
 
@@ -414,6 +508,17 @@ describe('API de eventos e Listagem com filtros (#23)', () => {
       .set('Authorization', authAdmin());
 
     expect(resposta.status).toBe(204);
+  });
+
+  it('DELETE /api/eventos/:id recusa exclusão quando já existe pedido de ingresso', async () => {
+    prismaMock.pedido.count.mockResolvedValueOnce(1);
+
+    const resposta = await request(app)
+      .delete(`/api/eventos/${eventoExistente.id}`)
+      .set('Authorization', authCriador());
+
+    expect(resposta.status).toBe(409);
+    expect(prismaMock.evento.delete).not.toHaveBeenCalled();
   });
 
   it('DELETE /api/eventos/:id devolve 404 quando o evento não existe ou a remoção falha', async () => {

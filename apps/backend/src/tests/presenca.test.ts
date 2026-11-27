@@ -33,10 +33,64 @@ function authHeader() {
   return `Bearer ${token}`;
 }
 
-describe('API de Presenças e Regras de Negócio', () => {
+describe('API de Presenças e Agenda do Usuário', () => {
   beforeEach(() => {
     process.env.JWT_SECRET = 'segredo_de_teste';
     vi.clearAllMocks();
+  });
+
+  it('GET /api/presencas/agenda exige autenticação (401 sem token)', async () => {
+    const res = await request(app).get('/api/presencas/agenda');
+
+    expect(res.status).toBe(401);
+  });
+
+  it('GET /api/presencas/agenda devolve apenas eventos do usuário separados em próximos e passados', async () => {
+    const agora = Date.now();
+    const passado = new Date(agora - 24 * 60 * 60 * 1000);
+    const proximo = new Date(agora + 24 * 60 * 60 * 1000);
+
+    prismaMock.presenca.findMany.mockResolvedValue([
+      {
+        confirmadoEm: new Date(agora - 48 * 60 * 60 * 1000),
+        evento: {
+          id: 'ev-passado',
+          titulo: 'Show Anterior',
+          dataInicio: passado,
+          dataFim: null,
+          imagemUrl: null,
+          categoria: { id: 1, nome: 'Shows' },
+          local: { id: 1, nome: 'Bar do Rock' },
+        },
+      },
+      {
+        confirmadoEm: new Date(agora - 1000),
+        evento: {
+          id: 'ev-proximo',
+          titulo: 'Show Futuro',
+          dataInicio: proximo,
+          dataFim: null,
+          imagemUrl: 'https://exemplo.com/capa.jpg',
+          categoria: { id: 1, nome: 'Shows' },
+          local: { id: 1, nome: 'Bar do Rock' },
+        },
+      },
+    ]);
+
+    const res = await request(app)
+      .get('/api/presencas/agenda')
+      .set('Authorization', authHeader());
+
+    expect(res.status).toBe(200);
+    expect(prismaMock.presenca.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { usuarioId: USUARIO_ID },
+      }),
+    );
+    expect(res.body.proximos).toHaveLength(1);
+    expect(res.body.proximos[0].titulo).toBe('Show Futuro');
+    expect(res.body.passados).toHaveLength(1);
+    expect(res.body.passados[0].titulo).toBe('Show Anterior');
   });
 
   it('GET /api/presencas/:eventoId exige autenticação (401 sem token)', async () => {
@@ -65,6 +119,25 @@ describe('API de Presenças e Regras de Negócio', () => {
 
     expect(res.status).toBe(201);
     expect(res.body.mensagem).toBe('Presença confirmada com sucesso');
+  });
+
+  it('POST /api/presencas/:eventoId bloqueia confirmação quando o ingresso é vendido no app', async () => {
+    prismaMock.evento.findUnique.mockResolvedValue({
+      id: EVENTO_ID,
+      classificacaoEtaria: 0,
+      vendaNoApp: true,
+    });
+    prismaMock.usuario.findUnique.mockResolvedValue({
+      id: USUARIO_ID,
+      dataNascimento: new Date('2000-05-10'),
+    });
+
+    const res = await request(app)
+      .post(`/api/presencas/${EVENTO_ID}`)
+      .set('Authorization', authHeader());
+
+    expect(res.status).toBe(403);
+    expect(prismaMock.presenca.upsert).not.toHaveBeenCalled();
   });
 
   it('POST /api/presencas/:eventoId bloqueia menor de idade (403)', async () => {

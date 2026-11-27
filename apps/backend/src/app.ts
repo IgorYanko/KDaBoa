@@ -2,9 +2,15 @@ import cors from 'cors';
 import express from 'express';
 import swaggerUi from 'swagger-ui-express';
 import authRoutes from './routes/authRoutes';
+import bloqueioRoutes from './routes/bloqueioRoutes';
 import categoriaRoutes from './routes/categoriaRoutes';
+import conversaRoutes from './routes/conversaRoutes';
+import denunciaRoutes from './routes/denunciaRoutes';
 import eventoRoutes from './routes/eventoRoutes';
+import ingressoRoutes from './routes/ingressoRoutes';
 import localRoutes from './routes/localRoutes';
+import pagamentoRoutes from './routes/pagamentoRoutes';
+import pedidoRoutes from './routes/pedidoRoutes';
 import presencaRoutes from './routes/presencaRoutes';
 import seguidorRoutes from './routes/seguidorRoutes';
 import usuarioRoutes from './routes/usuarioRoutes';
@@ -13,7 +19,8 @@ import { swaggerSpec } from './swagger';
 const app = express();
 
 app.use(cors());
-app.use(express.json());
+// 2 MB: o evento pode trazer a foto da capa já reduzida pelo front.
+app.use(express.json({ limit: '2mb' }));
 
 // Rota da documentação visual (Swagger)
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
@@ -25,7 +32,13 @@ app.use('/api/categorias', categoriaRoutes);
 app.use('/api/locais', localRoutes);
 app.use('/api/presencas', presencaRoutes);
 app.use('/api/seguidores', seguidorRoutes);
+app.use('/api/conversas', conversaRoutes);
+app.use('/api/denuncias', denunciaRoutes);
+app.use('/api/bloqueios', bloqueioRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/pagamentos', pagamentoRoutes);
+app.use('/api/pedidos', pedidoRoutes);
+app.use('/api/ingressos', ingressoRoutes);
 
 app.get('/api/status', (_req, res) => {
   res.json({ status: 'API KdABoa rodando!', release: 3 });

@@ -14,6 +14,7 @@ import { atraso } from '../mocks/atraso';
 import { eventosMock } from '../mocks/eventos';
 import { comAlteracoes, marcarExcluido, salvarEdicao } from '../mocks/eventosAlterados';
 import { lerEventosCriados, salvarEventoCriado } from '../mocks/eventosCriados';
+import { salvarLocalCriado } from '../mocks/locaisCriados';
 import { comPresenca } from '../mocks/presencas';
 import { intervaloDoPeriodo } from '../utils/datas';
 import { reduzirImagem } from '../utils/imagem';
@@ -162,8 +163,10 @@ export async function listarEventosPaginados(
   const { dados, paginacao } = await requisicao<RespostaPaginada>(
     `/api/eventos${montarQuery(filtro, { pagina, limite })}`,
   );
+  // A API já filtrou e paginou: a página vai como veio. Filtrar de novo aqui deixaria
+  // `total` e `temMais` diferentes do que aparece na tela (o `filtrar` fica só no mock).
   const lembradas = presencasLembradas();
-  const itens = filtrar(await completar(dados.map((e) => doFormatoDaApi(e, lembradas))), filtro);
+  const itens = await completar(dados.map((e) => doFormatoDaApi(e, lembradas)));
   return { itens, total: paginacao.total, temMais: paginacao.pagina < paginacao.totalPaginas };
 }
 
@@ -194,7 +197,15 @@ export async function listarAgenda(): Promise<AgendaCompleta> {
     proximos = confirmados.filter((e) => aindaNaoAcabou(e, agora));
     passados = confirmados.filter((e) => !aindaNaoAcabou(e, agora));
   } else {
-    ({ proximos, passados } = await requisicao<AgendaDTO>('/api/usuarios/me/agenda'));
+    try {
+      ({ proximos, passados } = await requisicao<AgendaDTO>('/api/usuarios/me/agenda'));
+    } catch (e) {
+      if (!(e instanceof ErroApi && e.status === 404)) throw e;
+      // PENDENTE (issue #39): sem a rota, monta a agenda com os próximos eventos em que o
+      // usuário confirmou presença. Os passados só aparecem quando a rota existir.
+      proximos = (await buscarListaEventos({})).filter((evento) => evento.eu_vou);
+      passados = [];
+    }
   }
   const [proximosCompletos, passadosCompletos] = await Promise.all([completar(proximos), completar(passados)]);
   return {
@@ -220,22 +231,47 @@ export async function buscarEvento(id: string): Promise<EventoCompleto> {
 }
 
 /**
+ * Põe a foto escolhida no corpo como `imagem_url`, reduzida (960 px, JPEG) para caber
+ * no limite da API. Sem foto nova, o corpo vai como está (a edição mantém a capa atual).
+ */
+async function comCapa<T extends object>(dados: T, capa?: File | null): Promise<T & { imagem_url?: string }> {
+  if (!capa) return dados;
+  return { ...dados, imagem_url: await reduzirImagem(capa, 960, 0.75) };
+}
+
+/**
  * POST /api/eventos — publica um evento (tela Divulgar, issues #43 e #45).
- * A capa ainda não vai para a API (upload pendente, issue #46); no mock ela fica guardada no navegador.
+ * A capa vai junto, reduzida no navegador (issue #46); no mock ela fica guardada no navegador.
  */
 export async function criarEvento(dados: CriarEventoRequestDTO, capa?: File | null): Promise<EventoDTO> {
   if (!USAR_MOCK) {
-    return requisicao<EventoDTO>('/api/eventos', { metodo: 'POST', corpo: dados });
+    try {
+      return await requisicao<EventoDTO>('/api/eventos', { metodo: 'POST', corpo: await comCapa(dados, capa) });
+    } catch (e) {
+      // A API ainda não cria o local junto com o evento (issue #44): explica em vez do erro genérico.
+      // Outros erros de validação (título, preço...) aparecem como a API mandou.
+      if (dados.novo_local && e instanceof ErroApi && e.status === 400 && /local|erro ao criar evento/i.test(e.message)) {
+        throw new ErroApi('A API ainda não cadastra locais novos. Por enquanto, escolha um local da lista.', 400);
+      }
+      throw e;
+    }
   }
   await atraso(600);
   const autor = lerSessao()?.usuario;
   if (!autor) throw new ErroApi('Entre na sua conta para divulgar um evento.', 401);
+  const { novo_local: novoLocal, ...resto } = dados;
+  const localId = novoLocal ? salvarLocalCriado(novoLocal).id : (dados.local_id ?? 0);
   const evento: EventoDTO = {
-    ...dados,
+    ...resto,
+    local_id: localId,
     id: crypto.randomUUID(),
     data_fim: null,
     criador_id: autor.id,
     organizador: autor,
+    verificado: autor.perfil === 'ORGANIZADOR',
+    venda_no_app: autor.perfil === 'ORGANIZADOR' && dados.venda_no_app === true,
+    quantidade_ingressos:
+      autor.perfil === 'ORGANIZADOR' && dados.venda_no_app ? (dados.quantidade_ingressos ?? null) : null,
     capa_url: capa ? await reduzirImagem(capa) : null,
     total_confirmados: 0,
     eu_vou: false,
@@ -252,7 +288,10 @@ export async function criarEvento(dados: CriarEventoRequestDTO, capa?: File | nu
 /** PUT /api/eventos/:id — só o criador ou um ADMIN (a API responde 403 para os outros). */
 export async function atualizarEvento(id: string, dados: AtualizarEventoRequestDTO, capa?: File | null): Promise<void> {
   if (!USAR_MOCK) {
-    await requisicao<unknown>(`/api/eventos/${encodeURIComponent(id)}`, { metodo: 'PUT', corpo: dados });
+    await requisicao<unknown>(`/api/eventos/${encodeURIComponent(id)}`, {
+      metodo: 'PUT',
+      corpo: await comCapa(dados, capa),
+    });
     return;
   }
   await atraso(500);

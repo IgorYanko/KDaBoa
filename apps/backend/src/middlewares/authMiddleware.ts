@@ -4,7 +4,7 @@ import jwt, { type JwtPayload } from 'jsonwebtoken';
 export interface UsuarioToken extends JwtPayload {
   id: string;
   email: string;
-  perfil: 'USUARIO' | 'ADMIN';
+  perfil: 'USUARIO' | 'ORGANIZADOR' | 'ADMIN';
 }
 
 export interface RequisicaoAutenticada extends Request {
@@ -34,7 +34,7 @@ export const verificarToken = (req: Request, res: Response, next: NextFunction):
   }
 };
 
-export const exigirPerfil = (...perfisPermitidos: Array<'USUARIO' | 'ADMIN'>) => {
+export const exigirPerfil = (...perfisPermitidos: Array<'USUARIO' | 'ORGANIZADOR' | 'ADMIN'>) => {
   return (req: Request, res: Response, next: NextFunction): void => {
     const usuario = (req as RequisicaoAutenticada).usuario;
 

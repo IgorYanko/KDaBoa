@@ -137,7 +137,9 @@ export function DetalheEvento() {
   const total = evento.total_confirmados ?? 0;
   const euVou = evento.eu_vou ?? false;
   const icone = iconeDaCategoria(categoria);
-  const preco = evento.preco > 0 ? formatoPreco.format(evento.preco) : 'Gratuito';
+  const vendaNoApp = evento.venda_no_app === true;
+  const preco = evento.preco > 0 ? formatoPreco.format(Number(evento.preco)) : 'Gratuito';
+  const detalhePreco = vendaNoApp ? 'Compra no app' : evento.preco > 0 ? 'Na portaria' : 'Entrada franca';
   const estilo = { '--cor-evento': corDaCategoria(categoria) } as CSSProperties;
   const podeGerenciar = podeGerenciarEvento(evento, usuario);
   const comoAdmin = podeGerenciar && evento.criador_id !== usuario?.id;
@@ -187,6 +189,7 @@ export function DetalheEvento() {
 
           <div className={styles.cabecalho}>
             <h1 className={styles.titulo}>{evento.titulo}</h1>
+            {evento.verificado && <p className={styles.selo}>Verificado</p>}
             {evento.organizador && (
               <p className={styles.organizador}>
                 <span className={styles.organizadorAvatar} aria-hidden="true">
@@ -262,7 +265,7 @@ export function DetalheEvento() {
               <span className={styles.infoTextos}>
                 <span className={styles.infoTitulo}>{preco}</span>
                 <span className={styles.infoDetalhe}>
-                  {evento.preco > 0 ? 'Na portaria' : 'Entrada franca'}
+                  {detalhePreco}
                   {evento.classificacao_etaria > 0 && ` · ${evento.classificacao_etaria}+`}
                 </span>
               </span>
@@ -312,7 +315,9 @@ export function DetalheEvento() {
                 </span>
                 <span className={styles.cartaoTextos}>
                   <span className={styles.cartaoTitulo}>Chat do evento</span>
-                  <span className={styles.cartaoDetalhe}>Confirme presença para entrar na conversa</span>
+                  <span className={styles.cartaoDetalhe}>
+                    {vendaNoApp ? 'Compre o ingresso para entrar na conversa' : 'Confirme presença para entrar na conversa'}
+                  </span>
                 </span>
               </div>
             )}
@@ -336,7 +341,7 @@ export function DetalheEvento() {
                 <Icone nome="ingresso" tamanho={18} />
                 <span>
                   {preco}
-                  <small>{evento.preco > 0 ? 'Na portaria' : 'Entrada franca'}</small>
+                  <small>{detalhePreco}</small>
                 </span>
               </li>
             </ul>
@@ -344,16 +349,22 @@ export function DetalheEvento() {
               <span className={styles.confirmadosRotulo}>Confirmados</span>
               <span className={styles.confirmadosNumero}>{total}</span>
             </p>
-            <Botao
-              className={styles.botaoPresenca}
-              variante={euVou ? 'secundario' : 'primario'}
-              icone={euVou ? 'check' : undefined}
-              onClick={alternarPresenca}
-              carregando={salvando}
-              aria-pressed={euVou}
-            >
-              {euVou ? 'Você vai! · Cancelar' : 'Eu vou!'}
-            </Botao>
+            {vendaNoApp ? (
+              <Link to={`/eventos/${evento.id}/checkout`} className={`${classesBotao()} ${styles.botaoPresenca}`}>
+                Comprar ingresso
+              </Link>
+            ) : (
+              <Botao
+                className={styles.botaoPresenca}
+                variante={euVou ? 'secundario' : 'primario'}
+                icone={euVou ? 'check' : undefined}
+                onClick={alternarPresenca}
+                carregando={salvando}
+                aria-pressed={euVou}
+              >
+                {euVou ? 'Você vai! · Cancelar' : 'Eu vou!'}
+              </Botao>
+            )}
             <Botao variante="fantasma" icone="compartilhar" className={styles.compartilharLateral} onClick={compartilhar}>
               Compartilhar
             </Botao>

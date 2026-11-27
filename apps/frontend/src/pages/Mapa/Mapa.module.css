@@ -1,0 +1,334 @@
+/* O mapa ocupa a tela toda; botões e cartão flutuam por cima. */
+.tela {
+  position: relative;
+  flex: 1;
+  min-height: 100dvh;
+  overflow: hidden;
+  background: var(--cor-fundo);
+}
+
+/* ---------- Topo: voltar, status da localização e centralizar ---------- */
+.topo {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + var(--espaco-4));
+  left: var(--margem-tela);
+  right: var(--margem-tela);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-2);
+  pointer-events: none;
+}
+
+.topo > * {
+  pointer-events: auto;
+}
+
+.pilula {
+  min-width: 0;
+  height: 40px;
+  padding: 0 var(--espaco-3);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  overflow: hidden;
+  background: var(--cor-vidro-escuro);
+  border: 1px solid var(--cor-borda-vidro);
+  border-radius: var(--raio-pilula);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  font-size: var(--texto-xs);
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--cor-texto);
+}
+
+button.pilula {
+  cursor: pointer;
+}
+
+button.pilula:hover {
+  border-color: var(--cor-secundaria-borda);
+}
+
+.pilulaTexto {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sinal {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--raio-pilula);
+  background: var(--cor-texto-fraco);
+}
+
+.sinalAtivo {
+  background: var(--cor-categoria-2);
+  box-shadow: 0 0 0 4px color-mix(in oklch, var(--cor-categoria-2) 30%, transparent);
+}
+
+.toast {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 72px);
+  left: 50%;
+  z-index: 3;
+  padding: var(--espaco-2) var(--espaco-4);
+  transform: translateX(-50%);
+  background: var(--cor-superficie-alta);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-pilula);
+  font-size: var(--texto-sm);
+  font-weight: 600;
+  box-shadow: var(--sombra-2);
+}
+
+/* ---------- Carregando, erro e evento sem coordenadas ---------- */
+.centro {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 1;
+  padding: 96px var(--margem-tela) 0;
+  display: flex;
+  justify-content: center;
+  color: var(--cor-texto-suave);
+  font-size: var(--texto-sm);
+}
+
+.semMapa {
+  width: 100%;
+  max-width: 420px;
+  padding: var(--espaco-8) var(--espaco-6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espaco-2);
+  text-align: center;
+  background: var(--cor-superficie);
+  border: 1px dashed var(--cor-borda-forte);
+  border-radius: var(--raio-lg);
+}
+
+.semMapaIcone {
+  width: 48px;
+  height: 48px;
+  margin-bottom: var(--espaco-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cor-secundaria-tinta);
+  border-radius: var(--raio-pilula);
+  color: var(--cor-secundaria-texto);
+}
+
+.semMapaTitulo {
+  font-size: var(--texto-md);
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+
+.semMapaTexto {
+  color: var(--cor-texto-suave);
+}
+
+.semMapaLink {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  font-weight: 600;
+  color: var(--cor-secundaria-texto);
+}
+
+/* ---------- Cartão do evento (folha que sobe de baixo) ---------- */
+.cartao {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  padding: var(--espaco-6) var(--margem-tela) calc(env(safe-area-inset-bottom) + var(--espaco-4));
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+  background: var(--cor-superficie);
+  border-top: 1px solid var(--cor-borda);
+  border-radius: var(--raio-xl) var(--raio-xl) 0 0;
+  box-shadow: var(--sombra-3);
+}
+
+/* Alça decorativa da folha. */
+.cartao::before {
+  content: "";
+  position: absolute;
+  top: var(--espaco-2);
+  left: 50%;
+  width: 40px;
+  height: 4px;
+  transform: translateX(-50%);
+  background: var(--cor-borda-forte);
+  border-radius: var(--raio-pilula);
+}
+
+.evento {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-4);
+}
+
+.data {
+  flex-shrink: 0;
+  width: 60px;
+  height: 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in oklch, var(--cor-evento) 18%, var(--cor-superficie));
+  border: 1px solid color-mix(in oklch, var(--cor-evento) 40%, transparent);
+  border-radius: var(--raio-md);
+  font-family: var(--fonte-titulo);
+  line-height: 1;
+}
+
+.dia {
+  font-size: var(--texto-2xl);
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+
+.mes {
+  padding-top: 3px;
+  font-size: var(--texto-2xs);
+  font-weight: 600;
+  letter-spacing: var(--espacamento-sobrancelha);
+  color: var(--cor-evento);
+}
+
+.textos {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.categoria {
+  font-size: var(--texto-xs);
+  font-weight: 600;
+  color: var(--cor-evento);
+}
+
+.titulo {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--texto-lg);
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+
+.meta {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--texto-sm);
+  color: var(--cor-texto-suave);
+}
+
+.numeros {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--espaco-2);
+}
+
+/* Valor em cima, legenda embaixo (o dd vem depois do dt por acessibilidade). */
+.numero {
+  padding: var(--espaco-3);
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+  gap: 2px;
+  background: var(--cor-superficie-elevada);
+  border: 1px solid var(--cor-borda-suave);
+  border-radius: var(--raio-md);
+}
+
+.numero dt {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--texto-xs);
+  color: var(--cor-texto-suave);
+}
+
+.numero dd {
+  margin: 0;
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-lg);
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+
+/* "Ver detalhes" à esquerda e "Compartilhar" sem fundo à direita (pedido sobre o Figma). */
+.acoes {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+}
+
+.acoes > a {
+  flex: 1;
+}
+
+.porPerto {
+  min-height: 40px;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  background: none;
+  border: none;
+  font-size: var(--texto-sm);
+  font-weight: 600;
+  color: var(--cor-texto-suave);
+  cursor: pointer;
+}
+
+.porPerto:hover {
+  color: var(--cor-texto);
+}
+
+/* ---------- Desktop: mapa em cartão, evento ao lado ---------- */
+@media (min-width: 1024px) {
+  .tela {
+    min-height: calc(100dvh - var(--altura-topo-desktop) - 2 * var(--espaco-6));
+    margin: var(--espaco-6);
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-xl);
+  }
+
+  .topo {
+    top: var(--espaco-4);
+    left: var(--espaco-4);
+    right: var(--espaco-4);
+  }
+
+  .cartao {
+    left: var(--espaco-4);
+    right: auto;
+    bottom: var(--espaco-4);
+    width: 400px;
+    padding: var(--espaco-5);
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-xl);
+  }
+
+  .cartao::before {
+    display: none;
+  }
+}

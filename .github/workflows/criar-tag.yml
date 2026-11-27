@@ -1,0 +1,50 @@
+name: Criar tag da release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Tag da release
+        required: true
+        type: choice
+        options:
+          - v0.2
+          - v0.3
+          - v1.0
+      commit:
+        description: Commit antigo (deixe vazio para usar o último da main)
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  criar-tag:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit || 'main' }}
+      - uses: pnpm/action-setup@v4
+        if: inputs.commit == ''
+      - uses: actions/setup-node@v4
+        if: inputs.commit == ''
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+        if: inputs.commit == ''
+      - run: pnpm lint
+        if: inputs.commit == ''
+      - run: pnpm test
+        if: inputs.commit == ''
+      - run: pnpm build
+        if: inputs.commit == ''
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "${{ inputs.tag }}" -m "Release ${{ inputs.tag }}"
+          git push origin "${{ inputs.tag }}"

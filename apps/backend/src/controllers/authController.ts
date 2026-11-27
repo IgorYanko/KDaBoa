@@ -4,6 +4,7 @@ import type { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../prisma';
 import { enviarEmailRecuperacao } from '../services/emailService';
+import { apenasDigitosCnpj, cnpjValido } from '../utils/cnpj';
 
 const HASH_SENHA_AUSENTE = '$2b$10$yB1lgsogYiGFZGz8oLDTU.KK2np7oXCVK53.M7qUOxiKDrUkrTOHW';
 const MENSAGEM_RECUPERACAO = 'E-mail de recuperação enviado com sucesso';
@@ -31,6 +32,10 @@ export const cadastrar = async (req: Request, res: Response): Promise<void> => {
       mostrar_presenca,
       mostrarPresenca,
       interesses,
+      tipo,
+      cnpj,
+      nome_fantasia,
+      nomeFantasia,
     } = req.body;
 
     const usuarioExiste = await prisma.usuario.findUnique({
@@ -40,6 +45,29 @@ export const cadastrar = async (req: Request, res: Response): Promise<void> => {
     if (usuarioExiste) {
       res.status(400).json({ erro: 'E-mail já cadastrado' });
       return;
+    }
+
+    const contaEmpresa = tipo === 'cnpj';
+    let cnpjLimpo: string | null = null;
+    if (contaEmpresa) {
+      if (typeof nome !== 'string' || !nome.trim()) {
+        res.status(400).json({ erro: 'Informe a razão social.' });
+        return;
+      }
+      if (typeof senha !== 'string' || senha.length < 8 || senha.length > 128) {
+        res.status(400).json({ erro: 'A senha deve ter entre 8 e 128 caracteres' });
+        return;
+      }
+      cnpjLimpo = apenasDigitosCnpj(String(cnpj ?? ''));
+      if (!cnpjValido(cnpjLimpo)) {
+        res.status(400).json({ erro: 'CNPJ inválido.' });
+        return;
+      }
+      const cnpjExiste = await prisma.usuario.findUnique({ where: { cnpj: cnpjLimpo } });
+      if (cnpjExiste) {
+        res.status(400).json({ erro: 'CNPJ já cadastrado' });
+        return;
+      }
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -57,7 +85,10 @@ export const cadastrar = async (req: Request, res: Response): Promise<void> => {
         nome,
         email,
         senhaHash,
-        dataNascimento: new Date(dataNasc),
+        perfil: contaEmpresa ? 'ORGANIZADOR' : 'USUARIO',
+        dataNascimento: contaEmpresa ? null : new Date(dataNasc),
+        cnpj: cnpjLimpo,
+        nomeFantasia: contaEmpresa ? (nomeFantasia || nome_fantasia || null) : null,
         mostrarPresenca: Boolean(presencaVisivel),
         ...(listaInteresses.length > 0 && {
           interesses: {
@@ -79,6 +110,8 @@ export const cadastrar = async (req: Request, res: Response): Promise<void> => {
         nome: novoUsuario.nome,
         email: novoUsuario.email,
         perfil: novoUsuario.perfil ?? 'USUARIO',
+        cnpj: novoUsuario.cnpj,
+        nome_fantasia: novoUsuario.nomeFantasia,
         data_nascimento: novoUsuario.dataNascimento,
         mostrar_presenca: novoUsuario.mostrarPresenca,
         interesses: novoUsuario.interesses

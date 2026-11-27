@@ -13,6 +13,7 @@ interface ItemNavegacao {
 const itens: ItemNavegacao[] = [
   { para: '/inicio', rotulo: 'Início', icone: 'inicio' },
   { para: '/agenda', rotulo: 'Agenda', icone: 'agenda' },
+  { para: '/conversas', rotulo: 'Conversas', icone: 'chat' },
   { para: '/perfil', rotulo: 'Perfil', icone: 'perfil' },
   { para: '/admin', rotulo: 'Admin', icone: 'cadeado', soAdmin: true },
 ];
