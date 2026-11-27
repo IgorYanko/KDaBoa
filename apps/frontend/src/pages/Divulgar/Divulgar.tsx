@@ -150,12 +150,12 @@ export function Divulgar() {
         corpo.quantidade_ingressos = undefined;
       }
       if (id) {
-        await atualizarEvento(id, corpo, capa);
-        navegar(`/eventos/${id}`, { replace: true, state: { editado: true } });
+        const { semFoto } = await atualizarEvento(id, corpo, capa);
+        navegar(`/eventos/${id}`, { replace: true, state: { editado: true, semFoto } });
         return;
       }
       const novo = await criarEvento(corpo, capa);
-      navegar(`/eventos/${novo.id}`, { replace: true, state: { publicado: true } });
+      navegar(`/eventos/${novo.id}`, { replace: true, state: { publicado: true, semFoto: novo.semFoto } });
     } catch (e) {
       setErroApi(e instanceof ErroApi ? e.message : 'Não foi possível salvar. Tente de novo.');
       setEnviando(false);
