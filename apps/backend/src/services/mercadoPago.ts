@@ -15,10 +15,69 @@ export interface ClienteMercadoPago {
   consultarPagamento(id: string): Promise<PagamentoMp>;
 }
 
-async function lerJson(resposta: Response): Promise<PagamentoMp> {
-  const json = (await resposta.json()) as PagamentoMp & { message?: string };
-  if (!resposta.ok) {
-    throw new Error(json.message || 'Falha no Mercado Pago');
+interface CausaMercadoPago {
+  code?: number | string;
+  description?: string;
+}
+
+interface ErroJsonMercadoPago {
+  message?: string;
+  error?: string;
+  cause?: CausaMercadoPago[];
+}
+
+/** Falha devolvida pela API do Mercado Pago, com status e causas originais. */
+export class ErroMercadoPago extends Error {
+  readonly httpStatus: number;
+  readonly codigo?: string;
+  readonly causas: CausaMercadoPago[];
+
+  constructor(httpStatus: number, json: ErroJsonMercadoPago) {
+    const causas = Array.isArray(json.cause) ? json.cause : [];
+    super(mensagemDaFalha(json, causas));
+    this.name = 'ErroMercadoPago';
+    this.httpStatus = httpStatus;
+    this.codigo = json.error;
+    this.causas = causas.map((causa) => ({ code: causa.code, description: causa.description }));
+  }
+}
+
+function mensagemDaFalha(json: ErroJsonMercadoPago, causas: CausaMercadoPago[]): string {
+  const descricoes = [...new Set(causas.map((causa) => causa.description?.trim()).filter(Boolean))];
+  if (descricoes.length > 0) return descricoes.join('; ');
+  return json.message?.trim() || json.error?.trim() || 'Falha no Mercado Pago';
+}
+
+function registrarFalha(operacao: string, referencia: string, erro: ErroMercadoPago): void {
+  console.error(
+    JSON.stringify({
+      nivel: 'error',
+      evento: 'mercado_pago',
+      operacao,
+      referencia,
+      http: erro.httpStatus,
+      codigo: erro.codigo ?? null,
+      mensagem: erro.message,
+      causas: erro.causas,
+    }),
+  );
+}
+
+async function lerJson(resposta: Response, operacao: string, referencia: string): Promise<PagamentoMp> {
+  const texto = await resposta.text();
+  let json: (PagamentoMp & ErroJsonMercadoPago) | null = null;
+  if (texto) {
+    try {
+      json = JSON.parse(texto) as PagamentoMp & ErroJsonMercadoPago;
+    } catch {
+      json = null;
+    }
+  }
+
+  if (!resposta.ok || !json) {
+    const erro = new ErroMercadoPago(resposta.status, json ?? { message: texto.slice(0, 300) || 'Resposta vazia do Mercado Pago' });
+    registrarFalha(operacao, referencia, erro);
+    throw erro;
   }
   return json;
 }
@@ -37,7 +96,7 @@ export const clienteHttpMercadoPago: ClienteMercadoPago = {
       },
       body: JSON.stringify(corpo),
     });
-    return lerJson(resposta);
+    return lerJson(resposta, 'criar_pagamento', idempotencia);
   },
 
   async consultarPagamento(id) {
@@ -47,7 +106,7 @@ export const clienteHttpMercadoPago: ClienteMercadoPago = {
     const resposta = await fetch(`https://api.mercadopago.com/v1/payments/${encodeURIComponent(id)}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    return lerJson(resposta);
+    return lerJson(resposta, 'consultar_pagamento', id);
   },
 };
 

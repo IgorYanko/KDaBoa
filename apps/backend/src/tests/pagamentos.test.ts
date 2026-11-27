@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import request from 'supertest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { definirClienteMercadoPago, type PagamentoMp } from '../services/mercadoPago';
+import { ErroMercadoPago, definirClienteMercadoPago, type PagamentoMp } from '../services/mercadoPago';
 
 const EVENTO_ID = '123e4567-e89b-12d3-a456-426614174000';
 const USUARIO_ID = '987fcdeb-51a2-43d7-9012-345678901234';
@@ -174,6 +174,29 @@ describe('Checkout de ingresso', () => {
     expect(semEstoque.status).toBe(409);
     expect(estado.ingressos).toHaveLength(2);
     expect(criarPagamento.mock.calls[0]?.[0].date_of_expiration).toBeUndefined();
+  });
+
+  it('cobrança recusada devolve a causa do Mercado Pago e libera o estoque', async () => {
+    definirClienteMercadoPago({
+      criarPagamento: vi.fn(async () => {
+        throw new ErroMercadoPago(400, {
+          message: 'bad_request',
+          error: 'bad_request',
+          cause: [{ code: 145, description: 'Invalid users involved' }],
+        });
+      }),
+      consultarPagamento: vi.fn(),
+    });
+
+    const resposta = await request(app)
+      .post(`/api/eventos/${EVENTO_ID}/pagamentos`)
+      .set('Authorization', authHeader())
+      .send({ quantidade: 1, metodo: 'cartao', token: 'tok_teste', payment_method_id: 'master' });
+
+    expect(resposta.status).toBe(502);
+    expect(resposta.body.erro).toBe('Não foi possível cobrar no Mercado Pago: Invalid users involved');
+    expect(estado.estoque).toBe(2);
+    expect(estado.ingressos).toHaveLength(0);
   });
 
   it('webhook repetido não duplica ingresso', async () => {
