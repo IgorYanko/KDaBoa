@@ -27,6 +27,7 @@ interface MercadoPagoSdk {
     callbacks: {
       onFormMounted?: (error?: unknown) => void;
       onSubmit?: (event: Event) => void;
+      onBinChange?: (bin: string) => void;
     };
   }) => {
     getCardFormData: () => DadosCartaoMp;

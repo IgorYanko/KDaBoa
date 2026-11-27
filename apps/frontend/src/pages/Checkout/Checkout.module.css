@@ -8,6 +8,12 @@
   padding: var(--espaco-6) var(--margem-tela) var(--espaco-12);
 }
 
+@media (min-width: 768px) {
+  .tela {
+    max-width: 860px;
+  }
+}
+
 .cabecalho {
   display: flex;
   flex-direction: column;
@@ -29,10 +35,44 @@
   font-size: var(--texto-sm);
 }
 
+.pagamento {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+}
+
+@media (min-width: 768px) {
+  .pagamento {
+    display: grid;
+    grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+    gap: var(--espaco-6);
+    align-items: start;
+  }
+}
+
 .formulario {
   display: flex;
   flex-direction: column;
   gap: var(--espaco-3);
+}
+
+.linha {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--espaco-3);
+}
+
+.grupo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  min-width: 0;
+}
+
+.rotulo {
+  font-size: var(--texto-sm);
+  font-weight: 500;
+  color: var(--cor-rotulo);
 }
 
 .campo,
