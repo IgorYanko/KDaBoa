@@ -2,7 +2,6 @@ import { ErroApi, requisicao } from '../api/client';
 import { lerSessao } from '../api/sessao';
 import { USAR_MOCK } from '../config';
 import type {
-  AgendaDTO,
   AtualizarEventoRequestDTO,
   CategoriaDTO,
   CriarEventoRequestDTO,
@@ -20,7 +19,7 @@ import { intervaloDoPeriodo } from '../utils/datas';
 import { reduzirImagem } from '../utils/imagem';
 import { listarCategorias } from './categorias';
 import { listarLocais } from './locais';
-import { presencasLembradas } from './presenca';
+import { buscarAgendaDaApi, type EventoDaAgenda, eventosQueVou } from './presenca';
 
 /** Evento com a categoria e o local já resolvidos, pronto para as telas. */
 export interface EventoCompleto {
@@ -99,14 +98,45 @@ type EventoDaApi = EventoDTO & { confirmados?: number };
 
 /**
  * Ajusta o evento da API ao formato do front: o total de confirmados vem como `confirmados`,
- * o preço (Decimal no banco) pode chegar como texto e `eu_vou` ainda não vem (PENDENTE, issue #29).
+ * o preço (Decimal no banco) pode chegar como texto e `eu_vou` ainda não vem (issue #29):
+ * ele sai da lista de presenças do banco (`eventosQueVou`).
  */
-function doFormatoDaApi(evento: EventoDaApi, lembradas: Set<string>): EventoDTO {
+function doFormatoDaApi(evento: EventoDaApi, vou: Set<string>): EventoDTO {
   return {
     ...evento,
     preco: Number(evento.preco) || 0,
     total_confirmados: evento.total_confirmados ?? evento.confirmados ?? 0,
-    eu_vou: evento.eu_vou ?? lembradas.has(evento.id),
+    eu_vou: evento.eu_vou ?? vou.has(evento.id),
+  };
+}
+
+/** Coordenada que pode chegar como texto (Decimal do banco). */
+function numeroOuNada(valor: unknown): number | undefined {
+  if (valor === null || valor === undefined || valor === '') return undefined;
+  const numero = Number(valor);
+  return Number.isFinite(numero) ? numero : undefined;
+}
+
+/** Evento do GET /api/presencas/agenda (camelCase do banco) no formato do front. */
+function doFormatoDaAgenda(evento: EventoDaAgenda): EventoDTO {
+  return {
+    id: evento.id,
+    titulo: evento.titulo,
+    descricao: evento.descricao ?? '',
+    data_inicio: evento.data_inicio,
+    data_fim: evento.data_fim ?? null,
+    preco: Number(evento.preco) || 0,
+    classificacao_etaria: evento.classificacaoEtaria ?? 0,
+    categoria_id: evento.categoriaId,
+    local_id: evento.localId,
+    criador_id: evento.criadorId,
+    capa_url: evento.capa_url ?? null,
+    latitude: numeroOuNada(evento.latitude),
+    longitude: numeroOuNada(evento.longitude),
+    verificado: evento.verificado ?? false,
+    venda_no_app: evento.vendaNoApp ?? false,
+    quantidade_ingressos: evento.quantidadeIngressos ?? null,
+    eu_vou: true,
   };
 }
 
@@ -115,9 +145,11 @@ async function buscarListaEventos(filtro: FiltroEventosDTO): Promise<EventoDTO[]
     await atraso(300);
     return todosEventosMock().map(comPresenca);
   }
-  const lista = await requisicao<EventoDaApi[]>(`/api/eventos${montarQuery(filtro)}`);
-  const lembradas = presencasLembradas();
-  return lista.map((evento) => doFormatoDaApi(evento, lembradas));
+  const [lista, vou] = await Promise.all([
+    requisicao<EventoDaApi[]>(`/api/eventos${montarQuery(filtro)}`),
+    eventosQueVou(),
+  ]);
+  return lista.map((evento) => doFormatoDaApi(evento, vou));
 }
 
 async function completar(eventos: EventoDTO[]): Promise<EventoCompleto[]> {
@@ -160,13 +192,13 @@ export async function listarEventosPaginados(
     const inicio = (pagina - 1) * limite;
     return { itens: todos.slice(inicio, inicio + limite), total: todos.length, temMais: inicio + limite < todos.length };
   }
-  const { dados, paginacao } = await requisicao<RespostaPaginada>(
-    `/api/eventos${montarQuery(filtro, { pagina, limite })}`,
-  );
+  const [{ dados, paginacao }, vou] = await Promise.all([
+    requisicao<RespostaPaginada>(`/api/eventos${montarQuery(filtro, { pagina, limite })}`),
+    eventosQueVou(),
+  ]);
   // A API já filtrou e paginou: a página vai como veio. Filtrar de novo aqui deixaria
   // `total` e `temMais` diferentes do que aparece na tela (o `filtrar` fica só no mock).
-  const lembradas = presencasLembradas();
-  const itens = await completar(dados.map((e) => doFormatoDaApi(e, lembradas)));
+  const itens = await completar(dados.map((e) => doFormatoDaApi(e, vou)));
   return { itens, total: paginacao.total, temMais: paginacao.pagina < paginacao.totalPaginas };
 }
 
@@ -182,8 +214,8 @@ function aindaNaoAcabou(evento: EventoDTO, agora: Date): boolean {
 }
 
 /**
- * GET /api/usuarios/me/agenda (issue #39, rota ainda não existe) — eventos em que o
- * usuário confirmou presença, separados em próximos e passados.
+ * GET /api/presencas/agenda (issue #39) — eventos em que o usuário confirmou presença,
+ * separados em próximos e passados pelo banco.
  */
 export async function listarAgenda(): Promise<AgendaCompleta> {
   let proximos: EventoDTO[];
@@ -197,15 +229,9 @@ export async function listarAgenda(): Promise<AgendaCompleta> {
     proximos = confirmados.filter((e) => aindaNaoAcabou(e, agora));
     passados = confirmados.filter((e) => !aindaNaoAcabou(e, agora));
   } else {
-    try {
-      ({ proximos, passados } = await requisicao<AgendaDTO>('/api/usuarios/me/agenda'));
-    } catch (e) {
-      if (!(e instanceof ErroApi && e.status === 404)) throw e;
-      // PENDENTE (issue #39): sem a rota, monta a agenda com os próximos eventos em que o
-      // usuário confirmou presença. Os passados só aparecem quando a rota existir.
-      proximos = (await buscarListaEventos({})).filter((evento) => evento.eu_vou);
-      passados = [];
-    }
+    const agenda = await buscarAgendaDaApi();
+    proximos = agenda.proximos.map(doFormatoDaAgenda);
+    passados = agenda.passados.map(doFormatoDaAgenda);
   }
   const [proximosCompletos, passadosCompletos] = await Promise.all([completar(proximos), completar(passados)]);
   return {
@@ -223,8 +249,11 @@ export async function buscarEvento(id: string): Promise<EventoCompleto> {
     if (!encontrado) throw new ErroApi('Evento não encontrado', 404);
     evento = comPresenca(encontrado);
   } else {
-    const bruto = await requisicao<EventoDaApi>(`/api/eventos/${encodeURIComponent(id)}`);
-    evento = doFormatoDaApi(bruto, presencasLembradas());
+    const [bruto, vou] = await Promise.all([
+      requisicao<EventoDaApi>(`/api/eventos/${encodeURIComponent(id)}`),
+      eventosQueVou(),
+    ]);
+    evento = doFormatoDaApi(bruto, vou);
   }
   const [completo] = await completar([evento]);
   return completo;
