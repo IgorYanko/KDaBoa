@@ -78,10 +78,10 @@ export async function requisicao<T>(caminho: string, { metodo = 'GET', corpo }: 
     }
     const erro = (dados as Partial<ErroApiDTO> | null)?.erro;
     // Sem mensagem da API (ex.: erro 500 inesperado), uma frase clara em vez de detalhes técnicos.
-    const padrao =
-      resposta.status >= 500
-        ? 'O servidor teve um problema. Tente de novo em instantes.'
-        : 'Algo deu errado. Tente de novo.';
+    let padrao = 'Algo deu errado. Tente de novo.';
+    if (resposta.status >= 500) padrao = 'O servidor teve um problema. Tente de novo em instantes.';
+    // 404 sem { erro } = a rota não existe no servidor (ainda não foi feita no backend).
+    else if (resposta.status === 404) padrao = 'Essa função ainda não está disponível no servidor.';
     throw new ErroApi(erro ?? padrao, resposta.status);
   }
 

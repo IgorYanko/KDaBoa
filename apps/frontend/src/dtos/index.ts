@@ -232,6 +232,25 @@ export interface FiltroEventosDTO {
 }
 
 /**
+ * PENDENTE (rotas de admin): criar e editar um local. Rotas sugeridas, só para ADMIN:
+ * POST /api/locais, PUT /api/locais/:id e DELETE /api/locais/:id.
+ */
+export interface LocalRequestDTO {
+  nome: string;
+  endereco: string;
+  bairro?: string;
+  cep?: string;
+}
+
+/**
+ * PENDENTE (rotas de admin): criar e editar uma categoria. Rotas sugeridas, só para ADMIN:
+ * POST /api/categorias, PUT /api/categorias/:id e DELETE /api/categorias/:id.
+ */
+export interface CategoriaRequestDTO {
+  nome: string;
+}
+
+/**
  * PENDENTE (issue #44): local novo informado no Divulgar, com o endereço preenchido pelo ViaCEP.
  * A API ainda não cria locais; até aceitar este campo, o evento precisa de um `local_id` da lista.
  */
