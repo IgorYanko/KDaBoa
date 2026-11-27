@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 import { ErroApi } from '../../api/client';
 import { Aviso } from '../../components/Aviso';
 import { classesBotao } from '../../components/Botao';
+import { CartaoIngresso } from '../../components/CartaoIngresso';
 import { EventoLinha } from '../../components/EventoLinha';
 import { Icone } from '../../components/Icone';
 import { Segmentos } from '../../components/Segmentos';
@@ -40,7 +41,9 @@ function agrupar(lista: EventoCompleto[], aba: 'proximos' | 'passados'): Grupo[]
 
 /** Tela 6 · Minha agenda (issue #38): eventos com presença confirmada, em próximos e passados. */
 export function Agenda() {
-  const [aba, setAba] = useState<Aba>('proximos');
+  const [params] = useSearchParams();
+  const abaInicial = params.get('aba');
+  const [aba, setAba] = useState<Aba>(abaInicial === 'passados' || abaInicial === 'ingressos' ? abaInicial : 'proximos');
   const [agenda, setAgenda] = useState<AgendaCompleta | null>(null);
   const [ingressos, setIngressos] = useState<IngressoDTO[] | null>(null);
   const [erro, setErro] = useState<string | null>(null);
@@ -89,7 +92,7 @@ export function Agenda() {
             <Icone nome="ingresso" tamanho={22} />
           </span>
           <p className={styles.vazioTitulo}>Nenhum ingresso ainda</p>
-          <p className={styles.vazioTexto}>Quando um pagamento for aprovado, o código aparece aqui.</p>
+          <p className={styles.vazioTexto}>Quando um pagamento for aprovado, o ingresso aparece aqui.</p>
         </div>
       )}
 
@@ -97,10 +100,14 @@ export function Agenda() {
         <ul className={styles.lista}>
           {ingressos.map((ingresso) => (
             <li key={ingresso.id}>
-              <Link to={`/eventos/${ingresso.evento_id}`} className={styles.ingresso}>
-                <span className={styles.ingressoTitulo}>{ingresso.evento_titulo}</span>
-                <span className={styles.ingressoCodigo}>{ingresso.codigo}</span>
-              </Link>
+              <CartaoIngresso
+                codigo={ingresso.codigo}
+                titulo={ingresso.evento_titulo}
+                dataInicio={ingresso.data_inicio}
+                capaUrl={ingresso.capa_url}
+                localNome={ingresso.local_nome}
+                para={`/eventos/${ingresso.evento_id}`}
+              />
             </li>
           ))}
         </ul>
