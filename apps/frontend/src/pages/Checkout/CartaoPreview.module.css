@@ -1,0 +1,196 @@
+.cena {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  perspective: 1000px;
+}
+
+.cartao {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1.586;
+  transform-style: preserve-3d;
+  transition: transform 0.55s ease;
+}
+
+.virado {
+  transform: rotateY(180deg);
+}
+
+.frente,
+.verso {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: var(--espaco-5);
+  border-radius: var(--raio-lg);
+  backface-visibility: hidden;
+  color: #f7f4ee;
+  box-shadow: var(--sombra-3);
+  overflow: hidden;
+}
+
+.frente::after {
+  content: "";
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  right: -40px;
+  top: -50px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.verso {
+  transform: rotateY(180deg);
+  justify-content: flex-start;
+  gap: var(--espaco-5);
+  padding: var(--espaco-5) 0;
+}
+
+.neutro .frente,
+.neutro .verso {
+  background: linear-gradient(135deg, #2a2152 0%, #6f4cff 100%);
+}
+
+.visa .frente,
+.visa .verso {
+  background: linear-gradient(135deg, #1a1f71 0%, #4d5ec4 100%);
+}
+
+.master .frente,
+.master .verso {
+  background: linear-gradient(135deg, #1c1c1c 0%, #3a2a28 55%, #6b2a22 100%);
+}
+
+.amex .frente,
+.amex .verso {
+  background: linear-gradient(135deg, #0e4d78 0%, #2e8bc7 100%);
+}
+
+.elo .frente,
+.elo .verso {
+  background: linear-gradient(135deg, #111 0%, #2a2a2a 60%, #c9a227 140%);
+}
+
+.hipercard .frente,
+.hipercard .verso {
+  background: linear-gradient(135deg, #6d1520 0%, #d23b45 100%);
+}
+
+.topo,
+.rodape {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--espaco-3);
+  position: relative;
+  z-index: 1;
+}
+
+.chip {
+  width: 42px;
+  height: 32px;
+  border-radius: 6px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.45), transparent 40%),
+    linear-gradient(#e6c36a, #b8892e);
+}
+
+.numero {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  font-family: ui-monospace, monospace;
+  font-size: clamp(16px, 4vw, 22px);
+  letter-spacing: 0.12em;
+}
+
+.bloco {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  min-width: 0;
+}
+
+.legenda {
+  font-size: var(--texto-2xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.valor {
+  font-size: var(--texto-sm);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+.nomeBandeira {
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-lg);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.master {
+  position: relative;
+  width: 46px;
+  height: 28px;
+}
+
+.master span {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+}
+
+.master span:first-child {
+  left: 0;
+  background: #eb001b;
+}
+
+.master span:last-child {
+  right: 0;
+  background: #f79e1b;
+}
+
+.tarja {
+  display: block;
+  height: 42px;
+  margin-top: var(--espaco-3);
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.cvv {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--espaco-1);
+  margin: 0 var(--espaco-5);
+}
+
+.caixaCvv {
+  min-width: 72px;
+  padding: 6px 10px;
+  border-radius: var(--raio-xs);
+  background: #f4f1ea;
+  color: #1a1a1a;
+  text-align: right;
+  letter-spacing: 0.2em;
+  font-family: ui-monospace, monospace;
+}
+
+.bandeira {
+  margin: 0;
+  font-size: var(--texto-xs);
+  color: var(--cor-texto-suave);
+}

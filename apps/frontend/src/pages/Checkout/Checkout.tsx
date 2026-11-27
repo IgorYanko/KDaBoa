@@ -14,6 +14,7 @@ import {
   comprarIngresso,
   pagamentoDisponivel,
 } from '../../services/pagamentos';
+import { CartaoPreview } from './CartaoPreview';
 import styles from './Checkout.module.css';
 
 const formatoPreco = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -28,6 +29,9 @@ export function Checkout() {
   const [metodo, setMetodo] = useState<'cartao' | 'pix'>('cartao');
   const [enviando, setEnviando] = useState(false);
   const [pedido, setPedido] = useState<PagamentoPedidoDTO | null>(null);
+  const [bin, setBin] = useState('');
+  const [nomeTitular, setNomeTitular] = useState('');
+  const [verso, setVerso] = useState(false);
 
   useEffect(() => {
     let ativo = true;
@@ -102,6 +106,24 @@ export function Checkout() {
       };
     } | null = null;
 
+    setBin('');
+    setNomeTitular('');
+    setVerso(false);
+
+    const form = document.getElementById('form-checkout');
+    const aoDigitarNome = (evento: Event) => {
+      const alvo = evento.target;
+      if (alvo instanceof HTMLInputElement && alvo.id === 'form-checkout__cardholderName') {
+        setNomeTitular(alvo.value);
+      }
+    };
+    const aoFocar = (evento: FocusEvent) => {
+      const alvo = evento.target;
+      setVerso(alvo instanceof Element && Boolean(alvo.closest('#form-checkout__securityCode')));
+    };
+    form?.addEventListener('input', aoDigitarNome);
+    form?.addEventListener('focusin', aoFocar);
+
     carregarSdkMercadoPago()
       .then(() => {
         if (cancelado || !window.MercadoPago) return;
@@ -124,6 +146,9 @@ export function Checkout() {
           callbacks: {
             onFormMounted: (falha) => {
               if (falha) setErro('Não foi possível abrir o formulário do cartão.');
+            },
+            onBinChange: (proximoBin) => {
+              if (!cancelado) setBin(proximoBin);
             },
             onSubmit: (evento) => {
               evento.preventDefault();
@@ -150,6 +175,8 @@ export function Checkout() {
 
     return () => {
       cancelado = true;
+      form?.removeEventListener('input', aoDigitarNome);
+      form?.removeEventListener('focusin', aoFocar);
       formulario?.unmount?.();
     };
   }, [metodo, disponivel, item, pedido, total, concluir]);
@@ -273,25 +300,59 @@ export function Checkout() {
                   </Botao>
                 </form>
               ) : (
-                <form id="form-checkout" className={styles.formulario}>
-                  <div id="form-checkout__cardNumber" className={styles.campoSeguro} />
-                  <div id="form-checkout__expirationDate" className={styles.campoSeguro} />
-                  <div id="form-checkout__securityCode" className={styles.campoSeguro} />
-                  <input id="form-checkout__cardholderName" className={styles.campo} placeholder="Nome do titular" />
-                  <select id="form-checkout__issuer" className={styles.campo} />
-                  <select id="form-checkout__installments" className={styles.campo} />
-                  <select id="form-checkout__identificationType" className={styles.campo} />
-                  <input id="form-checkout__identificationNumber" className={styles.campo} placeholder="Documento" />
-                  <input
-                    id="form-checkout__cardholderEmail"
-                    className={styles.campo}
-                    type="email"
-                    placeholder="E-mail do pagador de teste"
-                  />
-                  <button type="submit" className={styles.enviar} disabled={enviando}>
-                    {enviando ? 'Processando…' : 'Pagar com cartão'}
-                  </button>
-                </form>
+                <div className={styles.pagamento}>
+                  <CartaoPreview bin={bin} nome={nomeTitular} verso={verso} />
+                  <form id="form-checkout" className={styles.formulario}>
+                    <div className={styles.grupo}>
+                      <span className={styles.rotulo}>Número</span>
+                      <div id="form-checkout__cardNumber" className={styles.campoSeguro} />
+                    </div>
+                    <div className={styles.linha}>
+                      <div className={styles.grupo}>
+                        <span className={styles.rotulo}>Validade</span>
+                        <div id="form-checkout__expirationDate" className={styles.campoSeguro} />
+                      </div>
+                      <div className={styles.grupo}>
+                        <span className={styles.rotulo}>CVV</span>
+                        <div id="form-checkout__securityCode" className={styles.campoSeguro} />
+                      </div>
+                    </div>
+                    <label className={styles.grupo}>
+                      <span className={styles.rotulo}>Nome do titular</span>
+                      <input id="form-checkout__cardholderName" className={styles.campo} placeholder="Como está no cartão" />
+                    </label>
+                    <label className={styles.grupo}>
+                      <span className={styles.rotulo}>Banco</span>
+                      <select id="form-checkout__issuer" className={styles.campo} />
+                    </label>
+                    <label className={styles.grupo}>
+                      <span className={styles.rotulo}>Parcelas</span>
+                      <select id="form-checkout__installments" className={styles.campo} />
+                    </label>
+                    <div className={styles.linha}>
+                      <label className={styles.grupo}>
+                        <span className={styles.rotulo}>Documento</span>
+                        <select id="form-checkout__identificationType" className={styles.campo} />
+                      </label>
+                      <label className={styles.grupo}>
+                        <span className={styles.rotulo}>Número</span>
+                        <input id="form-checkout__identificationNumber" className={styles.campo} placeholder="Documento" />
+                      </label>
+                    </div>
+                    <label className={styles.grupo}>
+                      <span className={styles.rotulo}>E-mail</span>
+                      <input
+                        id="form-checkout__cardholderEmail"
+                        className={styles.campo}
+                        type="email"
+                        placeholder="E-mail do pagador"
+                      />
+                    </label>
+                    <button type="submit" className={styles.enviar} disabled={enviando}>
+                      {enviando ? 'Processando…' : 'Pagar com cartão'}
+                    </button>
+                  </form>
+                </div>
               )}
             </>
           )}
