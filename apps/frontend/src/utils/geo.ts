@@ -22,7 +22,8 @@ export function distanciaKm([lat1, lon1]: Coordenadas, [lat2, lon2]: Coordenadas
 
 /** "350 m" ou "1,2 km" */
 export function formatarDistancia(km: number): string {
-  if (km < 1) return `${Math.max(10, Math.round((km * 1000) / 10) * 10)} m`;
+  const metros = Math.max(10, Math.round((km * 1000) / 10) * 10);
+  if (metros < 1000) return `${metros} m`;
   return `${km.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} km`;
 }
 
