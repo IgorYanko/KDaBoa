@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import type { RequisicaoAutenticada } from '../middlewares/authMiddleware';
 import { prisma } from '../prisma';
-import { clienteMercadoPago, pagamentoConfigurado, type PagamentoMp } from '../services/mercadoPago';
+import { ErroMercadoPago, clienteMercadoPago, pagamentoConfigurado, type PagamentoMp } from '../services/mercadoPago';
 import {
   aplicarPagamento,
   carregarPedido,
@@ -179,16 +179,37 @@ export const pagamentoController = {
           identificationNumber: req.body?.identification_number,
           expiraEm: pedido.expiraEm,
         });
-      } catch (_erro) {
+      } catch (erro) {
+        if (!(erro instanceof ErroMercadoPago)) {
+          console.error(
+            JSON.stringify({
+              nivel: 'error',
+              evento: 'mercado_pago',
+              operacao: 'criar_pagamento',
+              referencia: pedido.id,
+              mensagem: erro instanceof Error ? erro.message : 'erro desconhecido',
+            }),
+          );
+        }
         await cancelarReserva(pedido.id, eventoId, quantidade);
-        res.status(502).json({ erro: 'Não foi possível cobrar no Mercado Pago.' });
+        const causa = erro instanceof ErroMercadoPago ? `: ${erro.message}` : '.';
+        res.status(502).json({ erro: `Não foi possível cobrar no Mercado Pago${causa}` });
         return;
       }
 
       try {
         await aplicarPagamento(pedido, pagamento);
-      } catch (_erro) {
-        // A cobrança já existe. A reserva continua pendente para o webhook reconciliar.
+      } catch (erro) {
+        console.error(
+          JSON.stringify({
+            nivel: 'error',
+            evento: 'mercado_pago',
+            operacao: 'gravar_pagamento',
+            referencia: pedido.id,
+            pagamentoId: String(pagamento.id),
+            mensagem: erro instanceof Error ? erro.message : 'erro desconhecido',
+          }),
+        );
       }
 
       const completo = await carregarPedido(pedido.id);
@@ -239,7 +260,18 @@ export const pagamentoController = {
 
       await expirarPedidosPendentes();
       res.status(200).json({ ok: true });
-    } catch (_error) {
+    } catch (erro) {
+      if (!(erro instanceof ErroMercadoPago)) {
+        console.error(
+          JSON.stringify({
+            nivel: 'error',
+            evento: 'mercado_pago',
+            operacao: 'webhook',
+            referencia: id,
+            mensagem: erro instanceof Error ? erro.message : 'erro desconhecido',
+          }),
+        );
+      }
       res.status(500).json({ erro: 'Erro ao processar o webhook' });
     }
   },
