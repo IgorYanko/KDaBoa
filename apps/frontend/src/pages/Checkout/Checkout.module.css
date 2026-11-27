@@ -44,9 +44,15 @@
 @media (min-width: 768px) {
   .pagamento {
     display: grid;
-    grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
     gap: var(--espaco-6);
     align-items: start;
+  }
+
+  .preview {
+    order: 2;
+    position: sticky;
+    top: var(--espaco-6);
   }
 }
 
@@ -75,14 +81,35 @@
   color: var(--cor-rotulo);
 }
 
-.campo,
-.campoSeguro {
-  min-height: 44px;
-  padding: 10px 12px;
-  border: 1px solid var(--cor-borda);
-  border-radius: var(--raio-campo);
-  background: var(--cor-superficie);
+.campo {
+  width: 100%;
+  height: var(--altura-campo);
+  padding: 0 var(--espaco-4);
+  border: 1px solid var(--cor-borda-campo);
+  border-radius: var(--raio-md);
+  background: var(--cor-campo);
   color: var(--cor-texto);
+  caret-color: var(--cor-primaria);
+  color-scheme: dark;
+  font-size: var(--texto-md);
+  font-family: inherit;
+}
+
+.campo::placeholder {
+  color: var(--cor-texto-fraco);
+}
+
+.campo:focus {
+  outline: none;
+  border-color: var(--cor-secundaria);
+  box-shadow: var(--anel-foco);
+}
+
+@media (hover: hover) {
+  .campo:hover:not(:focus) {
+    background: var(--cor-campo-hover);
+    border-color: var(--cor-borda-campo-hover);
+  }
 }
 
 .enviar {

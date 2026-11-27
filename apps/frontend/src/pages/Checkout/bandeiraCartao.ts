@@ -28,7 +28,9 @@ export function bandeiraDoBin(bin: string): Bandeira {
   if (PREFIXOS_ELO.some((prefixo) => digitos.startsWith(prefixo))) return 'elo';
   if (digitos.startsWith('3841') || digitos.startsWith('606282')) return 'hipercard';
   if (/^3[47]/.test(digitos)) return 'amex';
-  if (/^(5[1-5]|2[2-7])/.test(digitos)) return 'master';
+  // 50–55 cobre a Mastercard clássica e o BIN 5031 dos cartões de teste do Mercado Pago.
+  // Prefixos Elo que também começam com 50 já foram resolvidos acima.
+  if (/^(5[0-5]|2[2-7])/.test(digitos)) return 'master';
   if (digitos.startsWith('4')) return 'visa';
   return 'neutro';
 }
@@ -58,4 +60,19 @@ export function numeroMascarado(bin: string, bandeira: Bandeira): string {
     return `${base.slice(0, 4)} ${base.slice(4, 10)} ${base.slice(10)}`.trim();
   }
   return base.replace(/(.{4})/g, '$1 ').trim();
+}
+
+/** MM/AA a partir do que foi digitado. Vazio continua como placeholder. */
+export function validadeExibida(valor: string): string {
+  const digitos = valor.replace(/\D/g, '').slice(0, 4);
+  if (!digitos) return 'MM/AA';
+  if (digitos.length <= 2) return digitos;
+  return `${digitos.slice(0, 2)}/${digitos.slice(2)}`;
+}
+
+/** CVV digitado. Amex tem 4 dígitos; as outras bandeiras, 3. */
+export function cvvExibido(valor: string, bandeira: Bandeira): string {
+  const tamanho = bandeira === 'amex' ? 4 : 3;
+  const digitos = valor.replace(/\D/g, '').slice(0, tamanho);
+  return digitos || '•'.repeat(tamanho);
 }

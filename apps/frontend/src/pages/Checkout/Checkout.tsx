@@ -29,8 +29,10 @@ export function Checkout() {
   const [metodo, setMetodo] = useState<'cartao' | 'pix'>('cartao');
   const [enviando, setEnviando] = useState(false);
   const [pedido, setPedido] = useState<PagamentoPedidoDTO | null>(null);
-  const [bin, setBin] = useState('');
+  const [numeroCartao, setNumeroCartao] = useState('');
   const [nomeTitular, setNomeTitular] = useState('');
+  const [validade, setValidade] = useState('');
+  const [cvv, setCvv] = useState('');
   const [verso, setVerso] = useState(false);
 
   useEffect(() => {
@@ -106,23 +108,34 @@ export function Checkout() {
       };
     } | null = null;
 
-    setBin('');
+    setNumeroCartao('');
     setNomeTitular('');
+    setValidade('');
+    setCvv('');
     setVerso(false);
 
     const form = document.getElementById('form-checkout');
-    const aoDigitarNome = (evento: Event) => {
+    const aoDigitar = (evento: Event) => {
       const alvo = evento.target;
-      if (alvo instanceof HTMLInputElement && alvo.id === 'form-checkout__cardholderName') {
-        setNomeTitular(alvo.value);
-      }
+      if (!(alvo instanceof HTMLInputElement)) return;
+      if (alvo.id === 'form-checkout__cardNumber') setNumeroCartao(alvo.value);
+      if (alvo.id === 'form-checkout__cardholderName') setNomeTitular(alvo.value);
+      if (alvo.id === 'form-checkout__expirationDate') setValidade(alvo.value);
+      if (alvo.id === 'form-checkout__securityCode') setCvv(alvo.value);
     };
     const aoFocar = (evento: FocusEvent) => {
       const alvo = evento.target;
-      setVerso(alvo instanceof Element && Boolean(alvo.closest('#form-checkout__securityCode')));
+      setVerso(alvo instanceof HTMLElement && alvo.id === 'form-checkout__securityCode');
     };
-    form?.addEventListener('input', aoDigitarNome);
-    form?.addEventListener('focusin', aoFocar);
+    const aoSair = (evento: FocusEvent) => {
+      const destino = evento.relatedTarget;
+      if (!(destino instanceof HTMLElement) || destino.id !== 'form-checkout__securityCode') {
+        setVerso(false);
+      }
+    };
+    form?.addEventListener('input', aoDigitar, true);
+    form?.addEventListener('focusin', aoFocar, true);
+    form?.addEventListener('focusout', aoSair, true);
 
     carregarSdkMercadoPago()
       .then(() => {
@@ -130,7 +143,7 @@ export function Checkout() {
         const mp = new window.MercadoPago(chavePublicaMercadoPago(), { locale: 'pt-BR' });
         formulario = mp.cardForm({
           amount: total.toFixed(2),
-          iframe: true,
+          iframe: false,
           form: {
             id: 'form-checkout',
             cardNumber: { id: 'form-checkout__cardNumber', placeholder: 'Número do cartão' },
@@ -148,7 +161,8 @@ export function Checkout() {
               if (falha) setErro('Não foi possível abrir o formulário do cartão.');
             },
             onBinChange: (proximoBin) => {
-              if (!cancelado) setBin(proximoBin);
+              if (cancelado || !proximoBin) return;
+              setNumeroCartao((atual) => (atual.replace(/\D/g, '').startsWith(proximoBin) ? atual : proximoBin));
             },
             onSubmit: (evento) => {
               evento.preventDefault();
@@ -175,8 +189,9 @@ export function Checkout() {
 
     return () => {
       cancelado = true;
-      form?.removeEventListener('input', aoDigitarNome);
-      form?.removeEventListener('focusin', aoFocar);
+      form?.removeEventListener('input', aoDigitar, true);
+      form?.removeEventListener('focusin', aoFocar, true);
+      form?.removeEventListener('focusout', aoSair, true);
       formulario?.unmount?.();
     };
   }, [metodo, disponivel, item, pedido, total, concluir]);
@@ -301,21 +316,47 @@ export function Checkout() {
                 </form>
               ) : (
                 <div className={styles.pagamento}>
-                  <CartaoPreview bin={bin} nome={nomeTitular} verso={verso} />
+                  <div className={styles.preview}>
+                    <CartaoPreview
+                      numero={numeroCartao}
+                      nome={nomeTitular}
+                      validade={validade}
+                      cvv={cvv}
+                      verso={verso}
+                    />
+                  </div>
                   <form id="form-checkout" className={styles.formulario}>
-                    <div className={styles.grupo}>
+                    <label className={styles.grupo}>
                       <span className={styles.rotulo}>Número</span>
-                      <div id="form-checkout__cardNumber" className={styles.campoSeguro} />
-                    </div>
+                      <input
+                        id="form-checkout__cardNumber"
+                        className={styles.campo}
+                        inputMode="numeric"
+                        autoComplete="cc-number"
+                        placeholder="Número do cartão"
+                      />
+                    </label>
                     <div className={styles.linha}>
-                      <div className={styles.grupo}>
+                      <label className={styles.grupo}>
                         <span className={styles.rotulo}>Validade</span>
-                        <div id="form-checkout__expirationDate" className={styles.campoSeguro} />
-                      </div>
-                      <div className={styles.grupo}>
+                        <input
+                          id="form-checkout__expirationDate"
+                          className={styles.campo}
+                          inputMode="numeric"
+                          autoComplete="cc-exp"
+                          placeholder="MM/AA"
+                        />
+                      </label>
+                      <label className={styles.grupo}>
                         <span className={styles.rotulo}>CVV</span>
-                        <div id="form-checkout__securityCode" className={styles.campoSeguro} />
-                      </div>
+                        <input
+                          id="form-checkout__securityCode"
+                          className={styles.campo}
+                          inputMode="numeric"
+                          autoComplete="cc-csc"
+                          placeholder="CVV"
+                        />
+                      </label>
                     </div>
                     <label className={styles.grupo}>
                       <span className={styles.rotulo}>Nome do titular</span>

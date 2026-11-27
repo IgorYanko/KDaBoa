@@ -1,16 +1,19 @@
-import { bandeiraDoBin, nomeDaBandeira, numeroMascarado, type Bandeira } from './bandeiraCartao';
+import { bandeiraDoBin, cvvExibido, nomeDaBandeira, numeroMascarado, validadeExibida, type Bandeira } from './bandeiraCartao';
 import styles from './CartaoPreview.module.css';
 
 interface CartaoPreviewProps {
-  bin: string;
+  numero: string;
   nome: string;
+  validade: string;
+  cvv: string;
   verso: boolean;
 }
 
-/** Cartão desenhado ao lado do formulário. O número completo fica no campo seguro do Mercado Pago. */
-export function CartaoPreview({ bin, nome, verso }: CartaoPreviewProps) {
-  const bandeira = bandeiraDoBin(bin);
+/** Cartão desenhado ao lado do formulário. O pagamento segue com o token do Mercado Pago. */
+export function CartaoPreview({ numero, nome, validade, cvv, verso }: CartaoPreviewProps) {
+  const bandeira = bandeiraDoBin(numero);
   const titular = nome.trim() ? nome.trim().toUpperCase() : 'NOME DO TITULAR';
+  const validadePreenchida = validade.replace(/\D/g, '').length > 0;
 
   return (
     <div className={styles.cena} aria-hidden="true">
@@ -20,7 +23,7 @@ export function CartaoPreview({ bin, nome, verso }: CartaoPreviewProps) {
             <span className={styles.chip} />
             <Marca bandeira={bandeira} />
           </div>
-          <p className={styles.numero}>{numeroMascarado(bin, bandeira)}</p>
+          <p className={styles.numero}>{numeroMascarado(numero, bandeira)}</p>
           <div className={styles.rodape}>
             <p className={styles.bloco}>
               <span className={styles.legenda}>Titular</span>
@@ -28,7 +31,7 @@ export function CartaoPreview({ bin, nome, verso }: CartaoPreviewProps) {
             </p>
             <p className={styles.bloco}>
               <span className={styles.legenda}>Validade</span>
-              <span className={styles.valor}>MM/AA</span>
+              <span className={`${styles.valor} ${validadePreenchida ? '' : styles.vazio}`}>{validadeExibida(validade)}</span>
             </p>
           </div>
         </div>
@@ -36,7 +39,7 @@ export function CartaoPreview({ bin, nome, verso }: CartaoPreviewProps) {
           <span className={styles.tarja} />
           <p className={styles.cvv}>
             <span className={styles.legenda}>CVV</span>
-            <span className={styles.caixaCvv}>•••</span>
+            <span className={styles.caixaCvv}>{cvvExibido(cvv, bandeira)}</span>
           </p>
         </div>
       </div>
@@ -48,7 +51,7 @@ export function CartaoPreview({ bin, nome, verso }: CartaoPreviewProps) {
 function Marca({ bandeira }: { bandeira: Bandeira }) {
   if (bandeira === 'master') {
     return (
-      <span className={styles.master}>
+      <span className={styles.marcaMaster}>
         <span />
         <span />
       </span>
