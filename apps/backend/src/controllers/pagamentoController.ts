@@ -312,7 +312,7 @@ export const pagamentoController = {
     try {
       const ingressos = await prisma.ingresso.findMany({
         where: { pedido: { usuarioId, status: 'pago' }, status: 'valido' },
-        include: { pedido: { include: { evento: true } } },
+        include: { pedido: { include: { evento: { include: { local: true } } } } },
         orderBy: { criadoEm: 'desc' },
       });
 
@@ -324,6 +324,8 @@ export const pagamentoController = {
           evento_id: ingresso.pedido.eventoId,
           evento_titulo: ingresso.pedido.evento.titulo,
           data_inicio: ingresso.pedido.evento.dataInicio.toISOString(),
+          capa_url: ingresso.pedido.evento.imagemUrl ?? null,
+          local_nome: ingresso.pedido.evento.local.nome,
         })),
       );
     } catch (_error) {
